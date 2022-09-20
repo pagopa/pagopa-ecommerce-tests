@@ -2,7 +2,7 @@
 trigger: none
 
 pool:
-  name: ecommerce-loadtest-linux
+  vmImage: 'ubuntu-latest'
 
 parameters:
   - name: "DESCRIPTION"
@@ -24,7 +24,6 @@ parameters:
     displayName: "maxVUs"
     type: string
     default: "10"
-  
   - name: "TEST_MAIL_FROM"
     displayName: "TEST_MAIL_FROM"
     type: string
@@ -35,10 +34,10 @@ parameters:
     displayName: "URL_BASE_PATH"
     type: string
     values:
-      - "https://api.dev.platform.pagopa.it/notifications-service"
-  - name: "API_SUBSCRIPTION_KEY"
-    displayName: "API_SUBSCRIPTION_KEY"
-    type: string
+      - "https://api.uat.platform.pagopa.it/notifications-service"
+#  - name: "API_SUBSCRIPTION_KEY"
+#    displayName: "API_SUBSCRIPTION_KEY"
+#    type: string
   - name: "SCRIPT"
     displayName: "Script name"
     type: string
@@ -52,6 +51,9 @@ parameters:
   - name: "nodeVersion"
     type: string
     default: "none"
+
+variables:
+  API_SUBSCRIPTION_KEY: $(API_SUBSCRIPTION_KEY)
 
 steps:
   # If a Node version is defined explicitly by parameter, such version is used
@@ -94,7 +96,7 @@ steps:
         -e URL_BASE_PATH=${{ parameters.URL_BASE_PATH }} \
         -e TEST_MAIL_FROM=${{ parameters.TEST_MAIL_FROM }} \
         -e TEST_MAIL_TO=${{ parameters.TEST_MAIL_TO }} \
-        -e API_SUBSCRIPTION_KEY=${{ parameters.API_SUBSCRIPTION_KEY }} \
+        -e API_SUBSCRIPTION_KEY='$(API_SUBSCRIPTION_KEY)' \
         -e rate=${{ parameters.rate }} \
         -e duration=${{ parameters.duration }} \
         -e preAllocatedVUs=${{ parameters.preAllocatedVUs }} \
