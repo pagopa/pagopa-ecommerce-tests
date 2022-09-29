@@ -1,4 +1,4 @@
-import { check, fail, sleep } from "k6";
+import { check } from "k6";
 import http from "k6/http";
 import { getConfigOrThrow } from "../utils/config";
 
@@ -25,12 +25,14 @@ export let options = {
 export default function() {
   const urlBasePath = config.URL_BASE_PATH;
   const bodyRequest =  {
-    from: config.TEST_MAIL_FROM,
     to: config.TEST_MAIL_TO,
+    subject: "test",
     templateId: "poc-1",
-    pspName: "pspName",
-    amount: 100,
-    transactionId: true
+    parameters: {
+      amount: 100,
+      email: config.TEST_MAIL_FROM,
+      noticeCode: "302000100000009424"
+    }
   }
 
   const headersParams = {
@@ -45,6 +47,9 @@ export default function() {
     ...headersParams,
     tags: { api: "notifications-test" },
   });
+  
+  console.log(`Resp: ${JSON.stringify(res)}`)
+
   check(
     res,
     { "Response status from POST /emails was 200": (r) => r.status == 200 },
