@@ -47,8 +47,6 @@ export default function() {
     ...headersParams,
     tags: { api: "notifications-test" },
   });
-  
-  console.log(`Resp: ${JSON.stringify(res)}`)
 
   check(
     res,
