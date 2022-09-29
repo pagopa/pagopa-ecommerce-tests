@@ -52,9 +52,6 @@ parameters:
     type: string
     default: "none"
 
-variables:
-  API_SUBSCRIPTION_KEY: $(API_SUBSCRIPTION_KEY)
-
 steps:
   # If a Node version is defined explicitly by parameter, such version is used
   # Else, version is red from .node-version file
