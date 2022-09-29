@@ -21,11 +21,6 @@ export let options = {
   },
 };
 
-const params = {
-  headers: {
-    "Content-Type": "application/json",
-  },
-};
 
 export default function() {
   const urlBasePath = config.URL_BASE_PATH;
@@ -47,7 +42,7 @@ export default function() {
 
   let url = `${urlBasePath}/v1/emails`;
   let res = http.post(url, JSON.stringify(bodyRequest), {
-    ...params,
+    ...headersParams,
     tags: { api: "notifications-test" },
   });
   check(
