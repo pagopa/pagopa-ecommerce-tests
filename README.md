@@ -22,8 +22,29 @@ This test require the dispatch of an email.
 $ docker run -i --rm -v $(pwd)/dist:/dist  -e API_SUBSCRIPTION_KEY=${API_SUBSCRIPTION_KEY} -e URL_BASE_PATH=${URL_BASE_PATH} -e TEST_MAIL_FROM=${TEST_MAIL_FROM} -e TEST_MAIL_TO=${TEST_MAIL_TO} -e rate=${rate} -e duration=${duration} -e preAllocatedVUs=${preAllocatedVUs} -e maxVUs=${maxVUs} loadimpact/k6 run /dist/soak-test.js
 ```
 
-To run test and load env vars fron `.env` file:
+To run test and load env vars from `.env` file:
 
 ```
 $ docker run -i --rm -v $(pwd)/dist:/dist  --env-file .env loadimpact/k6 run /dist/soak-test.js
+```
+
+## 02. Soak test - request transaction authorization
+
+This test perform a complete transaction authorization flow.
+The following steps are performed for each test:
+1. GET payment request info NM3 (with a randomly generated rptId)
+2. POST transactions for create a new transaction
+3. GET the transaction created in the above step
+4. GET payment methods for the transaction amount
+5. GET PSPs for the payment method retrieved in the above step
+6. POST transactions/auth-requests for create an authorization request for the created transaction
+
+```
+$ docker run -i --rm -v $(pwd)/dist:/dist -e API_SUBSCRIPTION_KEY=${API_SUBSCRIPTION_KEY} -e URL_BASE_PATH=${URL_BASE_PATH} -e TEST_MAIL_FROM=${TEST_MAIL_FROM} -e TEST_MAIL_TO=${TEST_MAIL_TO} -e rate=${rate} -e duration=${duration} -e preAllocatedVUs=${preAllocatedVUs} -e maxVUs=${maxVUs} loadimpact/k6 run /dist/soak-test-transaction-auth.js
+```
+
+To run test and load env vars from `.env` file:
+
+```
+$ docker run -i --rm -v $(pwd)/dist:/dist  --env-file .env loadimpact/k6 run /dist/soak-test-transaction-auth.js
 ```
