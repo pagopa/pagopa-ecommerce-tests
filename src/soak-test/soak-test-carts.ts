@@ -30,42 +30,42 @@ const headersParams = {
   redirects: 0,
 };
 
-const cartRequest =  {
+const cartRequest = {
   paymentNotices: [
-      {
-          noticeNumber: "302000100440009424",
-          fiscalCode: "77777777777",
-          amount: 10000,
-          companyName: "Test company",
-          description: "Payment notice description"
-      }
+    {
+      noticeNumber: "302000100440009424",
+      fiscalCode: "77777777777",
+      amount: 10000,
+      companyName: "Test company",
+      description: "Payment notice description"
+    }
   ],
   returnUrls: {
-      returnOkUrl: "https://returnOkUrl",
-      returnCancelUrl: "https://returnCancelUrl",
-      returnErrorUrl: "https://returnErrorUrl"
+    returnOkUrl: "https://returnOkUrl",
+    returnCancelUrl: "https://returnCancelUrl",
+    returnErrorUrl: "https://returnErrorUrl"
   },
   emailNotice: "test@test.it"
 }
 
-export default function() {
+export default function () {
   let url = `${urlBasePath}/checkout/ec/v1/carts`;
-  let res = http.post(url, 
+  let res = http.post(url,
     JSON.stringify(cartRequest),
-     {
-    ...headersParams,
-    tags: { api: "PostCarts" },
-  });
+    {
+      ...headersParams,
+      tags: { api: "PostCarts" },
+    });
   check(
     res,
     { "Response status from POST /carts was 302": (r) => r.status == 302 },
-    { api: "PostCarts" } 
+    { api: "PostCarts" }
   );
   let cartId;
-  if(res.status == 302){
+  if (res.status == 302) {
     cartId = res.headers["Location"];
     //take the cart id from the response header location value
-    cartId = cartId.substring(cartId.lastIndexOf('/')+1);
+    cartId = cartId.substring(cartId.lastIndexOf('/') + 1);
     url = `${urlBasePath}/checkout/ecommerce/v1/carts/${cartId}`;
     res = http.get(url, {
       ...headersParams,
@@ -74,11 +74,11 @@ export default function() {
     check(
       res,
       { "Response status from GET /carts was 200": (r) => r.status == 200 },
-      { api: "GetCarts"  }
+      { api: "GetCarts" }
     );
-  }else{
-    console.log("Post carts response code: "+res.status);
+  } else {
+    console.log("Post carts response code: " + res.status);
     fail("Invalid post carts response received");
   }
-  
+
 }

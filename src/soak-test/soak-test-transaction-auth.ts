@@ -41,7 +41,7 @@ export default function () {
     var emailAddress = config.TEST_MAIL_TO
     // Get Payment Request Info NM3
     response = http.get(
-        `https://${urlBasePath}/checkout/ecommerce/v1/payment-requests/${rptId}?recaptchaResponse=test`
+        `${urlBasePath}/checkout/ecommerce/v1/payment-requests/${rptId}?recaptchaResponse=test`
     )
     check(response, {
         'Response status from GET /payment-requests is 200': (r) => r.status == 200,
@@ -61,7 +61,7 @@ export default function () {
         }
 
         response = http.post(
-            `https://${urlBasePath}/checkout/ecommerce/v1/transactions?test=debug`,
+            `${urlBasePath}/checkout/ecommerce/v1/transactions?test=debug`,
             JSON.stringify(bodyRequest),
             {
                 headers: {
@@ -82,7 +82,7 @@ export default function () {
     if (transactionId !== undefined) {
         // Get transaction
         response = http.get(
-            `https://${urlBasePath}/checkout/ecommerce/v1/transactions/${transactionId}`
+            `${urlBasePath}/checkout/ecommerce/v1/transactions/${transactionId}`
         )
         check(response, {
             'Response status from GET /transactions is 200': (r) => r.status == 200,
@@ -97,7 +97,7 @@ export default function () {
     // Get payment methods
     if (amount !== undefined) {
         response = http.get(
-            `https://${urlBasePath}/checkout/ecommerce/v1/payment-methods?amount=${amount}`
+            `${urlBasePath}/checkout/ecommerce/v1/payment-methods?amount=${amount}`
         )
         check(response, {
             'Response status from GET /payment-methods is 200': (r) => r.status == 200,
@@ -111,7 +111,7 @@ export default function () {
     // Get PSPs by payment method
     if (paymentMethodId !== undefined && amount !== undefined) {
         response = http.get(
-            `https://${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}/psps?amount=${amount}`
+            `${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}/psps?amount=${amount}`
         )
         check(response, {
             'Response status from GET /payment-methods is 200': (r) => r.status == 200,
@@ -132,7 +132,7 @@ export default function () {
             "language": "IT"
         }
         response = http.post(
-            `https://${urlBasePath}/checkout/ecommerce/v1/transactions/${transactionId}/auth-requests`,
+            `${urlBasePath}/checkout/ecommerce/v1/transactions/${transactionId}/auth-requests`,
             JSON.stringify(bodyRequest),
             {
                 headers: {
