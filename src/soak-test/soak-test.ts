@@ -1,4 +1,4 @@
-import { check, fail, sleep } from "k6";
+import { check } from "k6";
 import http from "k6/http";
 import { getConfigOrThrow } from "../utils/config";
 
@@ -16,25 +16,23 @@ export let options = {
   },
   thresholds: {
     http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
+    checks: ['rate>0.9'], // 90% of the request must be completed
     "http_req_duration{api:checkMessages}": ["p(95)<1000"],
   },
 };
 
-const params = {
-  headers: {
-    "Content-Type": "application/json",
-  },
-};
 
 export default function() {
   const urlBasePath = config.URL_BASE_PATH;
   const bodyRequest =  {
-    from: config.TEST_MAIL_FROM,
     to: config.TEST_MAIL_TO,
+    subject: "test",
     templateId: "poc-1",
-    pspName: "pspName",
-    amount: 100,
-    transactionId: true
+    parameters: {
+      amount: 100,
+      email: config.TEST_MAIL_FROM,
+      noticeCode: "302000100000009424"
+    }
   }
 
   const headersParams = {
@@ -46,9 +44,10 @@ export default function() {
 
   let url = `${urlBasePath}/v1/emails`;
   let res = http.post(url, JSON.stringify(bodyRequest), {
-    ...params,
+    ...headersParams,
     tags: { api: "notifications-test" },
   });
+
   check(
     res,
     { "Response status from POST /emails was 200": (r) => r.status == 200 },
