@@ -46,5 +46,5 @@ $ docker run -i --rm -v $(pwd)/dist:/dist -e API_SUBSCRIPTION_KEY=${API_SUBSCRIP
 To run test and load env vars from `.env` file:
 
 ```
-$ docker run -i --rm -v $(pwd)/dist:/dist  --env-file .env loadimpact/k6 run /dist/soak-test-transaction-auth.js
+$ yarn webpack && docker run -i --rm -v $(pwd)/dist:/dist  --env-file .env loadimpact/k6 run /dist/soak-test-transaction-auth.js
 ```
