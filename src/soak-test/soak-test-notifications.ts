@@ -42,7 +42,7 @@ export default function() {
     },
 };
 
-  let url = `${urlBasePath}/v1/emails`;
+  let url = `${urlBasePath}/notifications-service/v1/emails`;
   let res = http.post(url, JSON.stringify(bodyRequest), {
     ...headersParams,
     tags: { api: "notifications-test" },

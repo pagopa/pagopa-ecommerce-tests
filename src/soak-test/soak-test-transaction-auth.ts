@@ -1,6 +1,6 @@
 import { check, fail, sleep } from "k6";
 import http from "k6/http";
-import { getConfigOrThrow } from "../utils/config.ts";
+import { getConfigOrThrow } from "../utils/config";
 
 const config = getConfigOrThrow();
 
