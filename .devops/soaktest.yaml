@@ -34,12 +34,13 @@ parameters:
     displayName: "URL_BASE_PATH"
     type: string
     values:
-      - "https://api.uat.platform.pagopa.it/notifications-service"
+      - "https://api.dev.platform.pagopa.it"
+      - "https://api.uat.platform.pagopa.it"
   - name: "SCRIPT"
     displayName: "Script name"
     type: string
     values:
-      - soak-test
+      - soak-test-notifications
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
   - name: "projectDir"
     type: string
