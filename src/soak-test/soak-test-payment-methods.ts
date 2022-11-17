@@ -18,7 +18,13 @@ export let options = {
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
         checks: ['rate>0.9'], // 90% of the request must be completed
-        "http_req_duration{api:checkMessages}": ["p(95)<1000"],
+        "http_req_duration{api:create-payment-method-test}": ["p(95)<1000"],
+        "http_req_duration{api:get-single-payment-method-test}": ["p(95)<1000"],
+        "http_req_duration{api:patch-payment-method-status-test}": ["p(95)<1000"],
+        "http_req_duration{api:get-psps-by-payment-method-test}": ["p(95)<1000"],
+        "http_req_duration{api:get-all-payment-methods-test}": ["p(95)<1000"],
+        "http_req_duration{api:get-all-psps-test}": ["p(95)<1000"],
+        "http_req_duration{api:update-psps-list-test}": ["p(95)<1000"]
     },
 };
 
@@ -31,7 +37,7 @@ export default function () {
 
     // Body request for POST create a new payment method
     const bodyCreatePaymentMethodRequest = {
-        name: config.PAYMENT_METHOD_NAME.concat((counter ++).toString()) ,
+        name: config.PAYMENT_METHOD_NAME.concat((counter++).toString()),
         description: "The new payment method",
         asset: "maestro",
         status: "DISABLED",
@@ -73,7 +79,7 @@ export default function () {
         paymentMethodId = response.json()["id"];
         //Test for GET single payment method after POST
         url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}`;
-        response = http.get(url);
+        response = http.get(url, { tags: { api: "get-single-payment-method-test" } });
 
         check(
             response,
@@ -85,7 +91,7 @@ export default function () {
         url = `${urlBasePath}/ecommerce/payment-methods-service/v1/payment-methods/${paymentMethodId}`;
         response = http.patch(url, JSON.stringify(badyForPatchStatus), {
             ...headersParams,
-            tags: { api: "patch-status-payment-method-test" },
+            tags: { api: "patch-payment-method-status-test" },
         });
 
         check(
@@ -101,7 +107,7 @@ export default function () {
 
                 //Test for GET psps by paymentMethodId
                 url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}/psps`;
-                response = http.get(url);
+                response = http.get(url, { tags: { api: "get-psps-by-payment-method-test" } });
                 check(
                     response,
                     { "Response status from GET /psps by payment method id was 200": (r) => r.status == 200 },
@@ -122,7 +128,7 @@ export default function () {
 
     //Test for GET all payment method
     url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods`;
-    response = http.get(url);
+    response = http.get(url, { tags: { api: "get-all-payment-methods-test" } });
     check(
         response,
         { "Response status from GET payment-methods was 200": (r) => r.status == 200 },
@@ -131,7 +137,7 @@ export default function () {
 
     //Test for GET psps
     url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/psps`;
-    response = http.get(url);
+    response = http.get(url, { tags: { api: "get-all-psps-test" } });
     check(
         response,
         { "Response status from GET /psps was 200": (r) => r.status == 200 },
@@ -140,10 +146,10 @@ export default function () {
 
     //Test for PUT psps list
     // url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/psps`;
-    // response = http.put(url);
+    // response = http.put(url, null, { tags: { api: "update-psps-list-test" } });
     // check(
     //     response,
     //     { "Response status from PUT /psps was 200": (r) => r.status == 200 },
-    //     { api: "update-psps-list" }
+    //     { api: "update-psps-list-test" }
     // );
 }
