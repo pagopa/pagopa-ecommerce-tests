@@ -33,12 +33,12 @@ parameters:
   - name: "URL_BASE_PATH"
     displayName: "URL_BASE_PATH"
     type: string
-  - name: "NEW_PAYMENT_METHOD_NAME"
-    displayName: "NEW_PAYMENT_METHOD_NAME"
-    type: string
     values:
       - "https://api.dev.platform.pagopa.it"
       - "https://api.uat.platform.pagopa.it"
+  - name: "NEW_PAYMENT_METHOD_NAME"
+    displayName: "NEW_PAYMENT_METHOD_NAME"
+    type: string
   - name: "SCRIPT"
     displayName: "Script name"
     type: string
