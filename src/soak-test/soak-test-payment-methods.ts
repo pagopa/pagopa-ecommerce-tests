@@ -1,3 +1,4 @@
+import { Int } from "io-ts";
 import { check, fail } from "k6";
 import http from "k6/http";
 import { getConfigOrThrow } from "../utils/config";
@@ -21,7 +22,7 @@ export let options = {
     },
 };
 
-
+let counter: number = 0;
 
 export default function () {
     const urlBasePath = config.URL_BASE_PATH;
@@ -30,7 +31,7 @@ export default function () {
 
     // Body request for POST create a new payment method
     const bodyCreatePaymentMethodRequest = {
-        name: config.PAYMENT_METHOD_NAME,
+        name: config.PAYMENT_METHOD_NAME.concat((counter ++).toString()) ,
         description: "The new payment method",
         asset: "maestro",
         status: "DISABLED",
@@ -106,7 +107,7 @@ export default function () {
                     { "Response status from GET /psps by payment method id was 200": (r) => r.status == 200 },
                     { api: "get-psps-by-payment-method-test" }
                 );
-            
+
             } else {
                 fail('Error patch method for change payment method status. The state has not changed.');
             }
