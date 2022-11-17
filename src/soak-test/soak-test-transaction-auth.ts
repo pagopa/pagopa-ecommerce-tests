@@ -1,4 +1,4 @@
-import { check, fail, sleep } from "k6";
+import { check, fail} from "k6";
 import http from "k6/http";
 import { getConfigOrThrow } from "../utils/config";
 
@@ -16,7 +16,12 @@ export let options = {
     },
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
-        "http_req_duration{api:checkMessages}": ["p(95)<1000"],
+        "http_req_duration{api:GetPaymentRequestInfo}": ["p(95)<1000"],
+        "http_req_duration{api:CreateNewTransaction}": ["p(95)<1000"],
+        "http_req_duration{api:GetTransaction}": ["p(95)<1000"],
+        "http_req_duration{api:GetPaymentMethods}": ["p(95)<1000"],
+        "http_req_duration{api:GetPSPByPaymentMethod}": ["p(95)<1000"],
+        "http_req_duration{api:AuthRequest}": ["p(95)<1000"],
     },
 };
 
@@ -41,11 +46,13 @@ export default function () {
     var emailAddress = config.TEST_MAIL_TO
     // Get Payment Request Info NM3
     response = http.get(
-        `${urlBasePath}/checkout/ecommerce/v1/payment-requests/${rptId}?recaptchaResponse=test`
+        `${urlBasePath}/checkout/ecommerce/v1/payment-requests/${rptId}?recaptchaResponse=test`, 
+         {tags: { api: "GetPaymentRequestInfo" }}
     )
-    check(response, {
-        'Response status from GET /payment-requests is 200': (r) => r.status == 200,
-    });
+    check(response, 
+        {'Response status from GET /payment-requests is 200': (r) => r.status == 200},
+        { api: "GetPaymentRequestInfo" }
+        );
     if (response.status == 200) {
         paymentToken = response.json()["paymentToken"];
         rptId = response.json()["rptId"];
@@ -67,11 +74,12 @@ export default function () {
                 headers: {
                     'content-type': 'application/json',
                 },
+                tags: { api: "CreateNewTransaction" }
             }
         )
-        check(response, {
-            'rResponse status from POST /transactions is 200': (r) => r.status == 200,
-        });
+        check(response, 
+            {'rResponse status from POST /transactions is 200': (r) => r.status == 200},
+            { api: "CreateNewTransaction" });
     } else {
         fail('Missing data for create new transaction');
     }
@@ -82,11 +90,13 @@ export default function () {
     if (transactionId !== undefined) {
         // Get transaction
         response = http.get(
-            `${urlBasePath}/checkout/ecommerce/v1/transactions/${transactionId}`
+            `${urlBasePath}/checkout/ecommerce/v1/transactions/${transactionId}`,
+            {tags: { api: "GetTransaction" }}
         )
-        check(response, {
-            'Response status from GET /transactions is 200': (r) => r.status == 200,
-        });
+        check(response, 
+            {'Response status from GET /transactions is 200': (r) => r.status == 200},
+            { api: "GetTransaction" }
+            );
     } else {
         fail('Missing data for get transaction');
     }
@@ -97,11 +107,13 @@ export default function () {
     // Get payment methods
     if (amount !== undefined) {
         response = http.get(
-            `${urlBasePath}/checkout/ecommerce/v1/payment-methods?amount=${amount}`
+            `${urlBasePath}/checkout/ecommerce/v1/payment-methods?amount=${amount}`,
+            {tags: { api: "GetPaymentMethods" }}
         )
-        check(response, {
-            'Response status from GET /payment-methods is 200': (r) => r.status == 200,
-        });
+        check(response, 
+            {'Response status from GET /payment-methods is 200': (r) => r.status == 200},
+            {api: "GetPaymentMethods" }
+            );
     } else {
         fail('Missing data for get payment methods');
     }
@@ -111,11 +123,13 @@ export default function () {
     // Get PSPs by payment method
     if (paymentMethodId !== undefined && amount !== undefined) {
         response = http.get(
-            `${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}/psps?amount=${amount}`
+            `${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}/psps?amount=${amount}`,
+            {tags: { api: "GetPSPByPaymentMethod" }}
         )
-        check(response, {
-            'Response status from GET /payment-methods is 200': (r) => r.status == 200,
-        });
+        check(response, 
+            {'Response status from GET /payment-methods is 200': (r) => r.status == 200},
+            {api: "GetPSPByPaymentMethod" }
+            );
         if (response.status == 200) {
             pspId = response.json()["psp"][0]["code"];
         }
@@ -138,11 +152,13 @@ export default function () {
                 headers: {
                     'content-type': 'application/json',
                 },
+                tags: { api: "AuthRequest" }
             }
         )
-        check(response, {
-            'Response status from POST /transactions/{transactionId}/auth-requests is 200': (r) => r.status == 200,
-        });
+        check(response, 
+            {'Response status from POST /transactions/{transactionId}/auth-requests is 200': (r) => r.status == 200},
+            { api: "AuthRequest" }
+            );
     } else {
         fail('Missing data for authorization request');
     }
