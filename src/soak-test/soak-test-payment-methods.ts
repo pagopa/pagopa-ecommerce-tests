@@ -30,7 +30,7 @@ export default function () {
 
     // Body request for POST create a new payment method
     const bodyCreatePaymentMethodRequest = {
-        name: config.NEW_PAYMENT_METHOD_NAME,
+        name: config.PAYMENT_METHOD_NAME,
         description: "The new payment method",
         asset: "maestro",
         status: "DISABLED",
