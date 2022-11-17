@@ -77,7 +77,7 @@ export default function () {
         check(
             response,
             { "Response status from GET /payment-methods/{id} was 200": (r) => r.status == 200 },
-            { api: "get-single-payment-method" }
+            { api: "get-single-payment-method-test" }
         );
 
         //Test for PATCH paymnet method status
@@ -90,7 +90,7 @@ export default function () {
         check(
             response,
             { "Response status from PATCH /payment-methods/{id} was 200": (r) => r.status == 200 },
-            { api: "patch-payment-method-status" }
+            { api: "patch-payment-method-status-test" }
         );
 
         if (response.status == 200) {
@@ -125,7 +125,7 @@ export default function () {
     check(
         response,
         { "Response status from GET payment-methods was 200": (r) => r.status == 200 },
-        { api: "get-all-payment-methods" }
+        { api: "get-all-payment-methods-test" }
     );
 
     //Test for GET psps
@@ -134,7 +134,7 @@ export default function () {
     check(
         response,
         { "Response status from GET /psps was 200": (r) => r.status == 200 },
-        { api: "get-all-psps" }
+        { api: "get-all-psps-test" }
     );
 
     //Test for PUT psps list
