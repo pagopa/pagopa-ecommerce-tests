@@ -41,6 +41,8 @@ parameters:
     type: string
     values:
       - soak-test-notifications
+      - soak-test-carts
+      - soak-test-verifications
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
   - name: "projectDir"
     type: string
