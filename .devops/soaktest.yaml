@@ -33,6 +33,9 @@ parameters:
   - name: "URL_BASE_PATH"
     displayName: "URL_BASE_PATH"
     type: string
+  - name: "NEW_PAYMENT_METHOD_NAME"
+    displayName: "NEW_PAYMENT_METHOD_NAME"
+    type: string
     values:
       - "https://api.dev.platform.pagopa.it"
       - "https://api.uat.platform.pagopa.it"
@@ -41,6 +44,7 @@ parameters:
     type: string
     values:
       - soak-test-notifications
+      - soak-test-payment-methods
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
   - name: "projectDir"
     type: string
@@ -92,6 +96,7 @@ steps:
         -e TEST_MAIL_FROM=${{ parameters.TEST_MAIL_FROM }} \
         -e TEST_MAIL_TO=${{ parameters.TEST_MAIL_TO }} \
         -e API_SUBSCRIPTION_KEY='$(API_SUBSCRIPTION_KEY)' \
+        -e "NEW_PAYMENT_METHOD_NAME"=${{ parameters.NEW_PAYMENT_METHOD_NAME }} \
         -e rate=${{ parameters.rate }} \
         -e duration=${{ parameters.duration }} \
         -e preAllocatedVUs=${{ parameters.preAllocatedVUs }} \
