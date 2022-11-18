@@ -19,7 +19,8 @@ export const IConfig = t.intersection([
     API_SUBSCRIPTION_KEY: NonEmptyString,
     URL_BASE_PATH: NonEmptyString,
     TEST_MAIL_FROM: NonEmptyString,
-    TEST_MAIL_TO: NonEmptyString
+    TEST_MAIL_TO: NonEmptyString,
+    PAYMENT_METHOD_NAME: NonEmptyString
   }),
   t.partial({
     API_ENVIRONMENT: NonEmptyString,
