@@ -19,7 +19,7 @@ Let's keep in mind that before perform a load test you have to:
 This test require the dispatch of an email.
 
 ```
-$ docker run -i --rm -v $(pwd)/dist:/dist  -e API_SUBSCRIPTION_KEY=${API_SUBSCRIPTION_KEY} -e URL_BASE_PATH=${URL_BASE_PATH} -e TEST_MAIL_FROM=${TEST_MAIL_FROM} -e TEST_MAIL_TO=${TEST_MAIL_TO} -e rate=${rate} -e duration=${duration} -e preAllocatedVUs=${preAllocatedVUs} -e maxVUs=${maxVUs} loadimpact/k6 run /dist/soak-test.js
+$ docker run -i --rm -v $(pwd)/dist:/dist  -e API_SUBSCRIPTION_KEY=${API_SUBSCRIPTION_KEY} -e URL_BASE_PATH=${URL_BASE_PATH} -e TEST_MAIL_FROM=${TEST_MAIL_FROM} -e TEST_MAIL_TO=${TEST_MAIL_TO} -e PAYMENT_METHOD_NAME=${PAYMENT_METHOD_NAME} -e rate=${rate} -e duration=${duration} -e preAllocatedVUs=${preAllocatedVUs} -e maxVUs=${maxVUs} loadimpact/k6 run /dist/soak-test.js
 ```
 
 To run test and load env vars from `.env` file:
@@ -57,7 +57,7 @@ The following steps are performed for each test:
 2. GET /carts/{cartId} for retrieve the cart created at step 1 (taking cart id from POST response location header)
 
 ```
-$ docker run -i --rm -v $(pwd)/dist:/dist -e API_SUBSCRIPTION_KEY=${API_SUBSCRIPTION_KEY} -e URL_BASE_PATH=${URL_BASE_PATH} -e TEST_MAIL_FROM=${TEST_MAIL_FROM} -e TEST_MAIL_TO=${TEST_MAIL_TO} -e rate=${rate} -e duration=${duration} -e preAllocatedVUs=${preAllocatedVUs} -e maxVUs=${maxVUs} loadimpact/k6 run /dist/soak-test-carts.js
+$ docker run -i --rm -v $(pwd)/dist:/dist -e API_SUBSCRIPTION_KEY=${API_SUBSCRIPTION_KEY} -e URL_BASE_PATH=${URL_BASE_PATH} -e TEST_MAIL_FROM=${TEST_MAIL_FROM} -e TEST_MAIL_TO=${TEST_MAIL_TO} -e PAYMENT_METHOD_NAME=${PAYMENT_METHOD_NAME} -e rate=${rate} -e duration=${duration} -e preAllocatedVUs=${preAllocatedVUs} -e maxVUs=${maxVUs} loadimpact/k6 run /dist/soak-test-carts.js
 ```
 
 To run test and load env vars from `.env` file:
@@ -73,7 +73,7 @@ The following steps are performed for each test:
 1. GET /payment-requests/{rptId} for verify a payment notice status
 
 ```
-$ docker run -i --rm -v $(pwd)/dist:/dist -e API_SUBSCRIPTION_KEY=${API_SUBSCRIPTION_KEY} -e URL_BASE_PATH=${URL_BASE_PATH} -e TEST_MAIL_FROM=${TEST_MAIL_FROM} -e TEST_MAIL_TO=${TEST_MAIL_TO} -e rate=${rate} -e duration=${duration} -e preAllocatedVUs=${preAllocatedVUs} -e maxVUs=${maxVUs} loadimpact/k6 run /dist/soak-test-verification.js
+$ docker run -i --rm -v $(pwd)/dist:/dist -e API_SUBSCRIPTION_KEY=${API_SUBSCRIPTION_KEY} -e URL_BASE_PATH=${URL_BASE_PATH} -e TEST_MAIL_FROM=${TEST_MAIL_FROM} -e TEST_MAIL_TO=${TEST_MAIL_TO} -e PAYMENT_METHOD_NAME=${PAYMENT_METHOD_NAME} -e rate=${rate} -e duration=${duration} -e preAllocatedVUs=${preAllocatedVUs} -e maxVUs=${maxVUs} loadimpact/k6 run /dist/soak-test-verification.js
 ```
 
 To run test and load env vars from `.env` file:
