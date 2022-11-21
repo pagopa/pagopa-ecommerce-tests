@@ -74,7 +74,7 @@ stages :
               URL_BASE_PATH: ${{ parameters['URL_BASE_PATH'] }} 
               TEST_MAIL_FROM: ${{ parameters['TEST_MAIL_FROM'] }} 
               TEST_MAIL_TO: ${{ parameters['TEST_MAIL_TO'] }} 
-              PAYMENT_METHOD_NAME: ${{ parameters['PAYMENT_METHOD_NAME'] }}' 
+              PAYMENT_METHOD_NAME: ${{ parameters['PAYMENT_METHOD_NAME'] }}
               rate: ${{ parameters['rate'] }} 
               duration: ${{ parameters['duration'] }} 
               preAllocatedVUs: ${{ parameters['preAllocatedVUs'] }}
@@ -97,7 +97,7 @@ stages :
               URL_BASE_PATH: https://api.uat.platform.pagopa.it
               TEST_MAIL_FROM: ${{ parameters['TEST_MAIL_FROM'] }} 
               TEST_MAIL_TO: ${{ parameters['TEST_MAIL_TO'] }} 
-              PAYMENT_METHOD_NAME: ${{ parameters['PAYMENT_METHOD_NAME'] }}' 
+              PAYMENT_METHOD_NAME: ${{ parameters['PAYMENT_METHOD_NAME'] }}
               rate: ${{ parameters['rate'] }} 
               duration: ${{ parameters['duration'] }} 
               preAllocatedVUs: ${{ parameters['preAllocatedVUs'] }}
