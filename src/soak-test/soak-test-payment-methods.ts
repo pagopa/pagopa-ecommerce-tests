@@ -78,7 +78,7 @@ export default function () {
     if (response.status == 200) {
         paymentMethodId = response.json()["id"];
         //Test for GET single payment method after POST
-        url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}`;
+        url = `${urlBasePath}/ecommerce/payment-methods-service/v1/payment-methods/${paymentMethodId}`;
         response = http.get(url, { tags: { api: "get-single-payment-method-test" } });
 
         check(
@@ -106,7 +106,7 @@ export default function () {
             if (paymentMethodStatus === "ENABLED") {
 
                 //Test for GET psps by paymentMethodId
-                url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}/psps`;
+                url = `${urlBasePath}/ecommerce/payment-methods-service/v1/payment-methods/${paymentMethodId}/psps`;
                 response = http.get(url, { tags: { api: "get-psps-by-payment-method-test" } });
                 check(
                     response,
@@ -127,7 +127,7 @@ export default function () {
 
 
     //Test for GET all payment method
-    url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods`;
+    url = `${urlBasePath}/ecommerce/payment-methods-service/v1/payment-methods`;
     response = http.get(url, { tags: { api: "get-all-payment-methods-test" } });
     check(
         response,
@@ -136,7 +136,7 @@ export default function () {
     );
 
     //Test for GET psps
-    url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/psps`;
+    url = `${urlBasePath}/ecommerce/payment-methods-service/v1/payment-methods/psps`;
     response = http.get(url, { tags: { api: "get-all-psps-test" } });
     check(
         response,
@@ -145,7 +145,7 @@ export default function () {
     );
 
     //Test for PUT psps list
-    // url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/psps`;
+    // url = `${urlBasePath}/ecommerce/payment-methods-service/v1/payment-methods`;
     // response = http.put(url, null, { tags: { api: "update-psps-list-test" } });
     // check(
     //     response,
