@@ -55,7 +55,7 @@ parameters:
   - name: "BYPASS_APIM"
     displayName: "BYPASS_APIM"
     type: boolean
-    default: True
+    default: False
     values:
       - False
       - True
@@ -71,18 +71,18 @@ stages :
         steps:
           - template: azure-templates/soaktest-template.yaml
             parameters:
-              URL_BASE_PATH:${{ parameters['URL_BASE_PATH'] }} 
-              TEST_MAIL_FROM:${{ parameters['TEST_MAIL_FROM'] }} 
-              TEST_MAIL_TO:${{ parameters['TEST_MAIL_TO'] }} 
-              PAYMENT_METHOD_NAME:${{ parameters['PAYMENT_METHOD_NAME'] }}' 
-              rate:${{ parameters['rate'] }} 
-              duration:${{ parameters['duration'] }} 
-              preAllocatedVUs:${{ parameters['preAllocatedVUs'] }}
-              maxVUs:${{ parameters['maxVUs'] }} 
-              projectDir:${{ parameters['projectDir']}}
-              nodeVersion:${{ parameters['nodeVersion']}}
-              SCRIPT:${{ parameters['SCRIPT']}}
-              DESCRIPTION:${{ parameters['DESCRIPTION']}}
+              URL_BASE_PATH: ${{ parameters['URL_BASE_PATH'] }} 
+              TEST_MAIL_FROM: ${{ parameters['TEST_MAIL_FROM'] }} 
+              TEST_MAIL_TO: ${{ parameters['TEST_MAIL_TO'] }} 
+              PAYMENT_METHOD_NAME: ${{ parameters['PAYMENT_METHOD_NAME'] }}' 
+              rate: ${{ parameters['rate'] }} 
+              duration: ${{ parameters['duration'] }} 
+              preAllocatedVUs: ${{ parameters['preAllocatedVUs'] }}
+              maxVUs: ${{ parameters['maxVUs'] }} 
+              projectDir: ${{ parameters['projectDir']}}
+              nodeVersion: ${{ parameters['nodeVersion']}}
+              SCRIPT: ${{ parameters['SCRIPT']}}
+              DESCRIPTION: ${{ parameters['DESCRIPTION']}}
 
   - stage : 'Run without APIM'
     displayName: 'Run without APIM'
@@ -94,15 +94,15 @@ stages :
         steps :
           - template: azure-templates/soaktest-template.yaml
             parameters:
-              URL_BASE_PATH:https://api.uat.platform.pagopa.it
-              TEST_MAIL_FROM:${{ parameters['TEST_MAIL_FROM'] }} 
-              TEST_MAIL_TO:${{ parameters['TEST_MAIL_TO'] }} 
-              PAYMENT_METHOD_NAME:${{ parameters['PAYMENT_METHOD_NAME'] }}' 
-              rate:${{ parameters['rate'] }} 
-              duration:${{ parameters['duration'] }} 
-              preAllocatedVUs:${{ parameters['preAllocatedVUs'] }}
-              maxVUs:${{ parameters['maxVUs'] }}
-              projectDir:${{ parameters['projectDir']}}
-              nodeVersion:${{ parameters['nodeVersion']}}
-              SCRIPT:${{ parameters['SCRIPT']}}
-              DESCRIPTION:${{ parameters['DESCRIPTION']}}
+              URL_BASE_PATH: https://api.uat.platform.pagopa.it
+              TEST_MAIL_FROM: ${{ parameters['TEST_MAIL_FROM'] }} 
+              TEST_MAIL_TO: ${{ parameters['TEST_MAIL_TO'] }} 
+              PAYMENT_METHOD_NAME: ${{ parameters['PAYMENT_METHOD_NAME'] }}' 
+              rate: ${{ parameters['rate'] }} 
+              duration: ${{ parameters['duration'] }} 
+              preAllocatedVUs: ${{ parameters['preAllocatedVUs'] }}
+              maxVUs: ${{ parameters['maxVUs'] }}
+              projectDir: ${{ parameters['projectDir']}}
+              nodeVersion: ${{ parameters['nodeVersion']}}
+              SCRIPT: ${{ parameters['SCRIPT']}}
+              DESCRIPTION: ${{ parameters['DESCRIPTION']}}
