@@ -27,9 +27,6 @@ parameters:
   - name: "URL_BASE_PATH"
     displayName: "URL_BASE_PATH"
     type: string
-    values:
-      - "https://api.dev.platform.pagopa.it"
-      - "https://api.uat.platform.pagopa.it"
   - name: "PAYMENT_METHOD_NAME"
     displayName: "PAYMENT_METHOD_NAME"
     type: string
