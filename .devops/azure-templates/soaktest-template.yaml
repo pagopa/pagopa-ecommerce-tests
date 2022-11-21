@@ -33,11 +33,6 @@ parameters:
   - name: "SCRIPT"
     displayName: "Script name"
     type: string
-    values:
-      - soak-test-notifications
-      - soak-test-carts
-      - soak-test-verifications
-      - soak-test-payment-methods
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
   - name: "projectDir"
     type: string
