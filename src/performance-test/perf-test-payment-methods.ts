@@ -18,13 +18,8 @@ export let options = {
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
         checks: ['rate>0.9'], // 90% of the request must be completed
-        "http_req_duration{api:create-payment-method-test}": ["p(95)<1000"],
-        "http_req_duration{api:get-single-payment-method-test}": ["p(95)<1000"],
-        "http_req_duration{api:patch-payment-method-status-test}": ["p(95)<1000"],
-        "http_req_duration{api:get-psps-by-payment-method-test}": ["p(95)<1000"],
         "http_req_duration{api:get-all-payment-methods-test}": ["p(95)<1000"],
-        "http_req_duration{api:get-all-psps-test}": ["p(95)<1000"],
-        "http_req_duration{api:update-psps-list-test}": ["p(95)<1000"]
+        "http_req_duration{api:get-single-payment-method-test}": ["p(95)<1000"]
     },
 };
 
@@ -42,13 +37,19 @@ export default function () {
         { api: "get-all-payment-methods-test" }
     );
 
-    //Test for GET psps
-    url = `${urlBasePath}/pagopa-ecommerce-payment-methods-service/payment-methods/psps`;
-    response = http.get(url, { tags: { api: "get-all-psps-test" } });
-    check(
-        response,
-        { "Response status from GET /psps was 200": (r) => r.status == 200 },
-        { api: "get-all-psps-test" }
-    );
+    if (response.status == 200) {
+        let [] paymentMethods = response.json();
+        paymentMethods.forEach(function (paymentMethod) {
+            let paymentMethodId = paymentMethod["id"];
+            url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}`;
+            response = http.get(url, { tags: { api: "get-single-payment-method-test" } });
 
+            check(
+                response,
+                { "Response status from GET /payment-methods/{id} was 200": (r) => r.status == 200 },
+                { api: "get-single-payment-method-test" }
+            );
+        });
+
+    }
 }
