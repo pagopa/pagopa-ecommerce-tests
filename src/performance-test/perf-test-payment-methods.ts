@@ -1,6 +1,6 @@
-import { Int } from "io-ts";
-import { check, fail } from "k6";
+import { check} from "k6";
 import http from "k6/http";
+import *  as type from "k6/index";
 import { getConfigOrThrow } from "../utils/config";
 
 const config = getConfigOrThrow();
@@ -23,7 +23,6 @@ export let options = {
     },
 };
 
-let counter: number = 0;
 
 export default function () {
     const urlBasePath = config.URL_BASE_PATH;
@@ -37,13 +36,12 @@ export default function () {
         { api: "get-all-payment-methods-test" }
     );
 
-    if (response.status == 200) {
-        let [] paymentMethods = response.json();
-        paymentMethods.forEach(function (paymentMethod) {
-            let paymentMethodId = paymentMethod["id"];
-            url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}`;
+    if (response.status == 200 && response.json()!==undefined) {
+        let paymentMethods = response.json();
+        (<type.JSONArray>paymentMethods).forEach(function (paymentMethod) {
+            let paymentMethodId = (<type.JSONObject>paymentMethod)["id"];
+            url = `${urlBasePath}/pagopa-ecommerce-payment-methods-service/payment-methods/${paymentMethodId}`;
             response = http.get(url, { tags: { api: "get-single-payment-method-test" } });
-
             check(
                 response,
                 { "Response status from GET /payment-methods/{id} was 200": (r) => r.status == 200 },
