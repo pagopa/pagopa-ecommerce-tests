@@ -60,47 +60,49 @@ parameters:
       - False
       - True
 
-
-
 stages : 
   - stage : 'Run with APIM'
     displayName: 'Run with APIM'
     condition: eq(${{parameters.BYPASS_APIM}}, false)
     pool:
       vmImage: 'ubuntu-latest'
-    steps :
-      - template: azure-templates/soaktest-template.yaml
-        parameters:
-          URL_BASE_PATH:${{ parameters['URL_BASE_PATH'] }} 
-          TEST_MAIL_FROM:${{ parameters['TEST_MAIL_FROM'] }} 
-          TEST_MAIL_TO:${{ parameters['TEST_MAIL_TO'] }} 
-          PAYMENT_METHOD_NAME:${{ parameters['PAYMENT_METHOD_NAME'] }}' 
-          rate:${{ parameters['rate'] }} 
-          duration:${{ parameters['duration'] }} 
-          preAllocatedVUs:${{ parameters['preAllocatedVUs'] }}
-          maxVUs:${{ parameters['maxVUs'] }} 
-          projectDir:${{ parameters['projectDir']}}
-          nodeVersion:${{ parameters['nodeVersion']}}
-          SCRIPT:${{ parameters['SCRIPT']}}
-          DESCRIPTION:${{ parameters['DESCRIPTION']}}
+    jobs:
+      - job: performance_test with APIM
+        steps:
+          - template: azure-templates/soaktest-template.yaml
+            parameters:
+              URL_BASE_PATH:${{ parameters['URL_BASE_PATH'] }} 
+              TEST_MAIL_FROM:${{ parameters['TEST_MAIL_FROM'] }} 
+              TEST_MAIL_TO:${{ parameters['TEST_MAIL_TO'] }} 
+              PAYMENT_METHOD_NAME:${{ parameters['PAYMENT_METHOD_NAME'] }}' 
+              rate:${{ parameters['rate'] }} 
+              duration:${{ parameters['duration'] }} 
+              preAllocatedVUs:${{ parameters['preAllocatedVUs'] }}
+              maxVUs:${{ parameters['maxVUs'] }} 
+              projectDir:${{ parameters['projectDir']}}
+              nodeVersion:${{ parameters['nodeVersion']}}
+              SCRIPT:${{ parameters['SCRIPT']}}
+              DESCRIPTION:${{ parameters['DESCRIPTION']}}
 
   - stage : 'Run without APIM'
     displayName: 'Run without APIM'
     condition: eq(${{parameters.BYPASS_APIM}}, true)
     pool:
       name: pagopa-uat-linux
-    steps :
-      - template: azure-templates/soaktest-template.yaml
-        parameters:
-          URL_BASE_PATH:https://api.uat.platform.pagopa.it
-          TEST_MAIL_FROM:${{ parameters['TEST_MAIL_FROM'] }} 
-          TEST_MAIL_TO:${{ parameters['TEST_MAIL_TO'] }} 
-          PAYMENT_METHOD_NAME:${{ parameters['PAYMENT_METHOD_NAME'] }}' 
-          rate:${{ parameters['rate'] }} 
-          duration:${{ parameters['duration'] }} 
-          preAllocatedVUs:${{ parameters['preAllocatedVUs'] }}
-          maxVUs:${{ parameters['maxVUs'] }}
-          projectDir:${{ parameters['projectDir']}}
-          nodeVersion:${{ parameters['nodeVersion']}}
-          SCRIPT:${{ parameters['SCRIPT']}}
-          DESCRIPTION:${{ parameters['DESCRIPTION']}}
+    jobs:
+      - job: performance_test without APIM
+        steps :
+          - template: azure-templates/soaktest-template.yaml
+            parameters:
+              URL_BASE_PATH:https://api.uat.platform.pagopa.it
+              TEST_MAIL_FROM:${{ parameters['TEST_MAIL_FROM'] }} 
+              TEST_MAIL_TO:${{ parameters['TEST_MAIL_TO'] }} 
+              PAYMENT_METHOD_NAME:${{ parameters['PAYMENT_METHOD_NAME'] }}' 
+              rate:${{ parameters['rate'] }} 
+              duration:${{ parameters['duration'] }} 
+              preAllocatedVUs:${{ parameters['preAllocatedVUs'] }}
+              maxVUs:${{ parameters['maxVUs'] }}
+              projectDir:${{ parameters['projectDir']}}
+              nodeVersion:${{ parameters['nodeVersion']}}
+              SCRIPT:${{ parameters['SCRIPT']}}
+              DESCRIPTION:${{ parameters['DESCRIPTION']}}
