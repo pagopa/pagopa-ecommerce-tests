@@ -28,7 +28,8 @@ export default function () {
     const urlBasePath = config.URL_BASE_PATH;
 
     //Test for GET all payment method
-    let url = `${urlBasePath}/pagopa-ecommerce-payment-methods-service/payment-methods`;
+    //ecommerce/payment-methods-service/v1/payment-methods
+    let url = `${urlBasePath}/payment-methods`;
     let response = http.get(url, { tags: { api: "get-all-payment-methods-test" } });
     check(
         response,
@@ -40,7 +41,7 @@ export default function () {
         let paymentMethods = response.json();
         (<type.JSONArray>paymentMethods).forEach(function (paymentMethod) {
             let paymentMethodId = (<type.JSONObject>paymentMethod)["id"];
-            url = `${urlBasePath}/pagopa-ecommerce-payment-methods-service/payment-methods/${paymentMethodId}`;
+            url = `${urlBasePath}/payment-methods/${paymentMethodId}`;
             response = http.get(url, { tags: { api: "get-single-payment-method-test" } });
             check(
                 response,

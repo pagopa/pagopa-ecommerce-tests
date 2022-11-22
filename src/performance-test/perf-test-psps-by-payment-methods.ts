@@ -45,7 +45,7 @@ function init() {
 
 export default function () {
     init();
-    let url = `${urlBasePath}/pagopa-ecommerce-payment-methods-service/payment-methods/psps`;
+    let url = `${urlBasePath}/payment-methods/psps`;
     let response = http.get(url, { tags: { api: "get-all-psps-test" } });
     check(
         response,
@@ -53,7 +53,7 @@ export default function () {
         { api: "get-all-psps-test" }
     );
     paymentMethods.forEach(function (paymentMethod) {
-        url = `${urlBasePath}/pagopa-ecommerce-payment-methods-service/payment-methods/${(<type.JSONObject>paymentMethod)["id"]}/psps`;
+        url = `${urlBasePath}/payment-methods/${(<type.JSONObject>paymentMethod)["id"]}/psps`;
         response = http.get(url, { tags: { api: "get-psps-by-payment-method-test" } });
         check(
             response,
