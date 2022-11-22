@@ -46,6 +46,7 @@ parameters:
       - soak-test-verification-NM3
       - soak-test-payment-methods
       - perf-test-payment-methods
+      - perf-test-psps-by-payment-methods
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
   - name: "projectDir"
     type: string
