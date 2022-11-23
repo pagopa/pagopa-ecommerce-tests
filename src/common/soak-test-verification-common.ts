@@ -28,7 +28,7 @@ export function hitCacheTest(nm3:Boolean) {
     // Generate a new random rptId
     var rptId = generateRandomRptId(nm3);
     const tagPrefix = nm3?'PaymentRequest-verify-NM3':'PaymentRequest-verify';
-    let url = `${urlBasePath}/checkout/ecommerce/v1/payment-requests/${rptId}?recaptchaResponse=test`;
+    let url = `${urlBasePath}/payment-requests/${rptId}?recaptchaResponse=test`;
     // Get Payment Request Info NM3
     let response = http.get(
         url,
