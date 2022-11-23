@@ -32,7 +32,7 @@ const urlBasePath = config.URL_BASE_PATH
 function init() {
     if (!initialized) {
         //Test for GET all payment method
-        let url = `${urlBasePath}/pagopa-ecommerce-payment-methods-service/payment-methods`;
+        let url = `${urlBasePath}/payment-methods`;
         let response = http.get(url, { tags: { api: "get-all-payment-methods-test" } });
         if (response.status == 200 && response.json() !== undefined) {
             paymentMethods = response.json() as type.JSONArray;
