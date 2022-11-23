@@ -24,13 +24,12 @@ export let options = {
     },
 };
 
-let initialized = false;
 
 let paymentMethods: type.JSONArray;
 const urlBasePath = config.URL_BASE_PATH
 
-function init() {
-    if (!initialized) {
+export function setup() {
+
         //Test for GET all payment method
         let url = `${urlBasePath}/payment-methods`;
         let response = http.get(url, { tags: { api: "get-all-payment-methods-test" } });
@@ -40,7 +39,6 @@ function init() {
         } else {
             fail('Error retrieving payment methods!')
         }
-    }
 }
 
 export default function () {
