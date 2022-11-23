@@ -1,9 +1,6 @@
 # azure-pipelines.yml
 trigger: none
 
-pool:
-  vmImage: 'ubuntu-latest'
-
 parameters:
   - name: "DESCRIPTION"
     type: string
@@ -34,8 +31,8 @@ parameters:
     displayName: "URL_BASE_PATH"
     type: string
     values:
-      - "https://api.dev.platform.pagopa.it"
-      - "https://api.uat.platform.pagopa.it"
+      - "https://api.uat.platform.pagopa.it/ecommerce/payment-methods-service/v1"
+      - "https://api.uat.platform.pagopa.it/ecommerce/payment-requests-service/v1"
   - name: "PAYMENT_METHOD_NAME"
     displayName: "PAYMENT_METHOD_NAME"
     type: string
@@ -48,6 +45,8 @@ parameters:
       - soak-test-verification
       - soak-test-verification-NM3
       - soak-test-payment-methods
+      - perf-test-payment-methods
+      - perf-test-psps-by-payment-methods
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
   - name: "projectDir"
     type: string
@@ -56,55 +55,57 @@ parameters:
   - name: "nodeVersion"
     type: string
     default: "none"
+  - name: "BYPASS_APIM"
+    displayName: "BYPASS_APIM"
+    type: boolean
+    default: False
+    values:
+      - False
+      - True
 
-steps:
-  # If a Node version is defined explicitly by parameter, such version is used
-  # Else, version is red from .node-version file
-  # Else, version is red from .nvmrc file
-  - ${{ if ne(parameters.nodeVersion, 'none') }}:
-      - bash: |
-          echo "current folder: $(pwd)"
-          FROM_PARAM=${{ parameters.nodeVersion }}
-          echo "set FROM_PARAM='$FROM_PARAM'"
-          echo "##vso[task.setvariable variable=NODE_VERSION]$FROM_PARAM"
-        workingDirectory: ${{ parameters.projectDir }}
-        displayName: "Determine Node.js version from template param"
-  - ${{ if eq(parameters.nodeVersion, 'none') }}:
-      - bash: |
-          echo "current folder: $(pwd)"
-          FROM_SOURCE=$(cat .node-version || cat .nvmrc)
-          ls .node-version && echo ".node-version found, value: '$(cat .node-version)'" || echo ".node-version not found" 
-          ls .nvmrc && echo ".nvmrc found, value: '$(cat .nvmrc)'" || echo ".nvmrc not found" 
-          echo "set FROM_SOURCE='$FROM_SOURCE'"
-          echo "##vso[task.setvariable variable=NODE_VERSION]$FROM_SOURCE"
-        workingDirectory: ${{ parameters.projectDir }}
-        displayName: "Determine Node.js version from source"
-  - task: UseNode@1
-    inputs:
-      version: $(NODE_VERSION)
-    displayName: "Set up Node.js"
-  - script: |
-      npm install --global yarn
-    displayName: Install Yarn
-  - script: |
-      yarn install && yarn webpack
-    displayName: Install and Run webpack
-  - script: |
-      docker pull loadimpact/k6
-    displayName: Pull k6 image
-  - script: |
-      docker run -i \
-        -v $(pwd)/dist:/dist \
-        -e URL_BASE_PATH=${{ parameters.URL_BASE_PATH }} \
-        -e TEST_MAIL_FROM=${{ parameters.TEST_MAIL_FROM }} \
-        -e TEST_MAIL_TO=${{ parameters.TEST_MAIL_TO }} \
-        -e PAYMENT_METHOD_NAME='${{ parameters.PAYMENT_METHOD_NAME }}' \
-        -e API_SUBSCRIPTION_KEY='$(API_SUBSCRIPTION_KEY)' \
-        -e rate=${{ parameters.rate }} \
-        -e duration=${{ parameters.duration }} \
-        -e preAllocatedVUs=${{ parameters.preAllocatedVUs }} \
-        -e maxVUs=${{ parameters.maxVUs }} \
-        loadimpact/k6 \
-        run /dist/${{ parameters.SCRIPT }}.js \
-    timeoutInMinutes: 120
-    displayName: Run k6 ${{ parameters.SCRIPT }} on ${{ parameters.DESCRIPTION }} 
+stages : 
+  - stage : 'run_with_APIM'
+    displayName: 'Run with APIM'
+    condition: eq(${{parameters.BYPASS_APIM}}, false)
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: performance_test_with_APIM
+        steps:
+          - template: azure-templates/soaktest-template.yaml
+            parameters:
+              URL_BASE_PATH: ${{ parameters['URL_BASE_PATH'] }} 
+              TEST_MAIL_FROM: ${{ parameters['TEST_MAIL_FROM'] }} 
+              TEST_MAIL_TO: ${{ parameters['TEST_MAIL_TO'] }} 
+              PAYMENT_METHOD_NAME: ${{ parameters['PAYMENT_METHOD_NAME'] }}
+              rate: ${{ parameters['rate'] }} 
+              duration: ${{ parameters['duration'] }} 
+              preAllocatedVUs: ${{ parameters['preAllocatedVUs'] }}
+              maxVUs: ${{ parameters['maxVUs'] }} 
+              projectDir: ${{ parameters['projectDir']}}
+              nodeVersion: ${{ parameters['nodeVersion']}}
+              SCRIPT: ${{ parameters['SCRIPT']}}
+              DESCRIPTION: ${{ parameters['DESCRIPTION']}}
+
+  - stage : 'run_without_APIM'
+    displayName: 'Run without APIM'
+    condition: eq(${{parameters.BYPASS_APIM}}, true)
+    pool:
+      name: pagopa-uat-linux
+    jobs:
+      - job: performance_test_without_APIM
+        steps :
+          - template: azure-templates/soaktest-template.yaml
+            parameters:
+              URL_BASE_PATH: https://weuuat.ecommerce.internal.uat.platform.pagopa.it/pagopa-ecommerce-payment-methods-service
+              TEST_MAIL_FROM: ${{ parameters['TEST_MAIL_FROM'] }} 
+              TEST_MAIL_TO: ${{ parameters['TEST_MAIL_TO'] }} 
+              PAYMENT_METHOD_NAME: ${{ parameters['PAYMENT_METHOD_NAME'] }}
+              rate: ${{ parameters['rate'] }} 
+              duration: ${{ parameters['duration'] }} 
+              preAllocatedVUs: ${{ parameters['preAllocatedVUs'] }}
+              maxVUs: ${{ parameters['maxVUs'] }}
+              projectDir: ${{ parameters['projectDir']}}
+              nodeVersion: ${{ parameters['nodeVersion']}}
+              SCRIPT: ${{ parameters['SCRIPT']}}
+              DESCRIPTION: ${{ parameters['DESCRIPTION']}}
