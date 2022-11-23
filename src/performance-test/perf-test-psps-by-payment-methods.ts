@@ -25,24 +25,23 @@ export let options = {
 };
 
 
-let paymentMethods: type.JSONArray;
+
 const urlBasePath = config.URL_BASE_PATH
 
 export function setup() {
-
-        //Test for GET all payment method
-        let url = `${urlBasePath}/payment-methods`;
-        let response = http.get(url, { tags: { api: "get-all-payment-methods-test" } });
-        if (response.status == 200 && response.json() !== undefined) {
-            paymentMethods = response.json() as type.JSONArray;
-            console.log("Payment methods retrieved successfully");
-        } else {
-            fail('Error retrieving payment methods!')
-        }
+    let paymentMethods: type.JSONArray;
+    let url = `${urlBasePath}/payment-methods`;
+    let response = http.get(url, { tags: { api: "get-all-payment-methods-test" } });
+    if (response.status == 200 && response.json() !== undefined) {
+        paymentMethods = response.json() as type.JSONArray;
+        console.log("Payment methods retrieved successfully");
+        return paymentMethods;
+    } else {
+        fail('Error retrieving payment methods!')
+    }
 }
 
-export default function () {
-    init();
+export default function (paymentMethods: type.JSONArray) {
     let url = `${urlBasePath}/payment-methods/psps`;
     let response = http.get(url, { tags: { api: "get-all-psps-test" } });
     check(
