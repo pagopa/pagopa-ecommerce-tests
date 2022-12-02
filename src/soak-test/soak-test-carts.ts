@@ -49,7 +49,7 @@ const cartRequest = {
 }
 
 export default function () {
-  let url = `${urlBasePath}/carts`;
+  let url = `${urlBasePath}/checkout/ec/v1/carts`;
   let res = http.post(url,
     JSON.stringify(cartRequest),
     {
@@ -66,7 +66,7 @@ export default function () {
     cartId = res.headers["Location"];
     //take the cart id from the response header location value
     cartId = cartId.substring(cartId.lastIndexOf('/') + 1);
-    url = `${urlBasePath}/carts/${cartId}`;
+    url = `${urlBasePath}/ecommerce/payment-requests-service/v1/carts/${cartId}`;
     res = http.get(url, {
       ...headersParams,
       tags: { api: "GetCarts" },
