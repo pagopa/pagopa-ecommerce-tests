@@ -15,8 +15,8 @@ export let options = {
     },
   },
   thresholds: {
-    "http_req_duration{api:PostCarts}": ["p(99)<500"],//99% of post carts request must complete below 0.5s
-    "http_req_duration{api:GetCarts}": ["p(99)<500"],//99% of get carts request must complete below 0.5s
+    "http_req_duration{api:PostCarts}": ["p(95)<500"],//99% of post carts request must complete below 0.5s
+    "http_req_duration{api:GetCarts}": ["p(95)<500"],//99% of get carts request must complete below 0.5s
   },
 };
 
