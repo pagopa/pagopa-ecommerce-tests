@@ -27,11 +27,11 @@ parameters:
   - name: "TEST_MAIL_TO"
     displayName: "TEST_MAIL_TO"
     type: string
-  - name: "URL_BASE_PATH"
-    displayName: "URL_BASE_PATH"
-    type: string
   - name: "NOTICE_CODE_PREFIX"
     displayName: "NOTICE_CODE_PREFIX"
+    type: string
+  - name: "URL_BASE_PATH"
+    displayName: "URL_BASE_PATH"
     type: string
     values:
       - "https://api.uat.platform.pagopa.it/ecommerce/payment-methods-service/v1"
