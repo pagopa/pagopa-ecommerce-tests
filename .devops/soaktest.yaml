@@ -30,9 +30,13 @@ parameters:
   - name: "URL_BASE_PATH"
     displayName: "URL_BASE_PATH"
     type: string
+  - name: "NOTICE_CODE_PREFIX"
+    displayName: "NOTICE_CODE_PREFIX"
+    type: string
     values:
       - "https://api.uat.platform.pagopa.it/ecommerce/payment-methods-service/v1"
       - "https://api.uat.platform.pagopa.it/ecommerce/payment-requests-service/v1"
+      - "https://api.dev.platform.pagopa.it/ecommerce/transactions-service/v1/"
       - "https://api.uat.platform.pagopa.it"
   - name: "PAYMENT_METHOD_NAME"
     displayName: "PAYMENT_METHOD_NAME"
@@ -46,6 +50,7 @@ parameters:
       - soak-test-verification
       - soak-test-verification-NM3
       - soak-test-payment-methods
+      - soak-test-transaction-activation
       - perf-test-payment-methods
       - perf-test-psps-by-payment-methods
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.

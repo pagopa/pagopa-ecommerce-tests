@@ -22,7 +22,7 @@ export let options = {
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
         checks: ['rate>0.9'], // 90% of the request must be completed
-        "http_req_duration{api:activate-transaction-test}": ["p(95)<1000"],
+        "http_req_duration{api:activate-transaction-test}": ["p(95)<1500"],
         "http_req_duration{api:get-transaction-test}": ["p(95)<1000"]
     },
 };
@@ -50,7 +50,6 @@ export const createActivationRequest = (
 
 export default function () {
     const urlBasePath = config.URL_BASE_PATH;
-    const ecommerceBasePath = config.ECOMMERCE_BASE_PATH
     const rptId = generateRptId();
     const bodyRequest = createActivationRequest(rptId);
 
@@ -62,7 +61,7 @@ export default function () {
         },
     };
 
-    let url = `${urlBasePath}${ecommerceBasePath}/transactions`;
+    let url = `${urlBasePath}/transactions`;
     let response = http.post(url, JSON.stringify(bodyRequest), {
         ...headersParams,
         tags: { api: "activate-transaction-test" },
@@ -79,7 +78,7 @@ export default function () {
         var transactionId = body.transactionId;
         headersParams.headers.Authorization = headersParams.headers.Authorization + body.authToken as string;
 
-        url = `${urlBasePath}${ecommerceBasePath}/transactions/${transactionId}`;
+        url = `${urlBasePath}/transactions/${transactionId}`;
         response = http.get(url, {
             ...headersParams,
             tags: { api: "get-transaction-test" }

@@ -17,7 +17,6 @@ export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
     API_SUBSCRIPTION_KEY: NonEmptyString,
-    ECOMMERCE_BASE_PATH: NonEmptyString,
     NOTICE_CODE_PREFIX: NonEmptyString,
     URL_BASE_PATH: NonEmptyString,
     TEST_MAIL_FROM: NonEmptyString,
