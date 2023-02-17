@@ -8,17 +8,18 @@ import { RptId } from "../generated/ecommerce/RptId";
 import { getConfigOrThrow } from "../utils/config";
 
 const config = getConfigOrThrow();
-
 export let options = {
     scenarios: {
         contacts: {
-            executor: "constant-arrival-rate",
-            rate: config.rate, // e.g. 20000 for 20K iterations
-            duration: config.duration, // e.g. '1m'
-            preAllocatedVUs: config.preAllocatedVUs, // e.g. 500
-            maxVUs: config.maxVUs, // e.g. 1000
+            executor: 'ramping-vus',
+            stages: [
+                { target: config.maxVUs, duration: config.rampingDuration },
+                { target: config.maxVUs, duration: config.duration },
+                { target: 0, duration: config.rampingDuration },
+            ],
         },
     },
+
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
         checks: ['rate>0.9'], // 90% of the request must be completed
@@ -90,6 +91,5 @@ export default function () {
             { api: "get-transaction-test" }
         );
     }
-
 }
 

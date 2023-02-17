@@ -12,7 +12,9 @@ parameters:
   - name: "duration"
     displayName: "duration"
     type: string
-    default: "1m"
+  - name: "rampingDuration"
+    displayName: "rampingDuration"
+    type: string
   - name: "preAllocatedVUs"
     displayName: "preAllocatedVUs"
     type: string
@@ -36,7 +38,7 @@ parameters:
     values:
       - "https://api.uat.platform.pagopa.it/ecommerce/payment-methods-service/v1"
       - "https://api.uat.platform.pagopa.it/ecommerce/payment-requests-service/v1"
-      - "https://api.dev.platform.pagopa.it/ecommerce/transactions-service/v1/"
+      - "https://api.dev.platform.pagopa.it/ecommerce/transactions-service/v1"
       - "https://api.uat.platform.pagopa.it"
   - name: "PAYMENT_METHOD_NAME"
     displayName: "PAYMENT_METHOD_NAME"

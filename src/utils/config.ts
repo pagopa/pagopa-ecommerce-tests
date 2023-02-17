@@ -8,6 +8,7 @@ import { pipe } from "fp-ts/lib/function";
 export const K6Config = t.interface({
   rate: IntegerFromString,
   duration: NonEmptyString,
+  rampingDuration: NonEmptyString,
   preAllocatedVUs: IntegerFromString,
   maxVUs: IntegerFromString,
 });
