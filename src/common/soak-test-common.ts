@@ -6,7 +6,7 @@ import { getConfigOrThrow } from "../utils/config";
 
 const config = getConfigOrThrow();
 
-function generateRptId() {
+export function generateRptId() {
     var result = '77777777777' + config.NOTICE_CODE_PREFIX + '01';
     for (var i = 0; i < 12; i++) {
         result = result.concat((Math.floor(Math.random() * 10)).toString());
