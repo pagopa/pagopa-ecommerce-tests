@@ -1,11 +1,8 @@
 import { check } from "k6";
 import http from "k6/http";
-import { AmountEuroCents } from "../generated/ecommerce/AmountEuroCents";
-import { NewTransactionRequest } from "../generated/ecommerce/NewTransactionRequest";
 import { NewTransactionResponse } from "../generated/ecommerce/NewTransactionResponse";
-import { PaymentContextCode } from "../generated/ecommerce/PaymentContextCode";
-import { RptId } from "../generated/ecommerce/RptId";
 import { getConfigOrThrow } from "../utils/config";
+import { generateRptId, createActivationRequest } from "../common/soak-test-common"
 
 const config = getConfigOrThrow();
 export let options = {
@@ -28,26 +25,6 @@ export let options = {
     },
 };
 
-function generateRptId() {
-    var result = '77777777777' + config.NOTICE_CODE_PREFIX + '01';
-    for (var i = 0; i < 12; i++) {
-        result = result.concat((Math.floor(Math.random() * 10)).toString());
-    }
-    return result;
-}
-
-export const createActivationRequest = (
-    requestRptId: string
-): NewTransactionRequest => ({
-    email: "mario.rossi@gmail.it",
-    paymentNotices: [
-        {
-            rptId: requestRptId as RptId,
-            amount: 1000 as AmountEuroCents,
-            paymentContextCode: "6cd9114e-6427-4932-9a27-96168640d944" as PaymentContextCode
-        }
-    ]
-});
 
 export default function () {
     const urlBasePath = config.URL_BASE_PATH;
