@@ -12,7 +12,9 @@ parameters:
   - name: "duration"
     displayName: "duration"
     type: string
-    default: "1m"
+  - name: "rampingDuration"
+    displayName: "rampingDuration"
+    type: string
   - name: "preAllocatedVUs"
     displayName: "preAllocatedVUs"
     type: string
@@ -27,12 +29,16 @@ parameters:
   - name: "TEST_MAIL_TO"
     displayName: "TEST_MAIL_TO"
     type: string
+  - name: "NOTICE_CODE_PREFIX"
+    displayName: "NOTICE_CODE_PREFIX"
+    type: string
   - name: "URL_BASE_PATH"
     displayName: "URL_BASE_PATH"
     type: string
     values:
       - "https://api.uat.platform.pagopa.it/ecommerce/payment-methods-service/v1"
       - "https://api.uat.platform.pagopa.it/ecommerce/payment-requests-service/v1"
+      - "https://api.uat.platform.pagopa.it/ecommerce/transactions-service/v1"
       - "https://api.uat.platform.pagopa.it"
   - name: "PAYMENT_METHOD_NAME"
     displayName: "PAYMENT_METHOD_NAME"
@@ -46,6 +52,7 @@ parameters:
       - soak-test-verification
       - soak-test-verification-NM3
       - soak-test-payment-methods
+      - soak-test-transaction-activation
       - perf-test-payment-methods
       - perf-test-psps-by-payment-methods
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.

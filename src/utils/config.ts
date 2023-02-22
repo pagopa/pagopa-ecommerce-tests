@@ -8,6 +8,7 @@ import { pipe } from "fp-ts/lib/function";
 export const K6Config = t.interface({
   rate: IntegerFromString,
   duration: NonEmptyString,
+  rampingDuration: NonEmptyString,
   preAllocatedVUs: IntegerFromString,
   maxVUs: IntegerFromString,
 });
@@ -17,6 +18,7 @@ export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
     API_SUBSCRIPTION_KEY: NonEmptyString,
+    NOTICE_CODE_PREFIX: NonEmptyString,
     URL_BASE_PATH: NonEmptyString,
     TEST_MAIL_FROM: NonEmptyString,
     TEST_MAIL_TO: NonEmptyString,
