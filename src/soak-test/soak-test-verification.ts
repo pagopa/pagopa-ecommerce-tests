@@ -24,12 +24,20 @@ export let options = {
 
 export default function hitCacheTest() {
   const urlBasePath = config.URL_BASE_PATH;
+  const headersParams = {
+    headers: {
+      'Content-Type': 'application/json',
+      'Ocp-Apim-Subscription-Key': config.API_SUBSCRIPTION_KEY,
+      'Authorization': "Bearer "
+    },
+  };
   const rptId = generateRptId();
   let url = `${urlBasePath}/payment-requests/${rptId}?recaptchaResponse=test`;
   // Get Payment Request Info NM3
   let response = http.get(
     url,
     {
+      ...headersParams,
       tags: { api: 'PaymentRequest-verify' },
     }
   );
@@ -42,6 +50,7 @@ export default function hitCacheTest() {
   response = http.get(
     url,
     {
+      ...headersParams,
       tags: { api: `PaymentRequest-verify-hitCache` },
     }
   );
