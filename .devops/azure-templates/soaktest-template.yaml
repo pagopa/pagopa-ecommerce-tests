@@ -72,7 +72,7 @@ steps:
       npm install --global yarn
     displayName: Install Yarn
   - script: |
-      yarn install && yarn webpack
+      yarn install && yarn generate && yarn webpack
     displayName: Install and Run webpack
   - script: |
       docker pull loadimpact/k6
