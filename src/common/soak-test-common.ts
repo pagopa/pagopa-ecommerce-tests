@@ -1,7 +1,7 @@
 import { AmountEuroCents } from "../generated/ecommerce/AmountEuroCents";
 import { NewTransactionRequest } from "../generated/ecommerce/NewTransactionRequest";
 import { PaymentContextCode } from "../generated/ecommerce/PaymentContextCode";
-import { LanguageEnum, RequestAuthorizationRequest, RequestAuthorizationRequestDetails } from "../generated/ecommerce/RequestAuthorizationRequest";
+import { LanguageEnum, RequestAuthorizationRequest } from "../generated/ecommerce/RequestAuthorizationRequest";
 import { RptId } from "../generated/ecommerce/RptId";
 import { getConfigOrThrow } from "../utils/config";
 
