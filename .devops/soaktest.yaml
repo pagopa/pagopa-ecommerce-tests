@@ -95,7 +95,9 @@ stages :
               nodeVersion: ${{ parameters['nodeVersion']}}
               SCRIPT: ${{ parameters['SCRIPT']}}
               DESCRIPTION: ${{ parameters['DESCRIPTION']}}
-
+              NOTICE_CODE_PREFIX: ${{ parameters['NOTICE_CODE_PREFIX']}}
+              rampingDuration: ${{ parameters['rampingDuration']}}
+              
   - stage : 'run_without_APIM'
     displayName: 'Run without APIM'
     condition: eq(${{parameters.BYPASS_APIM}}, true)
