@@ -3,9 +3,7 @@ import http from "k6/http";
 import { check } from "k6";
 import { generateRptId } from "../common/soak-test-common"
 
-
 const config = getConfigOrThrow();
-
 export let options = {
   scenarios: {
     contacts: {
@@ -17,13 +15,14 @@ export let options = {
       ],
     },
   },
+
   thresholds: {
     "http_req_duration{api:PaymentRequest-verify}": ["p(95)<1000"],//95% of requests must complete below 1.0s
     "http_req_duration{api:PaymentRequest-verify-hitCache}": ["p(95)<1000"],//95% of requests must complete below 1.0s
   },
 };
 
-export function hitCacheTest() {
+export default function hitCacheTest() {
   const urlBasePath = config.URL_BASE_PATH;
   const rptId = generateRptId();
   let url = `${urlBasePath}/payment-requests/${rptId}?recaptchaResponse=test`;
