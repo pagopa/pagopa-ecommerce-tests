@@ -3,9 +3,7 @@ import http from "k6/http";
 import { check } from "k6";
 import { generateRptId } from "../common/soak-test-common"
 
-
 const config = getConfigOrThrow();
-
 export let options = {
   scenarios: {
     contacts: {
@@ -17,20 +15,29 @@ export let options = {
       ],
     },
   },
+
   thresholds: {
     "http_req_duration{api:PaymentRequest-verify}": ["p(95)<1000"],//95% of requests must complete below 1.0s
     "http_req_duration{api:PaymentRequest-verify-hitCache}": ["p(95)<1000"],//95% of requests must complete below 1.0s
   },
 };
 
-export function hitCacheTest() {
+export default function hitCacheTest() {
   const urlBasePath = config.URL_BASE_PATH;
+  const headersParams = {
+    headers: {
+      'Content-Type': 'application/json',
+      'Ocp-Apim-Subscription-Key': config.API_SUBSCRIPTION_KEY,
+      'Authorization': "Bearer "
+    },
+  };
   const rptId = generateRptId();
   let url = `${urlBasePath}/payment-requests/${rptId}?recaptchaResponse=test`;
   // Get Payment Request Info NM3
   let response = http.get(
     url,
     {
+      ...headersParams,
       tags: { api: 'PaymentRequest-verify' },
     }
   );
@@ -43,6 +50,7 @@ export function hitCacheTest() {
   response = http.get(
     url,
     {
+      ...headersParams,
       tags: { api: `PaymentRequest-verify-hitCache` },
     }
   );

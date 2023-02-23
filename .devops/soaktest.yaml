@@ -40,6 +40,8 @@ parameters:
       - "https://api.uat.platform.pagopa.it/ecommerce/payment-requests-service/v1"
       - "https://api.uat.platform.pagopa.it/ecommerce/transactions-service/v1"
       - "https://api.uat.platform.pagopa.it/ecommerce/notifications-service/v1"
+      - "https://api.uat.platform.pagopa.it/ecommerce/checkout/v1"
+      - "https://api.dev.platform.pagopa.it/ecommerce/checkout/v1"
       - "https://api.uat.platform.pagopa.it"
   - name: "PAYMENT_METHOD_NAME"
     displayName: "PAYMENT_METHOD_NAME"
@@ -95,7 +97,9 @@ stages :
               nodeVersion: ${{ parameters['nodeVersion']}}
               SCRIPT: ${{ parameters['SCRIPT']}}
               DESCRIPTION: ${{ parameters['DESCRIPTION']}}
-
+              NOTICE_CODE_PREFIX: ${{ parameters['NOTICE_CODE_PREFIX']}}
+              rampingDuration: ${{ parameters['rampingDuration']}}
+              
   - stage : 'run_without_APIM'
     displayName: 'Run without APIM'
     condition: eq(${{parameters.BYPASS_APIM}}, true)
@@ -118,3 +122,5 @@ stages :
               nodeVersion: ${{ parameters['nodeVersion']}}
               SCRIPT: ${{ parameters['SCRIPT']}}
               DESCRIPTION: ${{ parameters['DESCRIPTION']}}
+              NOTICE_CODE_PREFIX: ${{ parameters['NOTICE_CODE_PREFIX']}}
+              rampingDuration: ${{ parameters['rampingDuration']}}
