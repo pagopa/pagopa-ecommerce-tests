@@ -8,14 +8,18 @@ import { TransactionStatusEnum } from "../generated/ecommerce/TransactionStatus"
 const config = getConfigOrThrow();
 export let options = {
     scenarios: {
-        contacts: {
-            executor: 'ramping-vus',
-            stages: [
-                { target: config.maxVUs, duration: config.rampingDuration },
-                { target: config.maxVUs, duration: config.duration },
-                { target: 0, duration: config.rampingDuration },
-            ],
-        },
+      contacts: {
+        executor: 'ramping-arrival-rate',
+        startRate: 0,
+        timeUnit: '1s',
+        preAllocatedVUs: config.preAllocatedVUs,
+        maxVUs: config.maxVUs,
+        stages: [
+          { target: config.rate, duration: config.rampingDuration },
+          { target: config.rate, duration: config.duration },
+          { target: 0, duration: config.rampingDuration },
+        ],
+      },
     },
 
     thresholds: {

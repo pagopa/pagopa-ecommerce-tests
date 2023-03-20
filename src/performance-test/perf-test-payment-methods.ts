@@ -7,13 +7,18 @@ const config = getConfigOrThrow();
 
 export let options = {
     scenarios: {
-        contacts: {
-            executor: "constant-arrival-rate",
-            rate: config.rate, // e.g. 20000 for 20K iterations
-            duration: config.duration, // e.g. '1m'
-            preAllocatedVUs: config.preAllocatedVUs, // e.g. 500
-            maxVUs: config.maxVUs, // e.g. 1000
-        },
+      contacts: {
+        executor: 'ramping-arrival-rate',
+        startRate: 0,
+        timeUnit: '1s',
+        preAllocatedVUs: config.preAllocatedVUs,
+        maxVUs: config.maxVUs,
+        stages: [
+          { target: config.rate, duration: config.rampingDuration },
+          { target: config.rate, duration: config.duration },
+          { target: 0, duration: config.rampingDuration },
+        ],
+      },
     },
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
