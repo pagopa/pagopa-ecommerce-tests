@@ -81,3 +81,32 @@ To run test and load env vars from `.env` file:
 ```
 $ yarn webpack && docker run -i --rm -v $(pwd)/dist:/dist  --env-file .env loadimpact/k6 run /dist/soak-test-verification.js
 ```
+
+# K6's Test executor
+
+The chosen test executor is `ramping-arrival-rate`.
+Each test execution is configurable by the following configuration parameters:
+- rate : the target req/s to be reach
+- rampingDuration: duration of the up/down ramp
+- duration: target req/s constant rate duration
+- preAllocatedVUs: pre allocated VU
+- maxVUs: max allocable VUs
+
+Configuring a test execution with the following parameters:
+```
+rate=50
+duration=1m
+preAllocatedVUs=1
+maxVUs=50
+rampingDuration=10s
+```
+will result in a test with the following stages:
+
+| stage | duration   | req/s                            |
+|-------|------------|----------------------------------|
+| 1     | 10 seconds | from 0 to 50 linearly increasing |
+| 2     | 60 seconds | constant at 50                   |
+| 3     | 10 seconds | from 50 to 0 linearly decreasing |
+
+K6 will use up to 50 VUs to support the stage target req/s starting from 1 pre-allocated VU.
+The test total duration will be 10+60+10 = 80 seconds 
