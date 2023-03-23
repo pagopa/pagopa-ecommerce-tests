@@ -110,7 +110,7 @@ stages :
         steps :
           - template: azure-templates/soaktest-template.yaml
             parameters:
-              URL_BASE_PATH: https://weuuat.ecommerce.internal.uat.platform.pagopa.it/pagopa-ecommerce-payment-methods-service
+              URL_BASE_PATH: ${{ parameters['URL_BASE_PATH'] }}
               TEST_MAIL_FROM: ${{ parameters['TEST_MAIL_FROM'] }} 
               TEST_MAIL_TO: ${{ parameters['TEST_MAIL_TO'] }} 
               PAYMENT_METHOD_NAME: ${{ parameters['PAYMENT_METHOD_NAME'] }}
