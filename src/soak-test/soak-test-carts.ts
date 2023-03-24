@@ -73,7 +73,6 @@ export default function () {
     let endIdx = cartId.lastIndexOf('/') ;
     cartId = cartId.substring(endIdx-36,endIdx);
     url = `${urlBasePath}/ecommerce/checkout/v1/carts/${cartId}`;
-    console.log(url);
     res = http.get(url, {
       ...headersParams,
       tags: { api: "GetCarts" },
