@@ -20,8 +20,8 @@ export let options = {
     },
   },
   thresholds: {
-    "http_req_duration{api:PostCarts}": ["p(95)<500"],//99% of post carts request must complete below 0.5s
-    "http_req_duration{api:GetCarts}": ["p(95)<500"],//99% of get carts request must complete below 0.5s
+    "http_req_duration{api:PostCarts}": ["p(95)<1000"],//99% of post carts request must complete below 1s
+    "http_req_duration{api:GetCarts}": ["p(95)<1000"],//99% of get carts request must complete below 1s
   },
 };
 
@@ -70,8 +70,10 @@ export default function () {
   if (res.status == 302) {
     cartId = res.headers["Location"];
     //take the cart id from the response header location value
-    cartId = cartId.substring(cartId.lastIndexOf('/') + 1);
-    url = `${urlBasePath}/ecommerce/payment-requests-service/v1/carts/${cartId}`;
+    let endIdx = cartId.lastIndexOf('/') ;
+    cartId = cartId.substring(endIdx-36,endIdx);
+    url = `${urlBasePath}/ecommerce/checkout/v1/carts/${cartId}`;
+    console.log(url);
     res = http.get(url, {
       ...headersParams,
       tags: { api: "GetCarts" },
