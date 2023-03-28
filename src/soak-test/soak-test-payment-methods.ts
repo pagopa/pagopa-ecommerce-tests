@@ -23,15 +23,13 @@ export let options = {
     },
 };
 
-let counter: number = 0;
-
 export default function () {
     const urlBasePath = config.URL_BASE_PATH;
 
     const filterAmount = "10000"
 
     // Test for GET all payment methods
-    const paymentMethodsResponse = http.post(
+    const paymentMethodsResponse = http.get(
         `${urlBasePath}/payment-methods?amount=${filterAmount}`, 
         { tags: { api: "get-payment-methods" },
     });
@@ -45,7 +43,7 @@ export default function () {
     const firstPaymentMethodId = paymentMethodsResponse.json()["id"]
 
     // Test for GET  payment method by ud
-    const paymentMethodResponse = http.post(
+    const paymentMethodResponse = http.get(
         `${urlBasePath}/payment-methods/${firstPaymentMethodId}`, 
         { tags: { api: "get-payment-method-by-id" },
     });
