@@ -27,7 +27,7 @@ export default function () {
     const urlBasePath = config.URL_BASE_PATH;
 
     // Test for GET all payment methods
-    let url = `${urlBasePath}/ecommerce/checkout/payment-methods-service/v1/payment-methods`;
+    let url = `${urlBasePath}/ecommerce/checkout/v1/payment-methods`;
     let response = http.post(url, { tags: { api: "get-payment-methods" },
     });
 
