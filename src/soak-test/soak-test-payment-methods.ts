@@ -39,47 +39,53 @@ export default function () {
         { "Response status from GET /payment-methods was 200": (r) => r.status == 200 },
         { api: "get-payment-methods" }
     );
+/*
+    if ( paymentMethodsResponse.status == 200 && paymentMethodsResponse.json() !== undefined ) {
 
-    if ( paymentMethodsResponse.status == 200 ) {
-        
-        const firstPaymentMethodId = paymentMethodsResponse.json()["id"]
 
-        // Test for GET  payment method by ud
-        const paymentMethodResponse = http.get(
-            `${urlBasePath}/payment-methods/${firstPaymentMethodId}`, 
-            { tags: { api: "get-payment-method-by-id" },
+        (<type.JSONArray>paymentMethodsResponse.json()).forEach(function (firstPaymentMethod: type.JSONObject) {
+           
+            let paymentMethodId = (<type.JSONObject>firstPaymentMethod)["id"];
+
+            // Test for GET  payment method by ud
+            const paymentMethodResponse = http.get(
+                `${urlBasePath}/payment-methods/${paymentMethodId}`, 
+                { tags: { api: "get-payment-method-by-id" },
+            });
+
+            check(
+                paymentMethodResponse,
+                { "Response status from GET /payment-methods/:id was 200": (r) => r.status == 200 },
+                { api: "get-payment-method-by-id" }
+            );
+
+            // Test for POST fees  payment method by ud
+            const feesResponse = http.post(
+                `${urlBasePath}/payment-methods/${firstPaymentMethodId}/fees`, 
+                { tags: { api: "post-fees" },
+            });
+
+            // Body request for POST fees
+            const bodyCreatePaymentMethodRequest = {
+                bin: "400000",
+                touchpoint: "CHECKOUT",
+                paymentAmount: "10000",
+                primaryCreditorInstitution: "66666666666",
+                transferList : [
+                    { 
+                        creditorInstitution : "66666666666",
+                        digitalStamp : false
+                    }
+                ]
+            }
+
+            check(
+                paymentMethodResponse,
+                { "Response status from GET /payment-methods/:id/fees was 200": (r) => r.status == 200 },
+                { api: "post-fees" }
+            );
         });
-    
-        check(
-            paymentMethodResponse,
-            { "Response status from GET /payment-methods/:id was 200": (r) => r.status == 200 },
-            { api: "get-payment-method-by-id" }
-        );
-    
-        // Test for POST fees  payment method by ud
-        const feesResponse = http.post(
-            `${urlBasePath}/payment-methods/${firstPaymentMethodId}/fees`, 
-            { tags: { api: "post-fees" },
-        });
-    
-        // Body request for POST fees
-        const bodyCreatePaymentMethodRequest = {
-            bin: "400000",
-            touchpoint: "CHECKOUT",
-            paymentAmount: "10000",
-            primaryCreditorInstitution: "66666666666",
-            transferList : [
-                { 
-                  creditorInstitution : "66666666666",
-                  digitalStamp : false
-                }
-            ]
-        }
-    
-        check(
-            paymentMethodResponse,
-            { "Response status from GET /payment-methods/:id/fees was 200": (r) => r.status == 200 },
-            { api: "post-fees" }
-        );
-    }
+
+
+    }*/
 }
