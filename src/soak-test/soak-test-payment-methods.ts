@@ -32,7 +32,7 @@ export default function () {
 
     // Test for GET all payment methods
     const paymentMethodsResponse = http.post(
-        `${urlBasePath}/ecommerce/checkout/v1/payment-methods?amount=${filterAmount}`, 
+        `${urlBasePath}/payment-methods?amount=${filterAmount}`, 
         { tags: { api: "get-payment-methods" },
     });
 
@@ -46,7 +46,7 @@ export default function () {
 
     // Test for GET  payment method by ud
     const paymentMethodResponse = http.post(
-        `${urlBasePath}/ecommerce/checkout/v1/payment-methods/${firstPaymentMethodId}`, 
+        `${urlBasePath}/payment-methods/${firstPaymentMethodId}`, 
         { tags: { api: "get-payment-method-by-id" },
     });
 
@@ -58,7 +58,7 @@ export default function () {
 
     // Test for POST fees  payment method by ud
     const feesResponse = http.post(
-        `${urlBasePath}/ecommerce/checkout/v1/payment-methods/${firstPaymentMethodId}/fees`, 
+        `${urlBasePath}/payment-methods/${firstPaymentMethodId}/fees`, 
         { tags: { api: "post-fees" },
     });
 
