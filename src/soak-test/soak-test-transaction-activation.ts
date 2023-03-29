@@ -39,10 +39,9 @@ export default function () {
         headers: {
             'Content-Type': 'application/json',
             'Ocp-Apim-Subscription-Key': config.API_SUBSCRIPTION_KEY,
-            'Authorization': "Bearer "
+            'Authorization': ""
         },
     };
-
     let url = `${urlBasePath}/transactions`;
     let response = http.post(url, JSON.stringify(bodyRequest), {
         ...headersParams,
@@ -58,7 +57,7 @@ export default function () {
     if (response.status == 200 && response.json() != null) {
         var body = response.json() as unknown as NewTransactionResponse;
         var transactionId = body.transactionId;
-        headersParams.headers.Authorization = headersParams.headers.Authorization + body.authToken as string;
+        headersParams.headers.Authorization = "Bearer " + body.authToken as string;
 
         url = `${urlBasePath}/transactions/${transactionId}`;
         response = http.get(url, {
