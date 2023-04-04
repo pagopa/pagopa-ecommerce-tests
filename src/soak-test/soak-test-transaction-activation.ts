@@ -51,23 +51,27 @@ export default function () {
         { "Response status from POST /transactions was 200": (r) => r.status == 200 },
         { api: "activate-transaction-test" }
     );
-
+    var checkResponseStatus = 500
     if (response.status == 200 && response.json() != null) {
         var body = response.json() as unknown as NewTransactionResponse;
         var transactionId = body.transactionId;
         headersParams.headers.Authorization = "Bearer " + body.authToken as string;
-
         url = `${urlBasePath}/transactions/${transactionId}`;
         response = http.get(url, {
             ...headersParams,
             tags: { api: "get-transaction-test" }
         });
-
-        check(
-            response,
-            { "Response status from GET /transactions by transaction id was 200": (r) => r.status == 200 },
-            { api: "get-transaction-test" }
-        );
+        checkResponseStatus = response.status
+        if(checkResponseStatus != 200){
+            console.log(`Error performing GET transaction. Response code: ${response.status}`)
+        }
+    } else{
+        console.log(`Error performing POST transaction. Response code: ${response.status}`)
     }
+    check(
+        response,
+        { "Response status from GET /transactions by transaction id was 200": (r) => checkResponseStatus == 200 },
+        { api: "get-transaction-test" }
+    );
 }
 
