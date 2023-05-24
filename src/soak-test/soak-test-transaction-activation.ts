@@ -24,8 +24,8 @@ export let options = {
     thresholds: {
         http_req_duration: ["p(95)<1000"],
         checks: ['rate>0.9'],
-        "http_req_duration{api:activate-transaction-test}": ["p(95)<1000"],
-        "http_req_duration{api:get-transaction-test}": ["p(95)<1000"]
+        "http_req_duration{name:activate-transaction-test}": ["p(95)<1000"],
+        "http_req_duration{name:get-transaction-test}": ["p(95)<1000"]
     },
 };
 
@@ -44,13 +44,13 @@ export default function () {
     let url = `${urlBasePath}/transactions?recaptchaResponse=token`;
     let response = http.post(url, JSON.stringify(bodyRequest), {
         ...headersParams,
-        tags: { api: "activate-transaction-test" },
+        tags: { name: "activate-transaction-test" },
     });
 
     check(
         response,
         { "Response status from POST /transactions was 200": (r) => r.status == 200 },
-        { api: "activate-transaction-test" }
+        { name: "activate-transaction-test" }
     );
 
     if (response.status == 200 && response.json() != null) {
@@ -61,13 +61,13 @@ export default function () {
         url = `${urlBasePath}/transactions/${transactionId}`;
         response = http.get(url, {
             ...headersParams,
-            tags: { api: "get-transaction-test" }
+            tags: { name: "get-transaction-test" }
         });
 
         check(
             response,
             { "Response status from GET /transactions by transaction id was 200": (r) => r.status == 200 },
-            { api: "get-transaction-test" }
+            { name: "get-transaction-test" }
         );
     }
 }

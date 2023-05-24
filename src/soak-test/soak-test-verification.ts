@@ -21,8 +21,8 @@ export let options = {
   },
 
   thresholds: {
-    "http_req_duration{api:PaymentRequest-verify}": ["p(95)<1000"],//95% of requests must complete below 1.0s
-    "http_req_duration{api:PaymentRequest-verify-hitCache}": ["p(95)<1000"],//95% of requests must complete below 1.0s
+    "http_req_duration{name:PaymentRequest-verify}": ["p(95)<1000"],//95% of requests must complete below 1.0s
+    "http_req_duration{name:PaymentRequest-verify-hitCache}": ["p(95)<1000"],//95% of requests must complete below 1.0s
   },
 };
 
@@ -42,7 +42,7 @@ export default function hitCacheTest() {
     url,
     {
       ...headersParams,
-      tags: { api: 'PaymentRequest-verify' },
+      tags: { name: 'PaymentRequest-verify' },
     }
   );
   check(
@@ -55,13 +55,13 @@ export default function hitCacheTest() {
     url,
     {
       ...headersParams,
-      tags: { api: `PaymentRequest-verify-hitCache` },
+      tags: { name: `PaymentRequest-verify-hitCache` },
     }
   );
   check(
     response,
     { "Response status from GET /payment-request was 200": (r) => r.status == 200 },
-    { api: `PaymentRequest-verify-hitCache` }
+    { name: `PaymentRequest-verify-hitCache` }
   );
 }
 
