@@ -32,8 +32,7 @@ export let options = {
 
 export default function () {
     const urlBasePath = config.URL_BASE_PATH;
-    const rptId = generateRptId();
-    const bodyRequest = createActivationRequest(rptId);
+    const bodyRequest = createActivationRequest();
 
     const headersParams = {
         headers: {
