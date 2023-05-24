@@ -22,8 +22,8 @@ export let options = {
     },
 
     thresholds: {
-        http_req_duration: ["p(95)<1000"], 
-        checks: ['rate>0.9'], 
+        http_req_duration: ["p(95)<1000"],
+        checks: ['rate>0.9'],
         "http_req_duration{api:activate-transaction-test}": ["p(95)<1000"],
         "http_req_duration{api:get-transaction-test}": ["p(95)<1000"]
     },
@@ -33,6 +33,7 @@ export let options = {
 export default function () {
     const urlBasePath = config.URL_BASE_PATH;
     const bodyRequest = createActivationRequest();
+
     const headersParams = {
         headers: {
             'Content-Type': 'application/json',
@@ -40,7 +41,7 @@ export default function () {
             'Authorization': ""
         },
     };
-    let url = `${urlBasePath}/transactions`;
+    let url = `${urlBasePath}/transactions?recaptchaResponse=token`;
     let response = http.post(url, JSON.stringify(bodyRequest), {
         ...headersParams,
         tags: { api: "activate-transaction-test" },
