@@ -40,7 +40,7 @@ export default function () {
             'Authorization': ""
         },
     };
-    let url = `${urlBasePath}/transactions`;
+    let url = `${urlBasePath}/transactions?recaptchaResponse=token`;
     let response = http.post(url, JSON.stringify(bodyRequest), {
         ...headersParams,
         tags: { api: "activate-transaction-test" },
