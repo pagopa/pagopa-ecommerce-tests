@@ -7,19 +7,24 @@ const config = getConfigOrThrow();
 
 export let options = {
     scenarios: {
-        contacts: {
-            executor: "constant-arrival-rate",
-            rate: config.rate, // e.g. 20000 for 20K iterations
-            duration: config.duration, // e.g. '1m'
-            preAllocatedVUs: config.preAllocatedVUs, // e.g. 500
-            maxVUs: config.maxVUs, // e.g. 1000
-        },
+      contacts: {
+        executor: 'ramping-arrival-rate',
+        startRate: 0,
+        timeUnit: '1s',
+        preAllocatedVUs: config.preAllocatedVUs,
+        maxVUs: config.maxVUs,
+        stages: [
+          { target: config.rate, duration: config.rampingDuration },
+          { target: config.rate, duration: config.duration },
+          { target: 0, duration: config.rampingDuration },
+        ],
+      },
     },
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
         checks: ['rate>0.9'], // 90% of the request must be completed
-        "http_req_duration{api:get-all-payment-methods-test}": ["p(95)<1000"],
-        "http_req_duration{api:get-single-payment-method-test}": ["p(95)<1000"]
+        "http_req_duration{name:get-all-payment-methods-test}": ["p(95)<1000"],
+        "http_req_duration{name:get-single-payment-method-test}": ["p(95)<1000"]
     },
 };
 
@@ -30,11 +35,11 @@ export default function () {
     //Test for GET all payment method
     //ecommerce/payment-methods-service/v1/payment-methods
     let url = `${urlBasePath}/payment-methods`;
-    let response = http.get(url, { tags: { api: "get-all-payment-methods-test" } });
+    let response = http.get(url, { tags: { name: "get-all-payment-methods-test" } });
     check(
         response,
         { "Response status from GET payment-methods was 200": (r) => r.status == 200 },
-        { api: "get-all-payment-methods-test" }
+        { name: "get-all-payment-methods-test" }
     );
 
     if (response.status == 200 && response.json()!==undefined) {
@@ -42,11 +47,11 @@ export default function () {
         (<type.JSONArray>paymentMethods).forEach(function (paymentMethod) {
             let paymentMethodId = (<type.JSONObject>paymentMethod)["id"];
             url = `${urlBasePath}/payment-methods/${paymentMethodId}`;
-            response = http.get(url, { tags: { api: "get-single-payment-method-test" } });
+            response = http.get(url, { tags: { name: "get-single-payment-method-test" } });
             check(
                 response,
                 { "Response status from GET /payment-methods/{id} was 200": (r) => r.status == 200 },
-                { api: "get-single-payment-method-test" }
+                { name: "get-single-payment-method-test" }
             );
         });
 

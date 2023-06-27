@@ -6,20 +6,25 @@ const config = getConfigOrThrow();
 
 export let options = {
     scenarios: {
-        contacts: {
-            executor: "constant-arrival-rate",
-            rate: config.rate, // e.g. 20000 for 20K iterations
-            duration: config.duration, // e.g. '1m'
-            preAllocatedVUs: config.preAllocatedVUs, // e.g. 500
-            maxVUs: config.maxVUs, // e.g. 1000
-        },
+      contacts: {
+        executor: 'ramping-arrival-rate',
+        startRate: 0,
+        timeUnit: '1s',
+        preAllocatedVUs: config.preAllocatedVUs,
+        maxVUs: config.maxVUs,
+        stages: [
+          { target: config.rate, duration: config.rampingDuration },
+          { target: config.rate, duration: config.duration },
+          { target: 0, duration: config.rampingDuration },
+        ],
+      },
     },
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
         checks: ['rate>0.9'], // 90% of the request must be completed
-        "http_req_duration{api:get-payment-methods}": ["p(95)<1000"],
-        "http_req_duration{api:get-payment-method-by-id}": ["p(95)<1000"],
-        "http_req_duration{api:post-fees}": ["p(95)<1000"]
+        "http_req_duration{name:get-payment-methods}": ["p(95)<1000"],
+        "http_req_duration{name:get-payment-method-by-id}": ["p(95)<1000"],
+        "http_req_duration{name:post-fees}": ["p(95)<1000"]
     },
 };
 
@@ -31,13 +36,13 @@ export default function () {
     // Test for GET all payment methods
     const paymentMethodsResponse = http.get(
         `${urlBasePath}/payment-methods?amount=${filterAmount}`, 
-        { tags: { api: "get-payment-methods" },
+        { tags: { name: "get-payment-methods" },
     });
 
     check(
         paymentMethodsResponse,
         { "Response status from GET /payment-methods was 200": (r) => r.status == 200 },
-        { api: "get-payment-methods" }
+        { name: "get-payment-methods" }
     );
 /*
     if ( paymentMethodsResponse.status == 200 && paymentMethodsResponse.json() !== undefined ) {
@@ -50,19 +55,19 @@ export default function () {
             // Test for GET  payment method by ud
             const paymentMethodResponse = http.get(
                 `${urlBasePath}/payment-methods/${paymentMethodId}`, 
-                { tags: { api: "get-payment-method-by-id" },
+                { tags: { name: "get-payment-method-by-id" },
             });
 
             check(
                 paymentMethodResponse,
                 { "Response status from GET /payment-methods/:id was 200": (r) => r.status == 200 },
-                { api: "get-payment-method-by-id" }
+                { name: "get-payment-method-by-id" }
             );
 
             // Test for POST fees  payment method by ud
             const feesResponse = http.post(
                 `${urlBasePath}/payment-methods/${firstPaymentMethodId}/fees`, 
-                { tags: { api: "post-fees" },
+                { tags: { name: "post-fees" },
             });
 
             // Body request for POST fees
@@ -82,7 +87,7 @@ export default function () {
             check(
                 paymentMethodResponse,
                 { "Response status from GET /payment-methods/:id/fees was 200": (r) => r.status == 200 },
-                { api: "post-fees" }
+                { name: "post-fees" }
             );
         });
 

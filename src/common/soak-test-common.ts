@@ -1,6 +1,7 @@
 import { AmountEuroCents } from "../generated/ecommerce/AmountEuroCents";
 import { NewTransactionRequest } from "../generated/ecommerce/NewTransactionRequest";
 import { PaymentContextCode } from "../generated/ecommerce/PaymentContextCode";
+import { PaymentNoticeInfo } from "../generated/ecommerce/PaymentNoticeInfo";
 import { LanguageEnum, RequestAuthorizationRequest } from "../generated/ecommerce/RequestAuthorizationRequest";
 import { RptId } from "../generated/ecommerce/RptId";
 import { getConfigOrThrow } from "../utils/config";
@@ -16,17 +17,17 @@ export function generateRptId() {
 }
 
 export const createActivationRequest = (
-    requestRptId: string
 ): NewTransactionRequest => ({
     email: "mario.rossi@gmail.it",
-    paymentNotices: [
-        {
-            rptId: requestRptId as RptId,
-            amount: 1000 as AmountEuroCents,
-            paymentContextCode: "6cd9114e-6427-4932-9a27-96168640d944" as PaymentContextCode
-        }
-    ]
+    paymentNotices: Array(5).fill("").map(paymentNotice)
 });
+
+export const paymentNotice =()
+:PaymentNoticeInfo => ({
+    rptId: generateRptId() as RptId,
+    amount: 1000 as AmountEuroCents,
+    paymentContextCode: "6cd9114e-6427-4932-9a27-96168640d944" as PaymentContextCode
+})
 
 export const createAuthorizationRequest = (
 ): RequestAuthorizationRequest => ({

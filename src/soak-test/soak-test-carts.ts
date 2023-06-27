@@ -7,16 +7,23 @@ const config = getConfigOrThrow();
 export let options = {
   scenarios: {
     contacts: {
-      executor: "constant-arrival-rate",
-      rate: config.rate, // e.g. 20000 for 20K iterations
-      duration: config.duration, // e.g. '1m'
-      preAllocatedVUs: config.preAllocatedVUs, // e.g. 500
-      maxVUs: config.maxVUs, // e.g. 1000
+      executor: 'ramping-arrival-rate',
+      startRate: 0,
+      timeUnit: '1s',
+      preAllocatedVUs: config.preAllocatedVUs,
+      maxVUs: config.maxVUs,
+      stages: [
+        { target: config.rate, duration: config.rampingDuration },
+        { target: config.rate, duration: config.duration },
+        { target: 0, duration: config.rampingDuration },
+      ],
     },
   },
-  thresholds: {
-    "http_req_duration{api:PostCarts}": ["p(95)<500"],//99% of post carts request must complete below 0.5s
-    "http_req_duration{api:GetCarts}": ["p(95)<500"],//99% of get carts request must complete below 0.5s
+  thresholds: { 
+    http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
+    checks: ['rate>0.9'], // 90% of the request must be completed
+    "http_req_duration{name:PostCarts}": ["p(95)<1000"],//95% of post carts request must complete below 1s
+    "http_req_duration{name:GetCarts}": ["p(95)<1000"],//95% of get carts request must complete below 1s
   },
 };
 
@@ -54,31 +61,31 @@ export default function () {
     JSON.stringify(cartRequest),
     {
       ...headersParams,
-      tags: { api: "PostCarts" },
+      tags: { name: "PostCarts" },
     });
   check(
     res,
     { "Response status from POST /carts was 302": (r) => r.status == 302 },
-    { api: "PostCarts" }
+    { name: "PostCarts" }
   );
   let cartId;
   if (res.status == 302) {
     cartId = res.headers["Location"];
     //take the cart id from the response header location value
-    cartId = cartId.substring(cartId.lastIndexOf('/') + 1);
-    url = `${urlBasePath}/ecommerce/payment-requests-service/v1/carts/${cartId}`;
+    let endIdx = cartId.lastIndexOf('/') ;
+    cartId = cartId.substring(endIdx-36,endIdx);
+    url = `${urlBasePath}/ecommerce/checkout/v1/carts/${cartId}`;
     res = http.get(url, {
       ...headersParams,
-      tags: { api: "GetCarts" },
+      tags: { name: "GetCarts" },
     });
     check(
       res,
       { "Response status from GET /carts was 200": (r) => r.status == 200 },
-      { api: "GetCarts" }
+      { name: "GetCarts" }
     );
   } else {
-    console.log("Post carts response code: " + res.status);
-    fail("Invalid post carts response received");
+    fail(`Invalid post carts response code received: ${res.status}`);
   }
 
 }

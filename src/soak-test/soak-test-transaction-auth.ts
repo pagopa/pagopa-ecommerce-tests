@@ -8,22 +8,26 @@ import { TransactionStatusEnum } from "../generated/ecommerce/TransactionStatus"
 const config = getConfigOrThrow();
 export let options = {
     scenarios: {
-        contacts: {
-            executor: 'ramping-vus',
-            stages: [
-                { target: config.maxVUs, duration: config.rampingDuration },
-                { target: config.maxVUs, duration: config.duration },
-                { target: 0, duration: config.rampingDuration },
-            ],
-        },
+      contacts: {
+        executor: 'ramping-arrival-rate',
+        startRate: 0,
+        timeUnit: '1s',
+        preAllocatedVUs: config.preAllocatedVUs,
+        maxVUs: config.maxVUs,
+        stages: [
+          { target: config.rate, duration: config.rampingDuration },
+          { target: config.rate, duration: config.duration },
+          { target: 0, duration: config.rampingDuration },
+        ],
+      },
     },
 
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
         checks: ['rate>0.9'], // 90% of the request must be completed
-        "http_req_duration{api:activate-transaction-test}": ["p(95)<1500"],
-        "http_req_duration{api:get-transaction-test}": ["p(95)<1000"],
-        "http_req_duration{api:authorization-transaction-test}": ["p(95)<1500"]
+        "http_req_duration{name:activate-transaction-test}": ["p(95)<1500"],
+        "http_req_duration{name:get-transaction-test}": ["p(95)<1000"],
+        "http_req_duration{name:authorization-transaction-test}": ["p(95)<1500"]
     },
 };
 
@@ -44,13 +48,13 @@ export default function () {
     let url = `${urlBasePath}/transactions`;
     let response = http.post(url, JSON.stringify(bodyRequest), {
         ...headersParams,
-        tags: { api: "activate-transaction-test" },
+        tags: { name: "activate-transaction-test" },
     });
 
     check(
         response,
         { "Response status from POST /transactions was 200": (r) => r.status == 200 },
-        { api: "activate-transaction-test" }
+        { name: "activate-transaction-test" }
     );
 
     if (response.status == 200 && response.json() != null) {
@@ -61,13 +65,13 @@ export default function () {
         url = `${urlBasePath}/transactions/${transactionId}`;
         response = http.get(url, {
             ...headersParams,
-            tags: { api: "get-transaction-test" }
+            tags: { name: "get-transaction-test" }
         });
 
         check(
             response,
             { "Response status from GET /transactions by transaction id was 200": (r) => r.status == 200 },
-            { api: "get-transaction-test" }
+            { name: "get-transaction-test" }
         );
 
         if (body.status === TransactionStatusEnum.ACTIVATED) {
@@ -76,12 +80,12 @@ export default function () {
             const bodyRequest = createAuthorizationRequest();
             let response = http.post(url, JSON.stringify(bodyRequest), {
                 ...headersParams,
-                tags: { api: "authorization-transaction-test" },
+                tags: { name: "authorization-transaction-test" },
             });
 
             check(response,
                 { 'Response status from POST /transactions/{transactionId}/auth-requests is 200': (r) => r.status == 200 },
-                { api: "AuthRequest" }
+                { name: "AuthRequest" }
             );
         } else {
             fail('Error into authorization request');

@@ -7,17 +7,22 @@ const config = getConfigOrThrow();
 export let options = {
   scenarios: {
     contacts: {
-      executor: 'ramping-vus',
+      executor: 'ramping-arrival-rate',
+      startRate: 0,
+      timeUnit: '1s',
+      preAllocatedVUs: config.preAllocatedVUs,
+      maxVUs: config.maxVUs,
       stages: [
-        { target: config.maxVUs, duration: config.rampingDuration },
-        { target: config.maxVUs, duration: config.duration },
+        { target: config.rate, duration: config.rampingDuration },
+        { target: config.rate, duration: config.duration },
         { target: 0, duration: config.rampingDuration },
       ],
     },
   },
   thresholds: {
     http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
-    "http_req_duration{api:notifications-test}": ["p(95)<1000"],
+    checks: ['rate>0.9'], // 90% of the request must be completed
+    "http_req_duration{name:notifications-test}": ["p(95)<1000"],
   },
 };
 
@@ -45,13 +50,13 @@ export default function () {
   let url = `${urlBasePath}/emails`;
   let res = http.post(url, JSON.stringify(bodyRequest), {
     ...headersParams,
-    tags: { api: "notifications-test" },
+    tags: { name: "notifications-test" },
   });
 
   check(
     res,
     { "Response status from POST /emails was 200": (r) => r.status == 200 },
-    { api: "notifications-test"  }
+    { name: "notifications-test"  }
   );
 
 }
