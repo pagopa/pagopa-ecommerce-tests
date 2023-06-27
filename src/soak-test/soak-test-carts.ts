@@ -85,8 +85,7 @@ export default function () {
       { name: "GetCarts" }
     );
   } else {
-    console.log("Post carts response code: " + res.status);
-    fail("Invalid post carts response received");
+    fail(`Invalid post carts response code received: ${res.status}`);
   }
 
 }
