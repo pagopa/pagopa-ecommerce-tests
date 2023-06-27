@@ -1,28 +1,28 @@
-import { check } from "k6";
+import { check, fail } from "k6";
 import http from "k6/http";
 import { NewTransactionResponse } from "../generated/ecommerce/NewTransactionResponse";
 import { getConfigOrThrow } from "../utils/config";
-import { generateRptId, createActivationRequest } from "../common/soak-test-common"
+import { createActivationRequest } from "../common/soak-test-common"
 
 const config = getConfigOrThrow();
 export let options = {
     scenarios: {
-      contacts: {
-        executor: 'ramping-arrival-rate',
-        startRate: 0,
-        timeUnit: '1s',
-        preAllocatedVUs: config.preAllocatedVUs,
-        maxVUs: config.maxVUs,
-        stages: [
-          { target: config.rate, duration: config.rampingDuration },
-          { target: config.rate, duration: config.duration },
-          { target: 0, duration: config.rampingDuration },
-        ],
-      },
+        contacts: {
+            executor: 'ramping-arrival-rate',
+            startRate: 0,
+            timeUnit: '1s',
+            preAllocatedVUs: config.preAllocatedVUs,
+            maxVUs: config.maxVUs,
+            stages: [
+                { target: config.rate, duration: config.rampingDuration },
+                { target: config.rate, duration: config.duration },
+                { target: 0, duration: config.rampingDuration },
+            ],
+        },
     },
 
     thresholds: {
-        http_req_duration: ["p(95)<1000"],
+        http_req_duration: ["p(99)<1500"],
         checks: ['rate>0.9'],
         "http_req_duration{name:activate-transaction-test}": ["p(95)<1000"],
         "http_req_duration{name:get-transaction-test}": ["p(95)<1000"]
@@ -69,6 +69,8 @@ export default function () {
             { "Response status from GET /transactions by transaction id was 200": (r) => r.status == 200 },
             { name: "get-transaction-test" }
         );
+    } else {
+        fail(`Error creating new transaction, POST transaction response code: ${response.status}, body: ${response.body}`);
     }
 }
 
