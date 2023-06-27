@@ -21,6 +21,7 @@ export let options = {
   },
   thresholds: {
     http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
+    checks: ['rate>0.9'], // 90% of the request must be completed
     "http_req_duration{name:notifications-test}": ["p(95)<1000"],
   },
 };
