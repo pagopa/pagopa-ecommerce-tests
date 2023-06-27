@@ -22,8 +22,8 @@ export let options = {
     },
 
     thresholds: {
-        http_req_duration: ["p(95)<1000"],
-        checks: ['rate>0.9'],
+        http_req_duration: ["p(99)<1500"], 
+        checks: ['rate>0.9'], 
         "http_req_duration{name:activate-transaction-test}": ["p(95)<1000"],
         "http_req_duration{name:get-transaction-test}": ["p(95)<1000"]
     },
