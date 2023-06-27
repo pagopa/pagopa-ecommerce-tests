@@ -24,8 +24,8 @@ export let options = {
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
         checks: ['rate>0.9'], // 90% of the request must be completed
-        "http_req_duration{api:get-all-psps-test}": ["p(95)<1000"],
-        "http_req_duration{api:get-psps-by-payment-method-test}": ["p(95)<1000"]
+        "http_req_duration{name:get-all-psps-test}": ["p(95)<1000"],
+        "http_req_duration{name:get-psps-by-payment-method-test}": ["p(95)<1000"]
     },
 };
 
@@ -36,7 +36,7 @@ const urlBasePath = config.URL_BASE_PATH
 export function setup() {
     let paymentMethods: type.JSONArray;
     let url = `${urlBasePath}/payment-methods`;
-    let response = http.get(url, { tags: { api: "get-all-payment-methods-test" } });
+    let response = http.get(url, { tags: { name: "get-all-payment-methods-test" } });
     if (response.status == 200 && response.json() !== undefined) {
         paymentMethods = response.json() as type.JSONArray;
         console.log("Payment methods retrieved successfully");
@@ -48,19 +48,19 @@ export function setup() {
 
 export default function (paymentMethods: type.JSONArray) {
     let url = `${urlBasePath}/payment-methods/psps`;
-    let response = http.get(url, { tags: { api: "get-all-psps-test" } });
+    let response = http.get(url, { tags: { name: "get-all-psps-test" } });
     check(
         response,
         { "Response status from GET /psps was 200": (r) => r.status == 200 },
-        { api: "get-all-psps-test" }
+        { name: "get-all-psps-test" }
     );
     paymentMethods.forEach(function (paymentMethod) {
         url = `${urlBasePath}/payment-methods/${(<type.JSONObject>paymentMethod)["id"]}/psps`;
-        response = http.get(url, { tags: { api: "get-psps-by-payment-method-test" } });
+        response = http.get(url, { tags: { name: "get-psps-by-payment-method-test" } });
         check(
             response,
             { "Response status from GET /psps by payment method id was 200": (r) => r.status == 200 },
-            { api: "get-psps-by-payment-method-test" }
+            { name: "get-psps-by-payment-method-test" }
         );
     });
 

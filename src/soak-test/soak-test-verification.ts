@@ -21,6 +21,8 @@ export let options = {
   },
 
   thresholds: {
+    http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
+    checks: ['rate>0.9'], // 90% of the request must be completed
     "http_req_duration{name:PaymentRequest-verify}": ["p(95)<1000"],//95% of requests must complete below 1.0s
     "http_req_duration{name:PaymentRequest-verify-hitCache}": ["p(95)<1000"],//95% of requests must complete below 1.0s
   },
@@ -48,7 +50,7 @@ export default function hitCacheTest() {
   check(
     response,
     { "Response status from GET /payment-request was 200": (r) => r.status == 200 },
-    { api: 'PaymentRequest-verify' }
+    { name: 'PaymentRequest-verify' }
   );
   //make a verify request for the same rptId to test cache hit response time
   response = http.get(

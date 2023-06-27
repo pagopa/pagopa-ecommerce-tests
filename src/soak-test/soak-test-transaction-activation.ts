@@ -2,7 +2,7 @@ import { check } from "k6";
 import http from "k6/http";
 import { NewTransactionResponse } from "../generated/ecommerce/NewTransactionResponse";
 import { getConfigOrThrow } from "../utils/config";
-import { generateRptId, createActivationRequest } from "../common/soak-test-common"
+import { createActivationRequest } from "../common/soak-test-common"
 
 const config = getConfigOrThrow();
 export let options = {
