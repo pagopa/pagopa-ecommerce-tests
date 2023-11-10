@@ -2,7 +2,7 @@
 trigger: none
 
 stages : 
-  - stage : 'API tests - eCommerce for IO'
+  - stage : 'API_tests_eCommerce_for_IO'
     displayName: 'Run postman collection - eCommerce for IO'
     pool:
       vmImage: 'ubuntu-latest'
