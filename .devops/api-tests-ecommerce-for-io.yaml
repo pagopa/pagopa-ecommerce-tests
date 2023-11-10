@@ -1,0 +1,23 @@
+# azure-pipelines.yml
+trigger: none
+
+stages : 
+  - stage : 'API_tests_eCommerce_for_IO'
+    displayName: 'Run postman collection - eCommerce for IO'
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: api_tests
+        steps:
+        - script: |
+            yarn global add newman
+          displayName: 'Newman installation'
+        - script: |
+            newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-uat.postman_collection.json --env-var WALLET_TOKEN_TEST=$(WALLET_TOKEN_TEST) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-api-TEST.xml
+          displayName: 'Run api test'
+        - task: PublishTestResults@2
+          condition: succeededOrFailed()
+          inputs:
+            testResultsFormat: 'JUnit'
+            testResultsFiles: '**/*-TEST.xml'
+            searchFolder: '$(System.DefaultWorkingDirectory)'
