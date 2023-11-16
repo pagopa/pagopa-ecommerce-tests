@@ -317,8 +317,8 @@
 							"pm.test(\"Get fees by walletId and paymentToken - Status code is 200 with valid json response\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"ID_PSP\", responseJson.bundles[2].idPsp);",
-							"  pm.environment.set(\"FEE\", responseJson.bundles[2].taxPayerFee);",
+							"  pm.environment.set(\"ID_PSP\", responseJson.bundles[0].idPsp);",
+							"  pm.environment.set(\"FEE\", responseJson.bundles[0].taxPayerFee);",
 							"});"
 						],
 						"type": "text/javascript"
