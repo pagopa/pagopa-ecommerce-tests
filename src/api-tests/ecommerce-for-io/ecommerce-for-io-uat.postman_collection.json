@@ -1,8 +1,9 @@
 {
 	"info": {
-		"_postman_id": "50d811db-8ff1-4cc5-a01e-24e060456075",
-		"name": "eCommerce for IO - UAT",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"_postman_id": "e924e88c-8536-43a4-9274-6cb5299ac9f1",
+		"name": "eCommerce for IO - Wallet Credit Card - UAT",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23305473"
 	},
 	"item": [
 		{
@@ -15,7 +16,8 @@
 							"pm.test(\"wallets by walletToken - Status code is 200 with valid json response\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"WALLET_ID\", responseJson.wallets[0].walletId);",
+							"  var walletId = responseJson.wallets.find(w => w.details.type === pm.environment.get(\"WALLET_TYPE\")).walletId;",
+							"  pm.environment.set(\"WALLET_ID\", walletId);",
 							"  pm.environment.set(\"PAYMENT_METHOD_ID\", responseJson.wallets[0].paymentMethodId);",
 							"});"
 						],
@@ -61,8 +63,7 @@
 						"v1",
 						"wallets"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -133,8 +134,7 @@
 						"payment-requests",
 						"{{RPTID}}"
 					]
-				},
-				"description": ""
+				}
 			},
 			"response": []
 		},
@@ -317,8 +317,8 @@
 							"pm.test(\"Get fees by walletId and paymentToken - Status code is 200 with valid json response\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"ID_PSP\", responseJson.bundles[0].idPsp);",
-							"  pm.environment.set(\"FEE\", responseJson.bundles[0].taxPayerFee);",
+							"  pm.environment.set(\"ID_PSP\", responseJson.bundles[2].idPsp);",
+							"  pm.environment.set(\"FEE\", responseJson.bundles[2].taxPayerFee);",
 							"});"
 						],
 						"type": "text/javascript"
