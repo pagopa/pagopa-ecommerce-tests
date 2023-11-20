@@ -3,7 +3,7 @@ trigger: none
 
 stages : 
   - stage : 'API_tests_eCommerce_for_IO_creditCard'
-    displayName: 'eCommerce for IO - Credit Card - Run postman collection'
+    displayName: 'CARDS - eCommerce for IO - Credit Card - Run postman collection'
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
@@ -23,7 +23,7 @@ stages :
             searchFolder: '$(System.DefaultWorkingDirectory)'
 
   - stage: 'API_tests_eCommerce_for_IO_bancomatpay'
-    displayName: 'eCommerce for IO - BancomatPay - Run postman collection'
+    displayName: 'BPAY - eCommerce for IO - BancomatPay - Run postman collection'
     dependsOn: []
     pool:
       vmImage: 'ubuntu-latest'
@@ -44,7 +44,7 @@ stages :
               searchFolder: '$(System.DefaultWorkingDirectory)'
 
   - stage: 'API_tests_eCommerce_for_IO_paypal'
-    displayName: 'eCommerce for IO - Paypal - Run postman collection'
+    displayName: 'PPAY - eCommerce for IO - Paypal - Run postman collection'
     dependsOn: []
     pool:
       vmImage: 'ubuntu-latest'
