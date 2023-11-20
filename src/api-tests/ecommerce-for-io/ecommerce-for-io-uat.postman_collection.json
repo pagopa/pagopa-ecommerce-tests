@@ -1,7 +1,7 @@
 {
 	"info": {
 		"_postman_id": "e924e88c-8536-43a4-9274-6cb5299ac9f1",
-		"name": "eCommerce for IO - Wallet Credit Card - UAT",
+		"name": "eCommerce for IO - UAT",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "23305473"
 	},
@@ -17,8 +17,9 @@
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  var walletId = responseJson.wallets.find(w => w.details.type === pm.environment.get(\"WALLET_TYPE\")).walletId;",
+							"  var paymentMethodId = responseJson.wallets.find(w => w.details.type === pm.environment.get(\"WALLET_TYPE\")).paymentMethodId;",
 							"  pm.environment.set(\"WALLET_ID\", walletId);",
-							"  pm.environment.set(\"PAYMENT_METHOD_ID\", responseJson.wallets[0].paymentMethodId);",
+							"  pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethodId);",
 							"});"
 						],
 						"type": "text/javascript"
@@ -317,8 +318,8 @@
 							"pm.test(\"Get fees by walletId and paymentToken - Status code is 200 with valid json response\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"ID_PSP\", responseJson.bundles[2].idPsp);",
-							"  pm.environment.set(\"FEE\", responseJson.bundles[2].taxPayerFee);",
+							"  pm.environment.set(\"ID_PSP\", responseJson.bundles[0].idPsp);",
+							"  pm.environment.set(\"FEE\", responseJson.bundles[0].taxPayerFee);",
 							"});"
 						],
 						"type": "text/javascript"
