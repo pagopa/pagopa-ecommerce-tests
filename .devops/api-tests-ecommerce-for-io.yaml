@@ -24,6 +24,7 @@ stages :
 
   - stage: 'API_tests_eCommerce_for_IO_bancomatpay'
     displayName: 'Run postman collection - eCommerce for IO - BancomatPay'
+    dependsOn: []
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
@@ -44,6 +45,7 @@ stages :
 
   - stage: 'API_tests_eCommerce_for_IO_paypal'
     displayName: 'Run postman collection - eCommerce for IO - Paypal'
+    dependsOn: []
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
