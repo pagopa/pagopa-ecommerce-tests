@@ -1,160 +1,100 @@
-import { Int } from "io-ts";
 import { check, fail } from "k6";
 import http from "k6/http";
 import { getConfigOrThrow } from "../utils/config";
+import { PaymentMethodResponse } from "../generated/ecommerce/PaymentMethodResponse";
+import { PaymentMethodsResponse } from "../generated/ecommerce/PaymentMethodsResponse";
+import { calculateFeeRequest } from "../common/soak-test-common";
 
 const config = getConfigOrThrow();
 
 export let options = {
     scenarios: {
-      contacts: {
-        executor: 'ramping-arrival-rate',
-        startRate: 0,
-        timeUnit: '1s',
-        preAllocatedVUs: config.preAllocatedVUs,
-        maxVUs: config.maxVUs,
-        stages: [
-          { target: config.rate, duration: config.rampingDuration },
-          { target: config.rate, duration: config.duration },
-          { target: 0, duration: config.rampingDuration },
-        ],
-      },
+        contacts: {
+            executor: 'ramping-arrival-rate',
+            startRate: 0,
+            timeUnit: '1s',
+            preAllocatedVUs: config.preAllocatedVUs,
+            maxVUs: config.maxVUs,
+            stages: [
+                { target: config.rate, duration: config.rampingDuration },
+                { target: config.rate, duration: config.duration },
+                { target: 0, duration: config.rampingDuration },
+            ],
+        },
     },
     thresholds: {
         http_req_duration: ["p(99)<1500"], // 99% of requests must complete below 1.5s
         checks: ['rate>0.9'], // 90% of the request must be completed
-        "http_req_duration{name:create-payment-method-test}": ["p(95)<1000"],
-        "http_req_duration{name:get-single-payment-method-test}": ["p(95)<1000"],
-        "http_req_duration{name:patch-payment-method-status-test}": ["p(95)<1000"],
-        "http_req_duration{name:get-psps-by-payment-method-test}": ["p(95)<1000"],
-        "http_req_duration{name:get-all-payment-methods-test}": ["p(95)<1000"],
-        "http_req_duration{name:get-all-psps-test}": ["p(95)<1000"],
-        "http_req_duration{name:update-psps-list-test}": ["p(95)<1000"]
+        "http_req_duration{name:get-payment-methods}": ["p(95)<1000"],
+        "http_req_duration{name:get-payment-method-by-id}": ["p(95)<1000"],
+        "http_req_duration{name:calculate-fees}": ["p(95)<1000"]
     },
 };
 
-let counter: number = 0;
+const headersParams = {
+    headers: {
+        'Content-Type': 'application/json',
+        'Ocp-Apim-Subscription-Key': config.API_SUBSCRIPTION_KEY,
+        'Authorization': "Bearer "
+    },
+};
 
 export default function () {
     const urlBasePath = config.URL_BASE_PATH;
-    var paymentMethodId;
-    var paymentMethodStatus;
 
-    // Body request for POST create a new payment method
-    const bodyCreatePaymentMethodRequest = {
-        name: config.PAYMENT_METHOD_NAME.concat((counter++).toString()),
-        description: "The new payment method",
-        asset: "maestro",
-        status: "DISABLED",
-        paymentTypeCode: "PPAY",
-        ranges: [{
-            min: 0,
-            max: 99999999
-        }]
+    const filterAmount = "10000"
 
-    }
-
-    // Body request for PATCH payment method status
-    const badyForPatchStatus = {
-        status: "ENABLED"
-    }
-
-    // Generic header parameter
-    const headersParams = {
-        headers: {
-            'Content-Type': 'application/json'
-        },
-    };
-
-
-    // Test for POST create a new payment method
-    let url = `${urlBasePath}/ecommerce/payment-methods-service/v1/payment-methods`;
-    let response = http.post(url, JSON.stringify(bodyCreatePaymentMethodRequest), {
-        ...headersParams,
-        tags: { name: "create-payment-method-test" },
-    });
-
-    check(
-        response,
-        { "Response status from POST /payment-methods was 200": (r) => r.status == 200 },
-        { name: "create-payment-method-test" }
-    );
-
-    if (response.status == 200) {
-        paymentMethodId = response.json()["id"];
-        //Test for GET single payment method after POST
-        url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}`;
-        response = http.get(url, { tags: { name: "get-single-payment-method-test" } });
-
-        check(
-            response,
-            { "Response status from GET /payment-methods/{id} was 200": (r) => r.status == 200 },
-            { name: "get-single-payment-method-test" }
-        );
-
-        //Test for PATCH paymnet method status
-        url = `${urlBasePath}/ecommerce/payment-methods-service/v1/payment-methods/${paymentMethodId}`;
-        response = http.patch(url, JSON.stringify(badyForPatchStatus), {
+    // Test for GET all payment methods
+    let response = http.get(
+        `${urlBasePath}/payment-methods?amount=${filterAmount}`,
+        {
             ...headersParams,
-            tags: { name: "patch-payment-method-status-test" },
+            tags: { name: "get-payment-methods" },
         });
 
-        check(
-            response,
-            { "Response status from PATCH /payment-methods/{id} was 200": (r) => r.status == 200 },
-            { name: "patch-payment-method-status-test" }
-        );
+    check(
+        response,
+        { "Response status from GET /payment-methods was 200": (r) => r.status == 200 },
+        { name: "get-payment-methods" }
+    );
 
-        if (response.status == 200) {
-            paymentMethodStatus = response.json()["status"];
+    if (response.status == 200 && response.json() !== undefined) {
+        const paymentMethods = response.json() as unknown as PaymentMethodsResponse;
+        if (paymentMethods.paymentMethods) {
+            const firstPaymentMethod = paymentMethods.paymentMethods[0] as unknown as PaymentMethodResponse;
+            // Test for GET payment method by id
+            response = http.get(
+                `${urlBasePath}/payment-methods/${firstPaymentMethod.id}`,
+                {
+                    ...headersParams,
+                    tags: { name: "get-payment-method-by-id" },
+                });
+            check(
+                response,
+                { "Response status from GET /payment-methods/{id} was 200": (r) => r.status == 200 },
+                { name: "get-payment-method-by-id" }
+            );
+            const calculateFee = calculateFeeRequest()
+            
+            //Test calculate fees
+            response = http.post(
+                `${urlBasePath}/payment-methods/${firstPaymentMethod.id}/fees`,
+                JSON.stringify(calculateFee),
+                {
+                    ...headersParams,
+                    tags: { name: "calculate-fees" },
+                });
+            check(
+                response,
+                { "Response status from POST /payment-methods/{id}/fees was 200": (r) => r.status == 200 },
+                { name: "calculate-fees" }
+            );
 
-            if (paymentMethodStatus === "ENABLED") {
-
-                //Test for GET psps by paymentMethodId
-                url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}/psps`;
-                response = http.get(url, { tags: { name: "get-psps-by-payment-method-test" } });
-                check(
-                    response,
-                    { "Response status from GET /psps by payment method id was 200": (r) => r.status == 200 },
-                    { name: "get-psps-by-payment-method-test" }
-                );
-
-            } else {
-                fail('Error patch method for change payment method status. The state has not changed.');
-            }
         } else {
-            fail('Error patch method for change payment method status');
+            fail("Get all payment methods returned no payment method!");
         }
+
     } else {
-        fail('Error creating new payment method');
+        fail(`Cannot retrieve all payment methods, received error code: ${response.status} and body ${response.body}`)
     }
-
-
-
-    //Test for GET all payment method
-    url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods`;
-    response = http.get(url, { tags: { name: "get-all-payment-methods-test" } });
-    check(
-        response,
-        { "Response status from GET payment-methods was 200": (r) => r.status == 200 },
-        { name: "get-all-payment-methods-test" }
-    );
-
-    //Test for GET psps
-    url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/psps`;
-    response = http.get(url, { tags: { name: "get-all-psps-test" } });
-    check(
-        response,
-        { "Response status from GET /psps was 200": (r) => r.status == 200 },
-        { name: "get-all-psps-test" }
-    );
-
-    //Test for PUT psps list
-    // url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/psps`;
-    // response = http.put(url, null, { tags: { name: "update-psps-list-test" } });
-    // check(
-    //     response,
-    //     { "Response status from PUT /psps was 200": (r) => r.status == 200 },
-    //     { name: "update-psps-list-test" }
-    // );
 }
