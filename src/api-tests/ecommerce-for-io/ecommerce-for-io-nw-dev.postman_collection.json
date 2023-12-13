@@ -1,0 +1,496 @@
+{
+	"info": {
+		"_postman_id": "60cc35d0-2f11-4308-a6ae-52933bd8af2c",
+		"name": "eCommerce for IO (NW) - DEV",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "23305473"
+	},
+	"item": [
+		{
+			"name": "Recupero wallet associato walletToken",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"\", () => {",
+							"",
+							"  const responseJson = pm.response.json();",
+							"  var walletId = responseJson.wallets.find(w => w.details.type === pm.environment.get(\"WALLET_TYPE\")).walletId;",
+							"  var paymentMethodId = responseJson.wallets.find(w => w.details.type === pm.environment.get(\"WALLET_TYPE\")).paymentMethodId;",
+							"  pm.environment.set(\"WALLET_ID\", walletId);",
+							"  pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethodId);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{WALLET_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-user-id",
+						"value": "1",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "https://api.dev.platform.pagopa.it/payment-wallet/v1/wallets",
+					"protocol": "https",
+					"host": [
+						"api",
+						"dev",
+						"platform",
+						"pagopa",
+						"it"
+					],
+					"path": [
+						"payment-wallet",
+						"v1",
+						"wallets"
+					]
+				},
+				"description": "1. recupero info relativi alla request payment con verifyPaymentNotice se non presente in cache dato rptId\n2. cache info su redis dato rptId"
+			},
+			"response": []
+		},
+		{
+			"name": "Nuova sessione di pagamento",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"\", () => {",
+							"",
+							"  const responseJson = pm.response.json();",
+							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.sessionToken);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "VbeGOzNcAZlgkuyBoznDJD",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"url": {
+					"raw": "https://api.dev.platform.pagopa.it/ecommerce/io/v1/sessions",
+					"protocol": "https",
+					"host": [
+						"api",
+						"dev",
+						"platform",
+						"pagopa",
+						"it"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v1",
+						"sessions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Recupero info dato rptId",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"\", () => {",
+							"",
+							"  const responseJson = pm.response.json();",
+							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentToken);",
+							"  pm.environment.set(\"RPT_ID\", responseJson.rptId);",
+							"  pm.environment.set(\"PAYMENT_CONTEXT_CODE\", responseJson.paymentContextCode);",
+							"  pm.environment.set(\"AMOUNT\", responseJson.amount);",
+							"  ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"RPTID_NM3\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "",
+						"type": "text",
+						"value": "",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "https://api.dev.platform.pagopa.it/ecommerce/io/v1/payment-requests/{{RPTID_NM3}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"dev",
+						"platform",
+						"pagopa",
+						"it"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v1",
+						"payment-requests",
+						"{{RPTID_NM3}}"
+					]
+				},
+				"description": "1. recupero info relativi alla request payment con verificaRPT se non presente in cache dato rptId\n2. cache info su redis dato rptId"
+			},
+			"response": []
+		},
+		{
+			"name": "Nuova transactione di pagamento",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"\", () => {",
+							"",
+							"  const responseJson = pm.response.json();",
+							"  pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
+							" });"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"RPT_ID\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"paymentNotices\": [{\n        \"rptId\": \"{{RPT_ID}}\",\n        \"amount\": 12000\n    }]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.dev.platform.pagopa.it/ecommerce/io/v1/transactions",
+					"protocol": "https",
+					"host": [
+						"api",
+						"dev",
+						"platform",
+						"pagopa",
+						"it"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v1",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get transaction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"\", () => {",
+							"",
+							"  const responseJson = pm.response.json();",
+							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentToken);",
+							"",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "https://api.dev.platform.pagopa.it/ecommerce/io/v1/transactions/{{TRANSACTION_ID}}",
+					"protocol": "https",
+					"host": [
+						"api",
+						"dev",
+						"platform",
+						"pagopa",
+						"it"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v1",
+						"transactions",
+						"{{TRANSACTION_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Recupero fees per un wallet e dato un amount",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"\", () => {",
+							"",
+							"  const responseJson = pm.response.json();",
+							"  pm.environment.set(\"ID_PSP\", responseJson.bundles[0].idPsp);",
+							"  pm.environment.set(\"FEE\", responseJson.bundles[0].taxPayerFee);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"walletId\": \"b4af5666-d38a-4a2c-8021-116cb510e0a7\",\n    \"language\": \"it\",\n    \"paymentAmount\": {{AMOUNT}},\n    \"primaryCreditorInstitution\": \"77777777777\",\n    \"idPspList\":[],\n    \"isAllCCP\":true,\n    \"transferList\":[{\"creditorInstitution\":\"77777777777\",\"digitalStamp\":true,\"transferCategory\":\"string\"}]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.dev.platform.pagopa.it/ecommerce/io/v1/payment-methods/{{PAYMENT_METHOD_ID}}/fees",
+					"protocol": "https",
+					"host": [
+						"api",
+						"dev",
+						"platform",
+						"pagopa",
+						"it"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v1",
+						"payment-methods",
+						"{{PAYMENT_METHOD_ID}}",
+						"fees"
+					]
+				},
+				"description": "1. recupero info relativi alla request payment con verifyPaymentNotice se non presente in cache dato rptId\n2. cache info su redis dato rptId"
+			},
+			"response": []
+		},
+		{
+			"name": "Nuova auth request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"\", () => {",
+							"",
+							"  const responseJson = pm.response.json();",
+							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentToken);",
+							"  pm.environment.set(\"RPT_ID\", responseJson.rptId);",
+							"  pm.environment.set(\"PAYMENT_CONTEXT_CODE\", responseJson.paymentContextCode);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"amount\": {{AMOUNT}},\n    \"fee\": {{FEE}},\n    \"pspId\": \"{{ID_PSP}}\",\n    \"paymentInstrumentId\": \"{{PAYMENT_METHOD_ID}}\",\n    \"language\": \"IT\",\n    \"isAllCCP\": true,\n    \"walletId\": \"{{WALLET_ID}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://api.dev.platform.pagopa.it/ecommerce/io/v1/transactions/{{TRANSACTION_ID}}/auth-requests",
+					"protocol": "https",
+					"host": [
+						"api",
+						"dev",
+						"platform",
+						"pagopa",
+						"it"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v1",
+						"transactions",
+						"{{TRANSACTION_ID}}",
+						"auth-requests"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "WALLET_TOKEN_TEST",
+			"value": "WALLET_TOKEN_TEST"
+		}
+	]
+}
