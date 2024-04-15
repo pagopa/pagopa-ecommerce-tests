@@ -1,41 +1,32 @@
 {
 	"info": {
-		"_postman_id": "7f83447f-eb20-462d-bbc2-8afd07873568",
-		"name": "eCommerce for IO - UAT (PM)",
+		"_postman_id": "24d731e4-4c5c-41d8-845c-8fa9a1ef0cb8",
+		"name": "eCommerce for IO (NW)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "23305473"
 	},
 	"item": [
 		{
-			"name": "Wallets by walletToken",
+			"name": "Nuova sessione di pagamento",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"wallets by walletToken - Status code is 200 with valid json response\", function () {",
-							"  pm.response.to.have.status(200);",
+							"pm.test(\"\", () => {",
+							"",
 							"  const responseJson = pm.response.json();",
-							"  var walletId = responseJson.wallets.find(w => w.details.type === pm.environment.get(\"WALLET_TYPE\")).walletId;",
-							"  var paymentMethodId = responseJson.wallets.find(w => w.details.type === pm.environment.get(\"WALLET_TYPE\")).paymentMethodId;",
-							"  pm.environment.set(\"WALLET_ID\", walletId);",
-							"  pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethodId);",
+							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.sessionToken);",
 							"});"
 						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
-							""
-						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
 			"request": {
 				"auth": {
 					"type": "bearer",
@@ -47,54 +38,53 @@
 						}
 					]
 				},
-				"method": "GET",
+				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/payment-wallet/v1/wallets",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/sessions",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
-						"payment-wallet",
+						"ecommerce",
+						"io",
 						"v1",
-						"wallets"
+						"sessions"
 					]
 				}
 			},
 			"response": []
 		},
 		{
-			"name": "Payment Info by rptId",
+			"name": "Recupero info dato rptId",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Payment Info by rptId - Status code is 200 with valid json response\", function () {",
-							"  pm.response.to.have.status(200);",
+							"pm.test(\"\", () => {",
+							"",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentToken);",
 							"  pm.environment.set(\"RPT_ID\", responseJson.rptId);",
 							"  pm.environment.set(\"PAYMENT_CONTEXT_CODE\", responseJson.paymentContextCode);",
 							"  pm.environment.set(\"AMOUNT\", responseJson.amount);",
+							"  ",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set(\"RPTID\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
+							"pm.environment.set(\"RPTID_NM3\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -119,49 +109,48 @@
 					}
 				],
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/ecommerce/io/v1/payment-requests/{{RPTID}}",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/payment-requests/{{RPTID_NM3}}",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
 						"io",
 						"v1",
 						"payment-requests",
-						"{{RPTID}}"
+						"{{RPTID_NM3}}"
 					]
-				}
+				},
+				"description": "1. recupero info relativi alla request payment con verificaRPT se non presente in cache dato rptId\n2. cache info su redis dato rptId"
 			},
 			"response": []
 		},
 		{
-			"name": "Start new eCommerce transaction",
+			"name": "Nuova transazione di pagamento",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							" pm.test(\"Start new eCommerce transaction - Status code is 200 with valid json response\", function () {",
-							"  pm.response.to.have.status(200);",
+							"pm.test(\"\", () => {",
+							"",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
-							"});"
+							" });"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"exec": [
+							"pm.environment.set(\"RPT_ID\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -180,7 +169,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"paymentNotices\": [{\n        \"rptId\": \"{{RPT_ID}}\",\n        \"amount\": {{AMOUNT}}\n    }]\n}",
+					"raw": "{\n    \"paymentNotices\": [{\n        \"rptId\": \"{{RPT_ID}}\",\n        \"amount\": 12000\n    }]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -188,14 +177,9 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/ecommerce/io/v1/transactions",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/transactions",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
@@ -208,66 +192,94 @@
 			"response": []
 		},
 		{
-			"name": "Start new eCommerce session transaction",
+			"name": "Recupero wallet associato walletToken",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Start new eCommerce transaction session - Status code is 200 with valid json response\", function () {",
-							"  pm.response.to.have.status(200);",
+							"pm.test(\"\", () => {",
+							"",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.sessionToken);",
+							"  var walletId = responseJson.wallets.find(w => w?.details?.type === pm.environment.get(\"WALLET_TYPE\"))?.walletId;",
+							"  var paymentMethodId = responseJson.wallets.find(w => w?.details?.type === pm.environment.get(\"WALLET_TYPE\"))?.paymentMethodId;",
+							"  console.log(walletId);",
+							"  console.log(paymentMethodId);",
+							"  if(walletId === undefined || paymentMethodId === undefined) {",
+							"    walletId = responseJson.wallets[0]?.walletId;",
+							"    paymentMethodId = responseJson.wallets[0]?.paymentMethodId;",
+							"  }",
+							"  pm.environment.set(\"WALLET_ID\", walletId);",
+							"  pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethodId);",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
 			"request": {
 				"auth": {
 					"type": "bearer",
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{WALLET_TOKEN_TEST}}",
+							"value": "{{SESSION_TOKEN}}",
 							"type": "string"
 						}
 					]
 				},
-				"method": "POST",
-				"header": [],
+				"method": "GET",
+				"header": [
+					{
+						"key": "x-user-id",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/ecommerce/io/v1/sessions",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/wallets",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
 						"io",
 						"v1",
-						"sessions"
+						"wallets"
 					]
-				}
+				},
+				"description": "1. recupero info relativi alla request payment con verifyPaymentNotice se non presente in cache dato rptId\n2. cache info su redis dato rptId"
 			},
 			"response": []
 		},
 		{
-			"name": "Get eCommerce transaction by TRANSACTION_ID",
+			"name": "Get transaction",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Get eCommerce transaction by TRANSACTION_ID - Status code is 200 with valid json response\", function () {",
-							"  pm.response.to.have.status(200);",
+							"pm.test(\"\", () => {",
+							"",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.payments[0].paymentToken);",
+							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentToken);",
+							"",
 							"});"
 						],
 						"type": "text/javascript"
@@ -288,14 +300,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/ecommerce/io/v1/transactions/{{TRANSACTION_ID}}",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/transactions/{{TRANSACTION_ID}}",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
@@ -309,29 +316,32 @@
 			"response": []
 		},
 		{
-			"name": "Get fees by walletId and paymentToken",
+			"name": "Recupero fees per un wallet e dato un amount",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Get fees by walletId and paymentToken - Status code is 200 with valid json response\", function () {",
-							"  pm.response.to.have.status(200);",
+							"pm.test(\"\", () => {",
+							"",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"ID_PSP\", responseJson.bundles[0].idPsp);",
-							"  pm.environment.set(\"FEE\", responseJson.bundles[0].taxPayerFee);",
+							"  pm.environment.set(\"ID_PSP\", responseJson.bundles.filter(b => b.idPsp != \"TMIL0101\")[0].idPsp);",
+							"  pm.environment.set(\"FEE\", responseJson.bundles.filter(b => b.idPsp != \"TMIL0101\")[0].taxPayerFee);",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							" "
+							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
+							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -350,7 +360,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"walletId\": \"{{WALLET_ID}}\",\n    \"paymentToken\": \"{{PAYMENT_TOKEN}}\",\n    \"language\": \"it\",\n    \"paymentAmount\": {{AMOUNT}},\n    \"primaryCreditorInstitution\": \"77777777777\"\n}",
+					"raw": "{\n    \"walletId\": \"{{WALLET_ID}}\",\n    \"language\": \"it\",\n    \"paymentAmount\": {{AMOUNT}},\n    \"primaryCreditorInstitution\": \"77777777777\",\n    \"idPspList\":[],\n    \"isAllCCP\":true,\n    \"transferList\":[{\"creditorInstitution\":\"77777777777\",\"digitalStamp\":true,\"transferCategory\":\"string\"}]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -358,14 +368,9 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/ecommerce/io/v1/payment-methods/{{PAYMENT_METHOD_ID}}/fees",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/payment-methods/{{PAYMENT_METHOD_ID}}/fees",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
@@ -375,24 +380,28 @@
 						"{{PAYMENT_METHOD_ID}}",
 						"fees"
 					]
-				}
+				},
+				"description": "1. recupero info relativi alla request payment con verifyPaymentNotice se non presente in cache dato rptId\n2. cache info su redis dato rptId"
 			},
 			"response": []
 		},
 		{
-			"name": "Start new auth request by transactionId and walletId",
+			"name": "Nuova auth request",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Start new auth request by transactionId and walletId - Status code is 200 with valid json response\", function () {",
-							"  pm.response.to.have.status(200);",
+							"pm.test(\"\", () => {",
+							"",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"AUTHORIZATION_URL\", responseJson.authorizationUrl);",
+							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentToken);",
+							"  pm.environment.set(\"RPT_ID\", responseJson.rptId);",
+							"  pm.environment.set(\"PAYMENT_CONTEXT_CODE\", responseJson.paymentContextCode);",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				},
 				{
@@ -402,7 +411,8 @@
 							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -429,14 +439,9 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/ecommerce/io/v1/transactions/{{TRANSACTION_ID}}/auth-requests",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/transactions/{{TRANSACTION_ID}}/auth-requests",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
@@ -469,6 +474,12 @@
 					""
 				]
 			}
+		}
+	],
+	"variable": [
+		{
+			"key": "WALLET_TOKEN_TEST",
+			"value": "WALLET_TOKEN_TEST"
 		}
 	]
 }

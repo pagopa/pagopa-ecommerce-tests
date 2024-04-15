@@ -1,36 +1,23 @@
 {
 	"info": {
-		"_postman_id": "7f83447f-eb20-462d-bbc2-8afd07873568",
-		"name": "eCommerce for IO - UAT (PM)",
+		"_postman_id": "ead3b5c0-e151-40ce-9207-4a1545451f25",
+		"name": "eCommerce for IO - APM",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "23305473"
 	},
 	"item": [
 		{
-			"name": "Wallets by walletToken",
+			"name": "Start new eCommerce session transaction",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"wallets by walletToken - Status code is 200 with valid json response\", function () {",
+							"pm.test(\"Start new eCommerce transaction session - Status code is 200 with valid json response\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
-							"  var walletId = responseJson.wallets.find(w => w.details.type === pm.environment.get(\"WALLET_TYPE\")).walletId;",
-							"  var paymentMethodId = responseJson.wallets.find(w => w.details.type === pm.environment.get(\"WALLET_TYPE\")).paymentMethodId;",
-							"  pm.environment.set(\"WALLET_ID\", walletId);",
-							"  pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethodId);",
+							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.sessionToken);",
 							"});"
-						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
-							""
 						],
 						"type": "text/javascript"
 					}
@@ -47,22 +34,18 @@
 						}
 					]
 				},
-				"method": "GET",
+				"method": "POST",
 				"header": [],
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/payment-wallet/v1/wallets",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/sessions",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
-						"payment-wallet",
+						"ecommerce",
+						"io",
 						"v1",
-						"wallets"
+						"sessions"
 					]
 				}
 			},
@@ -119,14 +102,9 @@
 					}
 				],
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/ecommerce/io/v1/payment-requests/{{RPTID}}",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/payment-requests/{{RPTID}}",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
@@ -188,14 +166,9 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/ecommerce/io/v1/transactions",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/transactions",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
@@ -208,50 +181,75 @@
 			"response": []
 		},
 		{
-			"name": "Start new eCommerce session transaction",
+			"name": "Get all payment methods",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Start new eCommerce transaction session - Status code is 200 with valid json response\", function () {",
+							"pm.test(\"Get fees by walletId and paymentToken - Status code is 200 with valid json response\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.sessionToken);",
+							"  let searchedPaymentMethodName = pm.environment.get(\"PAYMENT_METHOD_NAME\");",
+							"  let paymentMethod = responseJson.paymentMethods.filter(p => p.name === searchedPaymentMethodName)[0];",
+							"  if(paymentMethod) {",
+							"    pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethod.id);",
+							"    console.log(`Selected payment method: ${paymentMethod.name}`);",
+							"  } else {",
+							"    throw Error(`No payment method found for name ${searchedPaymentMethodName}`);",
+							"  }",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							" "
+						],
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
 			"request": {
 				"auth": {
 					"type": "bearer",
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{WALLET_TOKEN_TEST}}",
+							"value": "{{SESSION_TOKEN}}",
 							"type": "string"
 						}
 					]
 				},
-				"method": "POST",
+				"method": "GET",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/ecommerce/io/v1/sessions",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/payment-methods",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
 						"io",
 						"v1",
-						"sessions"
+						"payment-methods"
 					]
 				}
 			},
@@ -288,14 +286,9 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/ecommerce/io/v1/transactions/{{TRANSACTION_ID}}",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/transactions/{{TRANSACTION_ID}}",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
@@ -322,7 +315,8 @@
 							"  pm.environment.set(\"FEE\", responseJson.bundles[0].taxPayerFee);",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				},
 				{
@@ -331,7 +325,8 @@
 						"exec": [
 							" "
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -350,7 +345,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"walletId\": \"{{WALLET_ID}}\",\n    \"paymentToken\": \"{{PAYMENT_TOKEN}}\",\n    \"language\": \"it\",\n    \"paymentAmount\": {{AMOUNT}},\n    \"primaryCreditorInstitution\": \"77777777777\"\n}",
+					"raw": "{\n    \"language\": \"it\",\n    \"paymentAmount\": {{AMOUNT}},\n    \"primaryCreditorInstitution\": \"77777777777\",\n    \"isAllCCP\": true,\n    \"transferList\": [\n        {\n            \"creditorInstitution\": \"77777777777\",\n            \"digitalStamp\": false,\n            \"transferCategory\": \"77777777777\"\n        }\n    ]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -358,14 +353,9 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/ecommerce/io/v1/payment-methods/{{PAYMENT_METHOD_ID}}/fees",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/payment-methods/{{PAYMENT_METHOD_ID}}/fees",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
@@ -392,7 +382,8 @@
 							"  pm.environment.set(\"AUTHORIZATION_URL\", responseJson.authorizationUrl);",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				},
 				{
@@ -402,7 +393,8 @@
 							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -421,7 +413,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"amount\": {{AMOUNT}},\n    \"fee\": {{FEE}},\n    \"pspId\": \"{{ID_PSP}}\",\n    \"language\": \"IT\",\n    \"isAllCCP\": true,\n    \"details\": {\n        \"detailType\": \"wallet\",\n        \"walletId\": \"{{WALLET_ID}}\"\n    }\n}",
+					"raw": "{\n    \"amount\": {{AMOUNT}},\n    \"fee\": {{FEE}},\n    \"pspId\": \"{{ID_PSP}}\",\n    \"language\": \"IT\",\n    \"isAllCCP\": true,\n    \"details\": {\n        \"detailType\": \"apm\",\n        \"paymentMethodId\": \"{{PAYMENT_METHOD_ID}}\"\n    }\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -429,14 +421,9 @@
 					}
 				},
 				"url": {
-					"raw": "https://api.uat.platform.pagopa.it/ecommerce/io/v1/transactions/{{TRANSACTION_ID}}/auth-requests",
-					"protocol": "https",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/transactions/{{TRANSACTION_ID}}/auth-requests",
 					"host": [
-						"api",
-						"uat",
-						"platform",
-						"pagopa",
-						"it"
+						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
