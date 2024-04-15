@@ -12,7 +12,8 @@ parameters:
     default: DEV
 
 variables:
-  - hostname: 'https://api.dev.platform.pagopa.it'
+  - name:     hostname
+  - value : 'https://api.dev.platform.pagopa.it'
 #  ${{ if eq( ${{parameters.ENVIRONMENT}}, 'UAT' ) }}:
 
 #  ${{ else }}:
