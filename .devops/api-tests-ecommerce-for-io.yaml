@@ -12,10 +12,11 @@ parameters:
     default: DEV
 
 variables:
-  ${{ if eq(${{parameters.ENVIRONMENT}}, 'UAT') }}:
-    hostname: 'https://api.uat.platform.pagopa.it'
-  ${{ else }}:
-    hostname: 'https://api.dev.platform.pagopa.it'
+  - hostname: 'https://api.dev.platform.pagopa.it'
+#  ${{ if eq( ${{parameters.ENVIRONMENT}}, 'UAT' ) }}:
+
+#  ${{ else }}:
+#    hostname: 'https://api.dev.platform.pagopa.it'
 
 stages : 
   - stage : 'API_tests_eCommerce_for_IO_creditCard_PM'
