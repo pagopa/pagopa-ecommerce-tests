@@ -22,7 +22,7 @@ variables:
 stages : 
   - stage : 'API_tests_eCommerce_for_IO_creditCard_PM'
     displayName: 'CARDS - eCommerce for IO - Credit Card - PM - Run postman collection'
-    condition: and(succeeded(), eq("${{parameters.ENVIRONMENT}}", UAT"))
+    condition: and(succeeded(), eq(${{parameters.ENVIRONMENT}}, 'UAT'))
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
@@ -43,7 +43,7 @@ stages :
 
   - stage: 'API_tests_eCommerce_for_IO_bancomatpay_PM'
     displayName: 'BPAY - eCommerce for IO - BancomatPay - PM - Run postman collection'
-    condition: and(succeeded(), eq("${{parameters.ENVIRONMENT}}", "UAT"))
+    condition: and(succeeded(), eq(${{parameters.ENVIRONMENT}}, "UAT"))
     dependsOn: []
     pool:
       vmImage: 'ubuntu-latest'
@@ -65,7 +65,7 @@ stages :
 
   - stage: 'API_tests_eCommerce_for_IO_paypal_PM'
     displayName: 'PPAY - eCommerce for IO - Paypal - PM - Run postman collection'
-    condition: and(succeeded(), eq("${{parameters.ENVIRONMENT}}", "UAT"))
+    condition: and(succeeded(), eq(${{parameters.ENVIRONMENT}}, "UAT"))
     dependsOn: []
     pool:
       vmImage: 'ubuntu-latest'
