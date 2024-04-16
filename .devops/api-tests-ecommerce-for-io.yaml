@@ -20,22 +20,7 @@ variables:
   - name: 'ENV_FILE'
     value: 'src/api-tests/ecommerce-for-io/env.all.json'
 
-stages : 
-  - stage: 'Show_vars'
-    displayName: 'Show vars'
-    dependsOn: [ ]
-    pool:
-      vmImage: 'ubuntu-latest'
-    jobs:
-      - job: api_tests
-        steps:
-          - script: |
-              echo ${{ parameters.ENVIRONMENT }}
-            displayName: 'Display env'
-          - script: |
-              echo ${{ variables.HOSTNAME }}
-            displayName: 'Display hostname'
-
+stages :
   - stage: 'API_tests_eCommerce_for_IO_creditCard_NW'
     displayName: 'CARDS - eCommerce for IO - Credit Card - NW - Run postman collection'
     dependsOn: [ ]
@@ -54,7 +39,7 @@ stages :
               echo $(hostname)
             displayName: 'Display hostname'
           - script: |
-              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-nw.postman_collection.json -e ${{ variables.ENV_FILE }} --env-var WALLET_TOKEN_TEST=$(WALLET_TOKEN_TEST) --env-var WALLET_TYPE="CARDS" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-api-TEST.xml
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-nw.postman_collection.json -e ${{ variables.ENV_FILE }} --env-var WALLET_TOKEN_TEST=$($(parameters.ENVIRONMENT)_WALLET_TOKEN_TEST) --env-var WALLET_TYPE="CARDS" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-api-TEST.xml
             displayName: 'Run api test'
           - task: PublishTestResults@2
             condition: succeededOrFailed()
