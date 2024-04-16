@@ -17,6 +17,8 @@ variables:
       value: 'https://api.uat.platform.pagopa.it'
     ${{ else }}:
       value: 'https://api.dev.platform.pagopa.it'
+  - name: 'ENV_FILE'
+    value: 'src/api-tests/ecommerce-for-io/env.all.json'
 
 stages : 
   - stage: 'Show_vars'
@@ -52,7 +54,7 @@ stages :
               echo $(hostname)
             displayName: 'Display hostname'
           - script: |
-              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-nw.postman_collection.json --env-var WALLET_TOKEN_TEST=$(WALLET_TOKEN_TEST) --env-var WALLET_TYPE="CARDS" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-api-TEST.xml
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-nw.postman_collection.json -e ${{ parameters.ENV_FILE }}--env-var WALLET_TOKEN_TEST=$(WALLET_TOKEN_TEST) --env-var WALLET_TYPE="CARDS" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-api-TEST.xml
             displayName: 'Run api test'
           - task: PublishTestResults@2
             condition: succeededOrFailed()
