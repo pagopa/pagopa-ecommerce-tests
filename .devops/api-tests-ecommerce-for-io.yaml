@@ -31,7 +31,7 @@ stages :
             yarn global add newman
           displayName: 'Newman installation'
         - script: |
-            newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-uat.postman_collection.json --env-var WALLET_TOKEN_TEST=$(WALLET_TOKEN_TEST) --env-var WALLET_TYPE="CARDS" --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-api-TEST.xml
+            newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-uat.postman_collection.json -e testenv.postman_environment.json --env-var WALLET_TOKEN_TEST=$(WALLET_TOKEN_TEST) --env-var WALLET_TYPE="CARDS" --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-api-TEST.xml
           displayName: 'Run api test'
         - task: PublishTestResults@2
           condition: succeededOrFailed()
