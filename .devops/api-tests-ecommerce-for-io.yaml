@@ -12,7 +12,7 @@ parameters:
     default: "DEV"
 
 variables:
-  - name: hostname
+  - name: 'HOSTNAME'
     ${{ if eq( '${{parameters.ENVIRONMENT}}', 'UAT' ) }}:
       value: 'https://api.uat.platform.pagopa.it'
     ${{ else }}:
@@ -31,5 +31,5 @@ stages :
               echo ${{parameters.ENVIRONMENT}}
             displayName: 'Display env'
           - script: |
-              echo $(hostname)
+              echo $(variables.HOSTNAME)
             displayName: 'Display hostname'
