@@ -96,6 +96,12 @@ stages :
               yarn global add newman
             displayName: 'Newman installation'
           - script: |
+              echo ${{parameters.ENVIRONMENT}}
+            displayName: 'Display env'
+          - script: |
+              echo $(hostname)
+            displayName: 'Display hostname'
+          - script: |
               newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-nw.postman_collection.json --env-var WALLET_TOKEN_TEST=$(WALLET_TOKEN_TEST) --env-var WALLET_TYPE="CARDS" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-api-TEST.xml
             displayName: 'Run api test'
           - task: PublishTestResults@2
@@ -116,9 +122,6 @@ stages :
           - script: |
               yarn global add newman
             displayName: 'Newman installation'
-          - script: |
-              echo $(hostname)
-            displayName: 'Display hostname'
           - script: |
               newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-nw.postman_collection.json --env-var WALLET_TOKEN_TEST=$(WALLET_TOKEN_TEST) --env-var WALLET_TYPE="PAYPAL" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-api-TEST.xml
             displayName: 'Run api test'
