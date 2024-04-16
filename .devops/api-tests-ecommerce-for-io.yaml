@@ -13,7 +13,7 @@ parameters:
 
 variables:
   - name: hostname
-    ${{ if eq( '${{parameters.ENVIRONMENT}}', "UAT" ) }}:
+    ${{ if eq( '${{parameters.ENVIRONMENT}}', UAT ) }}:
       value: 'https://api.uat.platform.pagopa.it'
     ${{ else }}:
       value: 'https://api.dev.platform.pagopa.it'
