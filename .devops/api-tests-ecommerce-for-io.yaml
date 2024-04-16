@@ -14,9 +14,9 @@ parameters:
 variables:
   - name: hostname
     ${{ if eq( '${{parameters.ENVIRONMENT}}', 'UAT' ) }}:
-      value: '"https://api.dev.platform.pagopa.it"'
-    ${{ else }}:
       value: '"https://api.uat.platform.pagopa.it"'
+    ${{ else }}:
+      value: '"https://api.dev.platform.pagopa.it"'
 
 stages : 
   - stage : 'API_tests_eCommerce_for_IO_creditCard_PM'
