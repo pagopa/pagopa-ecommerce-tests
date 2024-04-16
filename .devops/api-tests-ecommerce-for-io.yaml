@@ -13,7 +13,7 @@ parameters:
 
 variables:
   - name: 'HOSTNAME'
-    ${{ if eq( '${{parameters.ENVIRONMENT}}', 'UAT' ) }}:
+    ${{ if eq(variables.HOSTNAME, 'UAT') }}:
       value: 'https://api.uat.platform.pagopa.it'
     ${{ else }}:
       value: 'https://api.dev.platform.pagopa.it'
@@ -28,8 +28,8 @@ stages :
       - job: api_tests
         steps:
           - script: |
-              echo ${{parameters.ENVIRONMENT}}
+              echo ${{ parameters.ENVIRONMENT }}
             displayName: 'Display env'
           - script: |
-              echo ${{variables.HOSTNAME}}
+              echo ${{ variables.HOSTNAME }}
             displayName: 'Display hostname'
