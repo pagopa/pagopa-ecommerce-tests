@@ -19,8 +19,8 @@ variables:
       value: '"https://api.dev.platform.pagopa.it"'
 
 stages : 
-  - stage: 'Show vars'
-    displayName: 'CARDS - eCommerce for IO - Credit Card - NW - Run postman collection'
+  - stage: 'Show_vars'
+    displayName: 'Show vars'
     dependsOn: [ ]
     pool:
       vmImage: 'ubuntu-latest'
@@ -36,5 +36,3 @@ stages :
           - script: |
               echo $(hostname)
             displayName: 'Display hostname'
-
-
