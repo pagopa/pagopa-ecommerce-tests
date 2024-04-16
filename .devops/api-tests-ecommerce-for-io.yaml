@@ -7,16 +7,16 @@ parameters:
     displayName: 'Which environment to run tests for?'
     type: string
     values:
-      - DEV
-      - UAT
-    default: DEV
+      - "DEV"
+      - "UAT"
+    default: "DEV"
 
 variables:
   - name: hostname
     ${{ if eq( ${{parameters.ENVIRONMENT}}, "UAT" ) }}:
-      value: '"https://api.uat.platform.pagopa.it"'
+      value: 'https://api.uat.platform.pagopa.it'
     ${{ else }}:
-      value: '"https://api.dev.platform.pagopa.it"'
+      value: 'https://api.dev.platform.pagopa.it'
 
 stages : 
   - stage: 'Show_vars'
@@ -33,6 +33,3 @@ stages :
           - script: |
               echo $(hostname)
             displayName: 'Display hostname'
-          - script: |
-              echo $(eq(${{parameters.ENVIRONMENT}}, UAT))
-            displayName: 'Show eval'
