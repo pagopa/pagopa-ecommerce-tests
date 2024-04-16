@@ -31,5 +31,5 @@ stages :
               echo ${{parameters.ENVIRONMENT}}
             displayName: 'Display env'
           - script: |
-              echo $(variables.HOSTNAME)
+              echo ${{variables.HOSTNAME}}
             displayName: 'Display hostname'
