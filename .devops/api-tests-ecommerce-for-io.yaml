@@ -28,11 +28,11 @@ stages :
       - job: api_tests
         steps:
           - script: |
-              yarn global add newman
-            displayName: 'Newman installation'
-          - script: |
               echo ${{parameters.ENVIRONMENT}}
             displayName: 'Display env'
           - script: |
               echo $(hostname)
             displayName: 'Display hostname'
+          - script: |
+              echo $(eq('${{parameters.ENVIRONMENT}}', 'UAT'))
+            displayName: 'Show eval'
