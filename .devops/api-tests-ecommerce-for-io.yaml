@@ -7,13 +7,13 @@ parameters:
     displayName: 'Which environment to run tests for?'
     type: string
     values:
-      - "DEV"
-      - "UAT"
-    default: "DEV"
+      - 'DEV'
+      - 'UAT'
+    default: 'DEV'
 
 variables:
   - name: 'HOSTNAME'
-    ${{ if eq(variables.HOSTNAME, 'UAT') }}:
+    ${{ if eq( variables.HOSTNAME, 'UAT') }}:
       value: 'https://api.uat.platform.pagopa.it'
     ${{ else }}:
       value: 'https://api.dev.platform.pagopa.it'
