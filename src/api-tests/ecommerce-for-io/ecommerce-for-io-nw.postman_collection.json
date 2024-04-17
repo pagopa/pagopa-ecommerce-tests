@@ -14,7 +14,7 @@
 					"script": {
 						"exec": [
 							"pm.test(\"\", () => {",
-							"",
+							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.sessionToken);",
 							"});"
@@ -63,7 +63,7 @@
 					"script": {
 						"exec": [
 							"pm.test(\"\", () => {",
-							"",
+							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentToken);",
 							"  pm.environment.set(\"RPT_ID\", responseJson.rptId);",
@@ -133,7 +133,7 @@
 					"script": {
 						"exec": [
 							"pm.test(\"\", () => {",
-							"",
+							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
 							" });"
@@ -199,7 +199,7 @@
 					"script": {
 						"exec": [
 							"pm.test(\"\", () => {",
-							"",
+							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  var walletId = responseJson.wallets.find(w => w?.details?.type === pm.environment.get(\"WALLET_TYPE\"))?.walletId;",
 							"  var paymentMethodId = responseJson.wallets.find(w => w?.details?.type === pm.environment.get(\"WALLET_TYPE\"))?.paymentMethodId;",
@@ -276,13 +276,14 @@
 					"script": {
 						"exec": [
 							"pm.test(\"\", () => {",
-							"",
+							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentToken);",
 							"",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -323,7 +324,7 @@
 					"script": {
 						"exec": [
 							"pm.test(\"\", () => {",
-							"",
+							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"ID_PSP\", responseJson.bundles.filter(b => b.idPsp != \"TMIL0101\")[0].idPsp);",
 							"  pm.environment.set(\"FEE\", responseJson.bundles.filter(b => b.idPsp != \"TMIL0101\")[0].taxPayerFee);",
@@ -393,7 +394,7 @@
 					"script": {
 						"exec": [
 							"pm.test(\"\", () => {",
-							"",
+							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentToken);",
 							"  pm.environment.set(\"RPT_ID\", responseJson.rptId);",
