@@ -116,7 +116,7 @@ stages :
               searchFolder: '$(System.DefaultWorkingDirectory)'
 
   - stage: 'API_tests_eCommerce_for_IO_apm_Paypal_NW'
-    displayName: 'MY BANK - eCommerce for IO - APM - My Bank - NW - Run postman collection'
+    displayName: 'PAYPAL - eCommerce for IO - APM - Paypal - NW - Run postman collection'
     condition: and(succeeded(), eq('${{parameters.PAYPAL_GUEST}}', true))
     dependsOn: [ ]
     pool:
