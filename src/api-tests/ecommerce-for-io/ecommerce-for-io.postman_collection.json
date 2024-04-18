@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "24d731e4-4c5c-41d8-845c-8fa9a1ef0cb8",
+		"_postman_id": "c33892a8-1cba-441b-b452-55cbfd439e4c",
 		"name": "eCommerce for IO",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "23305473"
@@ -13,7 +13,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"\", () => {",
+							"pm.test(\"[ecommerce for IO - Wallet Payment] - Start session\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.sessionToken);",
@@ -62,14 +62,12 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"\", () => {",
+							"pm.test(\"[ecommerce for IO - Wallet Payment] - GET payment info by RPT id\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentContextCode);",
 							"  pm.environment.set(\"RPT_ID\", responseJson.rptId);",
-							"  pm.environment.set(\"PAYMENT_CONTEXT_CODE\", responseJson.paymentContextCode);",
 							"  pm.environment.set(\"AMOUNT\", responseJson.amount);",
-							"  ",
 							"});"
 						],
 						"type": "text/javascript",
@@ -132,19 +130,22 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"\", () => {",
+							"pm.test(\"[ecommerce for IO - Wallet Payment] - Retrieve onboarded payment method by user's wallet\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
-							"  var walletId = responseJson.wallets.find(w => w?.details?.type === pm.environment.get(\"WALLET_TYPE\"))?.walletId;",
-							"  var paymentMethodId = responseJson.wallets.find(w => w?.details?.type === pm.environment.get(\"WALLET_TYPE\"))?.paymentMethodId;",
-							"  console.log(walletId);",
-							"  console.log(paymentMethodId);",
-							"  if(walletId === undefined || paymentMethodId === undefined) {",
-							"    walletId = responseJson.wallets[0]?.walletId;",
-							"    paymentMethodId = responseJson.wallets[0]?.paymentMethodId;",
+							"  let walletType = pm.environment.get(\"WALLET_TYPE\");",
+							"  var walletId = responseJson.wallets.find(w => w?.details?.type === walletType)?.walletId;",
+							"  var paymentMethodId = responseJson.wallets.find(w => w?.details?.type === walletType)?.paymentMethodId;",
+							"  if(walletId && paymentMethodId) {",
+							"    pm.expect(walletId).to.be.a.string;",
+							"    pm.expect(paymentMethodId).to.be.a.string;",
+							"    pm.environment.set(\"WALLET_ID\", walletId);",
+							"    pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethodId);",
+							"    console.log(`Set walletId ${walletId} and paymentMethodId ${paymentMethodId} successfully for wallet type ${walletType}`)",
+							"  } else {",
+							"    throw Error(`No wallet found for wallet type ${walletType}`);",
 							"  }",
-							"  pm.environment.set(\"WALLET_ID\", walletId);",
-							"  pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethodId);",
+							" ",
 							"});"
 						],
 						"type": "text/javascript",
@@ -155,7 +156,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
+							"",
 							""
 						],
 						"type": "text/javascript",
@@ -209,7 +210,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"\", () => {",
+							"pm.test(\"[ecommerce for IO - Wallet Payment] - Activate ecommerce transaction\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
@@ -223,7 +224,6 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set(\"RPT_ID\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
 							""
 						],
 						"type": "text/javascript",
@@ -275,11 +275,11 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"\", () => {",
+							"pm.test(\"[ecommerce for IO - Wallet Payment] - GET transaction to check status\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentToken);",
-							"",
+							"  pm.expect(responseJson.status).to.equals(\"ACTIVATED\");",
+							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.payments[0].paymentToken);",
 							"});"
 						],
 						"type": "text/javascript",
@@ -323,7 +323,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"\", () => {",
+							"pm.test(\"[ecommerce for IO - Wallet Payment] - Calculate fee\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"ID_PSP\", responseJson.bundles.filter(b => b.idPsp != \"TMIL0101\")[0].idPsp);",
@@ -338,7 +338,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
+							"",
 							""
 						],
 						"type": "text/javascript",
@@ -361,7 +361,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"walletId\": \"{{WALLET_ID}}\",\n    \"language\": \"it\",\n    \"paymentAmount\": {{AMOUNT}},\n    \"primaryCreditorInstitution\": \"77777777777\",\n    \"idPspList\":[],\n    \"isAllCCP\":true,\n    \"transferList\":[{\"creditorInstitution\":\"77777777777\",\"digitalStamp\":true,\"transferCategory\":\"string\"}]\n}",
+					"raw": "{\n    \"walletId\": \"{{WALLET_ID}}\",\n    \"language\": \"it\",\n    \"paymentAmount\": {{AMOUNT}},\n    \"paymentToken\": \"{{PAYMENT_TOKEN}}\",\n    \"primaryCreditorInstitution\": \"77777777777\",\n    \"idPspList\":[],\n    \"isAllCCP\":true,\n    \"transferList\":[{\"creditorInstitution\":\"77777777777\",\"digitalStamp\":true,\"transferCategory\":\"string\"}]\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -393,12 +393,11 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"\", () => {",
+							"pm.test(\"[ecommerce for IO - Wallet Payment] - Authorization request\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentToken);",
-							"  pm.environment.set(\"RPT_ID\", responseJson.rptId);",
-							"  pm.environment.set(\"PAYMENT_CONTEXT_CODE\", responseJson.paymentContextCode);",
+							"  pm.expect(responseJson.authorizationUrl).to.be.a.string;",
+							"  pm.expect(responseJson.authorizationRequestId).to.be.a.string;",
 							"});"
 						],
 						"type": "text/javascript",
@@ -409,7 +408,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
+							"",
 							""
 						],
 						"type": "text/javascript",

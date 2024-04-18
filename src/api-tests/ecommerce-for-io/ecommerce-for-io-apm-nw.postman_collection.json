@@ -13,13 +13,14 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Start new eCommerce transaction session - Status code is 200 with valid json response\", function () {",
+							"pm.test(\"[ecommerce for IO - APM Guest] - Start session\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.sessionToken);",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -58,16 +59,16 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Payment Info by rptId - Status code is 200 with valid json response\", function () {",
+							"pm.test(\"[ecommerce for IO - APM Guest] - GET payment info by RPT id\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentToken);",
+							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentContextCode);",
 							"  pm.environment.set(\"RPT_ID\", responseJson.rptId);",
-							"  pm.environment.set(\"PAYMENT_CONTEXT_CODE\", responseJson.paymentContextCode);",
 							"  pm.environment.set(\"AMOUNT\", responseJson.amount);",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				},
 				{
@@ -77,7 +78,8 @@
 							"pm.environment.set(\"RPTID\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
 							""
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -118,76 +120,13 @@
 			"response": []
 		},
 		{
-			"name": "Start new eCommerce transaction",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							" pm.test(\"Start new eCommerce transaction - Status code is 200 with valid json response\", function () {",
-							"  pm.response.to.have.status(200);",
-							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
-							"});"
-						],
-						"type": "text/javascript"
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript"
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"paymentNotices\": [{\n        \"rptId\": \"{{RPT_ID}}\",\n        \"amount\": {{AMOUNT}}\n    }]\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v1/transactions",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"ecommerce",
-						"io",
-						"v1",
-						"transactions"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Get all payment methods",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Get fees by walletId and paymentToken - Status code is 200 with valid json response\", function () {",
+							"pm.test(\"[ecommerce for IO - APM Guest] - Get payment method\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  let searchedPaymentMethodName = pm.environment.get(\"PAYMENT_METHOD_NAME\");",
@@ -256,19 +195,86 @@
 			"response": []
 		},
 		{
+			"name": "Start new eCommerce transaction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - APM Guest] - Activate ecommerce transaction\", () => {",
+							"  pm.response.to.have.status(200);",
+							"  const responseJson = pm.response.json();",
+							"  pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
+							" });"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"paymentNotices\": [{\n        \"rptId\": \"{{RPT_ID}}\",\n        \"amount\": {{AMOUNT}}\n    }]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/io/v1/transactions",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v1",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
 			"name": "Get eCommerce transaction by TRANSACTION_ID",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Get eCommerce transaction by TRANSACTION_ID - Status code is 200 with valid json response\", function () {",
+							"pm.test(\"[ecommerce for IO - APM Guest] - Get eCommerce transaction\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.status).to.equals(\"ACTIVATED\");",
 							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.payments[0].paymentToken);",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {}
 					}
 				}
 			],
@@ -308,7 +314,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Get fees by walletId and paymentToken - Status code is 200 with valid json response\", function () {",
+							"pm.test(\"[ecommerce for IO - APM Guest] - Get fees by walletId and paymentToken\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"ID_PSP\", responseJson.bundles[0].idPsp);",
@@ -376,7 +382,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Start new auth request by transactionId and walletId - Status code is 200 with valid json response\", function () {",
+							"pm.test(\"[ecommerce for IO - APM Guest] - Authorization request\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"AUTHORIZATION_URL\", responseJson.authorizationUrl);",
@@ -390,7 +396,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set(\"RPTID_NM3\", \"77777777777\" + _.random(302001000000000000, 302001999999999999));",
+							"",
 							""
 						],
 						"type": "text/javascript",
