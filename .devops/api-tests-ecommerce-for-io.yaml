@@ -12,7 +12,7 @@ parameters:
     default: 'DEV'
 
   - name: 'BANCOMATPAY'
-    displayName: 'Do you want to test bancomat pay for onboarded payment flux?'
+    displayName: 'Test bancomat pay for onboarded payment flux (only PM)'
     type: boolean
     default: false
 
