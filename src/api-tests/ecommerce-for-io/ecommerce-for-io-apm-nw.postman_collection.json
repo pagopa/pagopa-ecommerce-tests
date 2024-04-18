@@ -308,7 +308,7 @@
 			"response": []
 		},
 		{
-			"name": "Get fees by walletId and paymentToken",
+			"name": "Get fees by amount and paymentMethodId",
 			"event": [
 				{
 					"listen": "test",

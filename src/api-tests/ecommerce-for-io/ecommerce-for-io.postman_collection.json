@@ -7,7 +7,7 @@
 	},
 	"item": [
 		{
-			"name": "Nuova sessione di pagamento",
+			"name": "Start new eCommerce session",
 			"event": [
 				{
 					"listen": "test",
@@ -56,7 +56,7 @@
 			"response": []
 		},
 		{
-			"name": "Recupero info dato rptId",
+			"name": "Payment Info by rptId",
 			"event": [
 				{
 					"listen": "test",
@@ -124,7 +124,7 @@
 			"response": []
 		},
 		{
-			"name": "Recupero wallet associato walletToken",
+			"name": "Wallets by walletToken",
 			"event": [
 				{
 					"listen": "test",
@@ -204,7 +204,7 @@
 			"response": []
 		},
 		{
-			"name": "Nuova transazione di pagamento",
+			"name": "Start new eCommerce transaction",
 			"event": [
 				{
 					"listen": "test",
@@ -269,7 +269,7 @@
 			"response": []
 		},
 		{
-			"name": "Get transaction",
+			"name": "Get eCommerce transaction by TRANSACTION_ID",
 			"event": [
 				{
 					"listen": "test",
@@ -317,7 +317,7 @@
 			"response": []
 		},
 		{
-			"name": "Recupero fees per un wallet e dato un amount",
+			"name": "Get fees by walletId and amount",
 			"event": [
 				{
 					"listen": "test",
@@ -387,7 +387,7 @@
 			"response": []
 		},
 		{
-			"name": "Nuova auth request",
+			"name": "Start new auth request by transactionId and walletId",
 			"event": [
 				{
 					"listen": "test",
