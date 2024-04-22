@@ -29,7 +29,7 @@ parameters:
   - name: 'PAYPAL_GUEST'
     displayName: 'Test paypal for APM guest payment flux'
     type: boolean
-    default: true
+    default: false
 
   - name: 'BANCOMATPAY_GUEST'
     displayName: 'Test bancomat pay for APM guest payment flux (only NW)'
