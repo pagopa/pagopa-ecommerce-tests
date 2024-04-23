@@ -1,29 +1,57 @@
 # azure-pipelines.yml
 trigger: none
+pr: none
 
-stages : 
-  - stage : 'API_tests_eCommerce_for_IO_creditCard'
-    displayName: 'CARDS - eCommerce for IO - Credit Card - Run postman collection'
-    pool:
-      vmImage: 'ubuntu-latest'
-    jobs:
-      - job: api_tests
-        steps:
-        - script: |
-            yarn global add newman
-          displayName: 'Newman installation'
-        - script: |
-            newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-uat.postman_collection.json --env-var WALLET_TOKEN_TEST=$(WALLET_TOKEN_TEST) --env-var WALLET_TYPE="CARDS" --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-api-TEST.xml
-          displayName: 'Run api test'
-        - task: PublishTestResults@2
-          condition: succeededOrFailed()
-          inputs:
-            testResultsFormat: 'JUnit'
-            testResultsFiles: '**/*-TEST.xml'
-            searchFolder: '$(System.DefaultWorkingDirectory)'
+parameters:
+  - name: 'ENVIRONMENT'
+    displayName: 'Which environment to run tests for?'
+    type: string
+    values:
+      - 'DEV'
+      - 'UAT'
+    default: 'DEV'
 
-  - stage: 'API_tests_eCommerce_for_IO_bancomatpay'
-    displayName: 'BPAY - eCommerce for IO - BancomatPay - Run postman collection'
+  - name: 'BANCOMATPAY_ONBOARDED'
+    displayName: 'Test bancomat pay for onboarded payment flux (only PM)'
+    type: boolean
+    default: false
+
+  - name: 'CARDS_ONBOARDED'
+    displayName: 'Test cards for onboarded payment flux'
+    type: boolean
+    default: true
+
+  - name: 'PAYPAL_ONBOARDED'
+    displayName: 'Test paypal for onboarded payment flux'
+    type: boolean
+    default: true
+
+  - name: 'PAYPAL_GUEST'
+    displayName: 'Test paypal for APM guest payment flux'
+    type: boolean
+    default: false
+
+  - name: 'BANCOMATPAY_GUEST'
+    displayName: 'Test bancomat pay for APM guest payment flux (only NW)'
+    type: boolean
+    default: true
+
+  - name: 'MYBANK_GUEST'
+    displayName: 'Test MyBank pay for APM guest payment flux (only NW)'
+    type: boolean
+    default: false
+
+variables:
+  - name: 'HOSTNAME'
+    ${{ if eq( parameters.ENVIRONMENT, 'UAT') }}:
+      value: 'https://api.uat.platform.pagopa.it'
+    ${{ else }}:
+      value: 'https://api.dev.platform.pagopa.it'
+
+stages :
+  - stage: 'API_tests_eCommerce_for_IO_bancomatpay_PM'
+    displayName: 'BPAY - eCommerce for IO - BancomatPay - PM - Run postman collection'
+    condition: and(succeeded(), eq('${{parameters.BANCOMATPAY_ONBOARDED}}', true))
     dependsOn: []
     pool:
       vmImage: 'ubuntu-latest'
@@ -34,7 +62,7 @@ stages :
               yarn global add newman
             displayName: 'Newman installation'
           - script: |
-              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-uat.postman_collection.json --env-var WALLET_TOKEN_TEST=$(WALLET_TOKEN_TEST) --env-var WALLET_TYPE="BANCOMATPAY" --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-api-TEST.xml
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io.postman_collection.json --env-var WALLET_TOKEN_TEST=$(${{ parameters.ENVIRONMENT }}_WALLET_TOKEN_TEST) --env-var WALLET_TYPE="BANCOMATPAY" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-bancomatpay-pm-api-TEST.xml
             displayName: 'Run api test'
           - task: PublishTestResults@2
             condition: succeededOrFailed()
@@ -43,9 +71,10 @@ stages :
               testResultsFiles: '**/*-TEST.xml'
               searchFolder: '$(System.DefaultWorkingDirectory)'
 
-  - stage: 'API_tests_eCommerce_for_IO_paypal'
-    displayName: 'PPAY - eCommerce for IO - Paypal - Run postman collection'
-    dependsOn: []
+  - stage: 'API_tests_eCommerce_for_IO_creditCard_NW'
+    displayName: 'CARDS - eCommerce for IO - Credit Card - NW - Run postman collection'
+    condition: and(succeeded(), eq('${{parameters.CARDS_ONBOARDED}}', true))
+    dependsOn: [ ]
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
@@ -55,7 +84,7 @@ stages :
               yarn global add newman
             displayName: 'Newman installation'
           - script: |
-              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-uat.postman_collection.json --env-var WALLET_TOKEN_TEST=$(WALLET_TOKEN_TEST) --env-var WALLET_TYPE="PAYPAL" --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-api-TEST.xml
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io.postman_collection.json --env-var WALLET_TOKEN_TEST=$(${{ parameters.ENVIRONMENT }}_WALLET_TOKEN_TEST) --env-var WALLET_TYPE="CARDS" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-${{ parameters.ENVIRONMENT }}-creditcard-api-TEST.xml
             displayName: 'Run api test'
           - task: PublishTestResults@2
             condition: succeededOrFailed()
@@ -63,3 +92,92 @@ stages :
               testResultsFormat: 'JUnit'
               testResultsFiles: '**/*-TEST.xml'
               searchFolder: '$(System.DefaultWorkingDirectory)'
+
+  - stage: 'API_tests_eCommerce_for_IO_paypal_NW'
+    displayName: 'PAYPAL - eCommerce for IO - Paypal - NW - Run postman collection'
+    condition: and(succeeded(), eq('${{parameters.PAYPAL_ONBOARDED}}', true))
+    dependsOn: [ ]
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: api_tests
+        steps:
+          - script: |
+              yarn global add newman
+            displayName: 'Newman installation'
+          - script: |
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io.postman_collection.json --env-var WALLET_TOKEN_TEST=$(${{ parameters.ENVIRONMENT }}_WALLET_TOKEN_TEST) --env-var WALLET_TYPE="PAYPAL" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-${{ parameters.ENVIRONMENT }}-paypal-api-TEST.xml
+            displayName: 'Run api test'
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml'
+              searchFolder: '$(System.DefaultWorkingDirectory)'
+
+  - stage: 'API_tests_eCommerce_for_IO_apm_Paypal_NW'
+    displayName: 'PAYPAL - eCommerce for IO - APM - Paypal - NW - Run postman collection'
+    condition: and(succeeded(), eq('${{parameters.PAYPAL_GUEST}}', true))
+    dependsOn: [ ]
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: api_tests
+        steps:
+          - script: |
+              yarn global add newman
+            displayName: 'Newman installation'
+          - script: |
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-apm-nw.postman_collection.json --env-var WALLET_TOKEN_TEST=$(${{ parameters.ENVIRONMENT }}_WALLET_TOKEN_TEST) --env-var PAYMENT_METHOD_NAME="PAYPAL" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-apm-paypal-nw-api-TEST.xml
+            displayName: 'Run api test'
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml'
+              searchFolder: '$(System.DefaultWorkingDirectory)'
+
+  - stage: 'API_tests_eCommerce_for_IO_apm_Bancomatpay_NW'
+    displayName: 'BPAY - eCommerce for IO - APM - Bancomatpay - NW - Run postman collection'
+    condition: and(succeeded(), eq('${{parameters.BANCOMATPAY_GUEST}}', true))
+    dependsOn: [ ]
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: api_tests
+        steps:
+          - script: |
+              yarn global add newman
+            displayName: 'Newman installation'
+          - script: |
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-apm-nw.postman_collection.json --env-var WALLET_TOKEN_TEST=$(${{ parameters.ENVIRONMENT }}_WALLET_TOKEN_TEST) --env-var PAYMENT_METHOD_NAME="BANCOMATPAY" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-apm-bpay-nw-api-TEST.xml
+            displayName: 'Run api test'
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml'
+              searchFolder: '$(System.DefaultWorkingDirectory)'
+
+  - stage: 'API_tests_eCommerce_for_IO_apm_MyBank_NW'
+    displayName: 'MY BANK - eCommerce for IO - APM - My Bank - NW - Run postman collection'
+    condition: and(succeeded(), eq('${{parameters.MYBANK_GUEST}}', true))
+    dependsOn: [ ]
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: api_tests
+        steps:
+          - script: |
+              yarn global add newman
+            displayName: 'Newman installation'
+          - script: |
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-apm-nw.postman_collection.json --env-var WALLET_TOKEN_TEST=$(${{ parameters.ENVIRONMENT }}_WALLET_TOKEN_TEST) --env-var PAYMENT_METHOD_NAME="MYBANK" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-apm-mybank-nw-api-TEST.xml
+            displayName: 'Run api test'
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml'
+              searchFolder: '$(System.DefaultWorkingDirectory)'
+
