@@ -1,7 +1,7 @@
 import { check, fail } from "k6";
 import http from "k6/http";
 import { getConfigOrThrow } from "../utils/config";
-import { createActivationRequest, createAuthorizationRequest } from "../common/soak-test-common"
+import { PaymentMethod, createActivationRequest, createAuthorizationRequest } from "../common/soak-test-common"
 import { NewTransactionResponse } from "../generated/ecommerce/NewTransactionResponse";
 import { TransactionStatusEnum } from "../generated/ecommerce/TransactionStatus";
 
@@ -76,7 +76,9 @@ export default function () {
         if (body.status === TransactionStatusEnum.ACTIVATED) {
             url = `${urlBasePath}/transactions/${transactionId}/auth-requests`;
             // Authorization request
-            const bodyRequest = createAuthorizationRequest();
+
+            const paymentMethod = Object.values(PaymentMethod)[Math.floor(Math.random() * Object.keys(PaymentMethod).length)] as PaymentMethod;
+            const bodyRequest = createAuthorizationRequest(paymentMethod);
             let response = http.post(url, JSON.stringify(bodyRequest), {
                 ...headersParams,
                 tags: { name: "authorization-transaction-test" },
