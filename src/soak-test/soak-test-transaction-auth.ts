@@ -1,7 +1,7 @@
 import { check, fail } from "k6";
 import http from "k6/http";
 import { getConfigOrThrow } from "../utils/config";
-import { generateRptId, createActivationRequest, createAuthorizationRequest } from "../common/soak-test-common"
+import { createActivationRequest, createAuthorizationRequest } from "../common/soak-test-common"
 import { NewTransactionResponse } from "../generated/ecommerce/NewTransactionResponse";
 import { TransactionStatusEnum } from "../generated/ecommerce/TransactionStatus";
 
@@ -34,8 +34,7 @@ export let options = {
 export default function () {
     var transactionId;
     const urlBasePath = config.URL_BASE_PATH;
-    const rptId = generateRptId();
-    const bodyRequest = createActivationRequest(rptId);
+    const bodyRequest = createActivationRequest();
 
     const headersParams = {
         headers: {
