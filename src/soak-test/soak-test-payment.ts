@@ -32,9 +32,8 @@ export let options = {
 };
 
 export default function () {
-    var transactionId;
     const urlBasePath = config.URL_BASE_PATH;
-    const bodyRequest = createActivationRequest();
+    const activationBodyRequest = createActivationRequest();
 
     const headersParams = {
         headers: {
@@ -45,7 +44,7 @@ export default function () {
     };
 
     let url = `${urlBasePath}/transactions`;
-    let response = http.post(url, JSON.stringify(bodyRequest), {
+    let response = http.post(url, JSON.stringify(activationBodyRequest), {
         ...headersParams,
         tags: { name: "activate-transaction-test" },
     });
@@ -56,43 +55,42 @@ export default function () {
         { name: "activate-transaction-test" }
     );
 
-    if (response.status == 200 && response.json() != null) {
-        var body = response.json() as unknown as NewTransactionResponse;
-        transactionId = body.transactionId;
-        headersParams.headers.Authorization = headersParams.headers.Authorization + body.authToken as string;
-
-        url = `${urlBasePath}/transactions/${transactionId}`;
-        response = http.get(url, {
-            ...headersParams,
-            tags: { name: "get-transaction-test" }
-        });
-
-        check(
-            response,
-            { "Response status from GET /transactions by transaction id was 200": (r) => r.status == 200 },
-            { name: "get-transaction-test" }
-        );
-
-        if (body.status === TransactionStatusEnum.ACTIVATED) {
-            url = `${urlBasePath}/transactions/${transactionId}/auth-requests`;
-            // Authorization request
-
-            const paymentMethod = Object.values(PaymentMethod)[Math.floor(Math.random() * Object.keys(PaymentMethod).length)] as PaymentMethod;
-            const bodyRequest = createAuthorizationRequest(paymentMethod);
-            let response = http.post(url, JSON.stringify(bodyRequest), {
-                ...headersParams,
-                tags: { name: "authorization-transaction-test" },
-            });
-
-            check(response,
-                { 'Response status from POST /transactions/{transactionId}/auth-requests is 200': (r) => r.status == 200 },
-                { name: "AuthRequest" }
-            );
-        } else {
-            fail('Error into authorization request');
-        }
-
-    } else {
+    if (response.status != 200 || response.json() == null) {
         fail('Error into activation request');
     }
+
+    let body = response.json() as unknown as NewTransactionResponse;
+    let transactionId = body.transactionId;
+    headersParams.headers.Authorization = headersParams.headers.Authorization + body.authToken as string;
+
+    url = `${urlBasePath}/transactions/${transactionId}`;
+    response = http.get(url, {
+        ...headersParams,
+        tags: { name: "get-transaction-test" }
+    });
+
+    check(
+        response,
+        { "Response status from GET /transactions by transaction id was 200": (r) => r.status == 200 },
+        { name: "get-transaction-test" }
+    );
+
+    if (body.status !== TransactionStatusEnum.ACTIVATED) {
+        fail('Error into authorization request');
+    }
+
+    url = `${urlBasePath}/transactions/${transactionId}/auth-requests`;
+    // Authorization request
+
+    const paymentMethod = Object.values(PaymentMethod)[Math.floor(Math.random() * Object.keys(PaymentMethod).length)] as PaymentMethod;
+    const authRequestBodyRequest = createAuthorizationRequest(paymentMethod);
+    response = http.post(url, JSON.stringify(authRequestBodyRequest), {
+        ...headersParams,
+        tags: { name: "authorization-transaction-test" },
+    });
+
+    check(response,
+        { 'Response status from POST /transactions/{transactionId}/auth-requests is 200': (r) => r.status == 200 },
+        { name: "AuthRequest" }
+    );
 }
