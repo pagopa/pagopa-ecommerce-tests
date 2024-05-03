@@ -1,10 +1,15 @@
-import { AmountEuroCents } from "../generated/ecommerce/AmountEuroCents";
-import { NewTransactionRequest } from "../generated/ecommerce/NewTransactionRequest";
-import { PaymentContextCode } from "../generated/ecommerce/PaymentContextCode";
-import { PaymentNoticeInfo } from "../generated/ecommerce/PaymentNoticeInfo";
-import { LanguageEnum, RequestAuthorizationRequest } from "../generated/ecommerce/RequestAuthorizationRequest";
-import { RptId } from "../generated/ecommerce/RptId";
+import { AmountEuroCents } from "../generated/ecommerce-v1/AmountEuroCents";
+import { CalculateFeeRequest as GenCalculateFeeRequest } from "../generated/ecommerce-v1/CalculateFeeRequest";
+import { NewTransactionRequest } from "../generated/ecommerce-v2/NewTransactionRequest";
+import { PaymentContextCode } from "../generated/ecommerce-v1/PaymentContextCode";
+import { PaymentNoticeInfo } from "../generated/ecommerce-v1/PaymentNoticeInfo";
+import { LanguageEnum, RequestAuthorizationRequest as GenRequestAuthorizationRequest } from "../generated/ecommerce-v1/RequestAuthorizationRequest";
+import { RptId } from "../generated/ecommerce-v1/RptId";
 import { getConfigOrThrow } from "../utils/config";
+import * as t from "io-ts"
+
+type RequestAuthorizationRequest = t.TypeOf<typeof GenRequestAuthorizationRequest>;
+type CalculateFeeRequest = t.TypeOf<typeof GenCalculateFeeRequest>;
 
 export enum PaymentMethod {
     CARDS,
@@ -19,7 +24,7 @@ export enum PaymentMethod {
 }
 
 // These ids are for UAT payment-methods :)
-const paymentMethodIds: Record<PaymentMethod, string> = {
+export const paymentMethodIds: Record<PaymentMethod, string> = {
     [PaymentMethod.CARDS]: "378d0b4f-8b69-46b0-8215-07785fe1aad4",
     [PaymentMethod.BANCOMATPAY]: "870d0704-e8af-4e00-a2d1-1af18e144789",
     [PaymentMethod.PAYPAL]: "8991c3f1-4ac4-418c-a359-5aaa9199bbeb",
@@ -56,9 +61,10 @@ function generateOrderId() {
 }
 
 export const createActivationRequest = (
-): NewTransactionRequest => ({
+): t.TypeOf<typeof NewTransactionRequest> => ({
     email: "mario.rossi@gmail.it",
-    paymentNotices: Array(5).fill("").map(paymentNotice)
+    paymentNotices: Array(5).fill("").map(paymentNotice),
+    orderId: generateOrderId()
 });
 
 export const paymentNotice = (): PaymentNoticeInfo => ({
@@ -66,6 +72,28 @@ export const paymentNotice = (): PaymentNoticeInfo => ({
     amount: 1000 as AmountEuroCents,
     paymentContextCode: "6cd9114e-6427-4932-9a27-96168640d944" as PaymentContextCode
 })
+
+export const createFeeRequest = (): CalculateFeeRequest => {
+    return {
+        bin: "52550002",
+        touchpoint: "CHECKOUT",
+        paymentAmount: 12000,
+        primaryCreditorInstitution: "77777777777",
+        transferList: [
+          {
+            creditorInstitution: "77777777777",
+            digitalStamp: false,
+            transferCategory: "0101101IM"
+          },
+          {
+            creditorInstitution: "01199250158",
+            digitalStamp: false,
+            transferCategory: "0201102IM"
+          }
+        ],
+        isAllCCP: false
+    };
+}
 
 export const createAuthorizationRequest = (
     method: PaymentMethod
@@ -94,7 +122,8 @@ export const createAuthorizationRequestCards = (): RequestAuthorizationRequest =
     details: {
         detailType: "cards",
         orderId: generateOrderId()
-    }
+    },
+    isAllCCP: false
 });
 
 export const createAuthorizationRequestAPM = (method: PaymentMethod): RequestAuthorizationRequest => ({
@@ -105,7 +134,8 @@ export const createAuthorizationRequestAPM = (method: PaymentMethod): RequestAut
     paymentInstrumentId: paymentMethodIds[method],
     details: {
         detailType: "apm",
-    }
+    },
+    isAllCCP: false
 });
 
 export const createAuthorizationRequestRedirect = (method: PaymentMethod): RequestAuthorizationRequest => ({
@@ -116,5 +146,6 @@ export const createAuthorizationRequestRedirect = (method: PaymentMethod): Reque
     paymentInstrumentId: paymentMethodIds[method],
     details: {
         detailType: "redirect",
-    }
+    },
+    isAllCCP: false
 });

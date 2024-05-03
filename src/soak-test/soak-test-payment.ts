@@ -1,9 +1,9 @@
 import { check, fail } from "k6";
 import http from "k6/http";
 import { getConfigOrThrow } from "../utils/config";
-import { PaymentMethod, createActivationRequest, createAuthorizationRequest } from "../common/soak-test-common"
-import { NewTransactionResponse } from "../generated/ecommerce/NewTransactionResponse";
-import { TransactionStatusEnum } from "../generated/ecommerce/TransactionStatus";
+import { PaymentMethod, createActivationRequest, createAuthorizationRequest, createFeeRequest, paymentMethodIds } from "../common/soak-test-common"
+import { NewTransactionResponse } from "../generated/ecommerce-v1/NewTransactionResponse";
+import { TransactionStatusEnum } from "../generated/ecommerce-v1/TransactionStatus";
 
 const config = getConfigOrThrow();
 export let options = {
@@ -99,10 +99,23 @@ export default function () {
         fail('Error into authorization request');
     }
 
+    const paymentMethod = Object.values(PaymentMethod)[Math.floor(Math.random() * Object.keys(PaymentMethod).length)] as PaymentMethod;
+    url = `${urlBasePath}/payment-methods/${paymentMethodIds[paymentMethod]}/fees`;
+    const calculateFeeRequest = createFeeRequest();
+
+    response = http.post(url, JSON.stringify(calculateFeeRequest), {
+        ...headersParams,
+        tags: { name: "calculate-fee-test" },
+    });
+
+    check(response,
+        { 'Response status from POST /payment-methods/{paymentMethodId}/fees is 200': (r) => r.status == 200 },
+        { name: "calculate-fees" }
+    );
+
     url = `${urlBasePath}/transactions/${transactionId}/auth-requests`;
     // Authorization request
 
-    const paymentMethod = Object.values(PaymentMethod)[Math.floor(Math.random() * Object.keys(PaymentMethod).length)] as PaymentMethod;
     const authRequestBodyRequest = createAuthorizationRequest(paymentMethod);
     response = http.post(url, JSON.stringify(authRequestBodyRequest), {
         ...headersParams,
