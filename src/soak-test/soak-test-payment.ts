@@ -42,9 +42,29 @@ export default function () {
             'Authorization': "Bearer "
         },
     };
+    const rptId = activationBodyRequest.paymentNotices[0].rptId;
 
-    let url = `${urlBasePath}/transactions`;
-    let response = http.post(url, JSON.stringify(activationBodyRequest), {
+    let url = `${urlBasePath}/payment-requests/${rptId}?recaptchaResponse=test`;
+    // Get Payment Request Info NM3
+    let response = http.get(
+      url,
+      {
+        ...headersParams,
+        tags: { name: 'verify-notice-test' },
+      }
+    );
+    check(
+      response,
+      { "Response status from GET /payment-request was 200": (r) => r.status == 200 },
+      { name: 'verify-notice-test' }
+    );
+
+    if (response.status != 200 || response.json() == null) {
+        fail('Error into verify payment notice');
+    }
+
+    url = `${urlBasePath}/transactions`;
+    response = http.post(url, JSON.stringify(activationBodyRequest), {
         ...headersParams,
         tags: { name: "activate-transaction-test" },
     });
