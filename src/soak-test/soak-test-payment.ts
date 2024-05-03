@@ -93,4 +93,19 @@ export default function () {
         { 'Response status from POST /transactions/{transactionId}/auth-requests is 200': (r) => r.status == 200 },
         { name: "AuthRequest" }
     );
+
+    url = `${urlBasePath}/transactions/${transactionId}`;
+
+    setTimeout(() => {
+        for (let i = 0; i < 5; i++) {
+            response = http.get(url, {
+                ...headersParams,
+                tags: { name: "get-transactions" },
+            });
+            check(response,
+                { 'Response status from GET /transactions/{transactionId} is 200': (r) => r.status == 200 },
+                { name: "get-transactions" }
+            );
+        }
+    }, 1500);
 }
