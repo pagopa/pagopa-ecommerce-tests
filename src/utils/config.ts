@@ -62,3 +62,10 @@ export function getConfigOrThrow(): IConfig {
     })
   );
 }
+
+export const getVersionedBaseUrl = (baseUrl: string, version: string): string => {
+  const versionRegex = /\/v\d/gm;
+  return versionRegex.test(baseUrl) ? 
+        baseUrl : 
+        (baseUrl.endsWith("/") ? `${baseUrl}${version}` : `${baseUrl}/${version}`);
+}

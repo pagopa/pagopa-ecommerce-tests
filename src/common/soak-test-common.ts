@@ -149,3 +149,9 @@ export const createAuthorizationRequestRedirect = (method: PaymentMethod): Reque
     },
     isAllCCP: false
 });
+
+export const randomPaymentMethod = (): PaymentMethod => {
+    const values = Object.values(PaymentMethod);
+    const randomIndex = Math.floor(Math.random() * (values.length / 2));
+    return randomIndex as PaymentMethod;
+}

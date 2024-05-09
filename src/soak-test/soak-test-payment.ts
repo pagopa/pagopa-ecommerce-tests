@@ -1,7 +1,7 @@
 import { check, fail } from "k6";
 import http from "k6/http";
-import { getConfigOrThrow } from "../utils/config";
-import { PaymentMethod, createActivationRequest, createAuthorizationRequest, createFeeRequest, paymentMethodIds } from "../common/soak-test-common"
+import { getConfigOrThrow, getVersionedBaseUrl } from "../utils/config";
+import { createActivationRequest, createAuthorizationRequest, createFeeRequest, paymentMethodIds, randomPaymentMethod } from "../common/soak-test-common"
 import { NewTransactionResponse } from "../generated/ecommerce-v1/NewTransactionResponse";
 import { TransactionStatusEnum } from "../generated/ecommerce-v1/TransactionStatus";
 
@@ -31,8 +31,11 @@ export let options = {
     },
 };
 
+
 export default function () {
-    const urlBasePath = config.URL_BASE_PATH;
+    const urlBasePathV1 = getVersionedBaseUrl(config.URL_BASE_PATH, "v1");
+    const urlBasePathV2 = getVersionedBaseUrl(config.URL_BASE_PATH, "v2");
+    
     const activationBodyRequest = createActivationRequest();
 
     const headersParams = {
@@ -44,26 +47,22 @@ export default function () {
     };
     const rptId = activationBodyRequest.paymentNotices[0].rptId;
 
-    let url = `${urlBasePath}/payment-requests/${rptId}?recaptchaResponse=test`;
-    // Get Payment Request Info NM3
-    let response = http.get(
-      url,
-      {
+    // POST /sessions
+    const paymentMethod = randomPaymentMethod()
+    let url = `${urlBasePathV1}/payment-methods/${paymentMethodIds[paymentMethod]}/sessions?recaptchaResponse=test`
+    let response = http.post(url, JSON.stringify({}), {
         ...headersParams,
-        tags: { name: 'verify-notice-test' },
-      }
-    );
+        tags: { name: "create-session-test" },
+    });
+
     check(
-      response,
-      { "Response status from GET /payment-request was 200": (r) => r.status == 200 },
-      { name: 'verify-notice-test' }
+        response,
+        { "Response status from POST /payment-methods/{methodId}/sessions was 200": (r) => r.status == 200 },
+        { name: "create-session-test" }
     );
 
-    if (response.status != 200 || response.json() == null) {
-        fail('Error into verify payment notice');
-    }
-
-    url = `${urlBasePath}/transactions`;
+    // Activate transaction
+    url = `${urlBasePathV2}/transactions`;
     response = http.post(url, JSON.stringify(activationBodyRequest), {
         ...headersParams,
         tags: { name: "activate-transaction-test" },
@@ -83,24 +82,12 @@ export default function () {
     let transactionId = body.transactionId;
     headersParams.headers.Authorization = headersParams.headers.Authorization + body.authToken as string;
 
-    url = `${urlBasePath}/transactions/${transactionId}`;
-    response = http.get(url, {
-        ...headersParams,
-        tags: { name: "get-transaction-test" }
-    });
-
-    check(
-        response,
-        { "Response status from GET /transactions by transaction id was 200": (r) => r.status == 200 },
-        { name: "get-transaction-test" }
-    );
-
     if (body.status !== TransactionStatusEnum.ACTIVATED) {
         fail('Error into authorization request');
     }
 
-    const paymentMethod = Object.values(PaymentMethod)[Math.floor(Math.random() * Object.keys(PaymentMethod).length)] as PaymentMethod;
-    url = `${urlBasePath}/payment-methods/${paymentMethodIds[paymentMethod]}/fees`;
+    // Calculate fees
+    url = `${urlBasePathV2}/payment-methods/${paymentMethodIds[paymentMethod]}/fees`;
     const calculateFeeRequest = createFeeRequest();
 
     response = http.post(url, JSON.stringify(calculateFeeRequest), {
@@ -113,9 +100,8 @@ export default function () {
         { name: "calculate-fees" }
     );
 
-    url = `${urlBasePath}/transactions/${transactionId}/auth-requests`;
-    // Authorization request
-
+    // Request authorization
+    url = `${urlBasePathV1}/transactions/${transactionId}/auth-requests`;
     const authRequestBodyRequest = createAuthorizationRequest(paymentMethod);
     response = http.post(url, JSON.stringify(authRequestBodyRequest), {
         ...headersParams,
@@ -127,8 +113,8 @@ export default function () {
         { name: "AuthRequest" }
     );
 
-    url = `${urlBasePath}/transactions/${transactionId}`;
-
+    // Simulate checkout-fe polling
+    url = `${urlBasePathV1}/transactions/${transactionId}`;
     setTimeout(() => {
         for (let i = 0; i < 5; i++) {
             response = http.get(url, {

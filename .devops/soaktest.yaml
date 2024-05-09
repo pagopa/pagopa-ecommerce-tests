@@ -42,6 +42,8 @@ parameters:
       - "https://api.uat.platform.pagopa.it/ecommerce/notifications-service/v1"
       - "https://api.uat.platform.pagopa.it/ecommerce/checkout/v1"
       - "https://api.dev.platform.pagopa.it/ecommerce/checkout/v1"
+      - "https://api.uat.platform.pagopa.it/ecommerce/checkout/"
+      - "https://api.dev.platform.pagopa.it/ecommerce/checkout/"
       - "https://api.uat.platform.pagopa.it"
   - name: "PAYMENT_METHOD_NAME"
     displayName: "PAYMENT_METHOD_NAME"
