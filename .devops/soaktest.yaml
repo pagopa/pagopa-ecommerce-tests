@@ -75,6 +75,13 @@ parameters:
     values:
       - False
       - True
+  - name: "USE_BLUE_DEPLOYMENT"
+    displayName: "Use Blue instances"
+    type: boolean
+    default: false
+    values:
+      - False
+      - True
 
 stages : 
   - stage : 'run_with_APIM'
@@ -101,6 +108,7 @@ stages :
               DESCRIPTION: ${{ parameters['DESCRIPTION']}}
               NOTICE_CODE_PREFIX: ${{ parameters['NOTICE_CODE_PREFIX']}}
               rampingDuration: ${{ parameters['rampingDuration']}}
+              USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT']}}
               
   - stage : 'run_without_APIM'
     displayName: 'Run without APIM'
@@ -126,3 +134,4 @@ stages :
               DESCRIPTION: ${{ parameters['DESCRIPTION']}}
               NOTICE_CODE_PREFIX: ${{ parameters['NOTICE_CODE_PREFIX']}}
               rampingDuration: ${{ parameters['rampingDuration']}}
+              USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT']}}

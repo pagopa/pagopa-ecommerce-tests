@@ -1,5 +1,6 @@
 import { NonEmptyString } from "@pagopa/ts-commons/lib/strings";
 import { IntegerFromString } from "@pagopa/ts-commons/lib/numbers";
+import { BooleanFromString } from "@pagopa/ts-commons/lib/booleans";
 import { readableReport } from "@pagopa/ts-commons/lib/reporters";
 import * as E from "fp-ts/lib/Either";
 import * as t from "io-ts";
@@ -26,6 +27,7 @@ export const IConfig = t.intersection([
   }),
   t.partial({
     API_ENVIRONMENT: NonEmptyString,
+    USE_BLUE_DEPLOYMENT: BooleanFromString
   }),
   K6Config,
 ]);

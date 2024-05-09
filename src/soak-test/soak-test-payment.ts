@@ -42,7 +42,8 @@ export default function () {
         headers: {
             'Content-Type': 'application/json',
             'Ocp-Apim-Subscription-Key': config.API_SUBSCRIPTION_KEY,
-            'Authorization': "Bearer "
+            'Authorization': "Bearer ",
+            ...(config.USE_BLUE_DEPLOYMENT ? { "deployment": "blue" } : {})
         },
     };
     const rptId = activationBodyRequest.paymentNotices[0].rptId;
