@@ -338,7 +338,6 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"",
 							""
 						],
 						"type": "text/javascript",
@@ -408,7 +407,6 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"",
 							""
 						],
 						"type": "text/javascript",
@@ -515,7 +513,7 @@
 							"const postTransactionRequestBody = {",
 							"    \"paymentNotices\": [{",
 							"        \"rptId\": `${pm.environment.get(\"RPTID_NM3_DELETE\")}`,",
-							"        \"amount\": `${pm.environment.get(\"AMOUNT\")}`",
+							"        \"amount\": `${pm.environment.get(\"AMOUNT\")}`,",
 							"    }]",
 							"};",
 							"",
