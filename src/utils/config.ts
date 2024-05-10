@@ -26,7 +26,7 @@ export const IConfig = t.intersection([
   }),
   t.partial({
     API_ENVIRONMENT: NonEmptyString,
-    USE_BLUE_DEPLOYMENT: t.boolean
+    USE_BLUE_DEPLOYMENT: NonEmptyString
   }),
   K6Config,
 ]);

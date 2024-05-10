@@ -48,7 +48,7 @@ export default function () {
             'Authorization': "Bearer ",
             'x-correlation-id': 'c1155812-0f9f-467d-ab67-8e9a84534d48',
             'x-transaction-id-from-client': "",
-            ...(config.USE_BLUE_DEPLOYMENT ? { "deployment": "blue" } : {})
+            ...(config.USE_BLUE_DEPLOYMENT == "True" ? { "deployment": "blue" } : {})
         },
     };
 
