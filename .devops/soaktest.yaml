@@ -10,10 +10,10 @@ parameters:
     type: string
     default: "10"
   - name: "duration"
-    displayName: "duration"
+    displayName: "Duration (e.g. 10s)"
     type: string
   - name: "rampingDuration"
-    displayName: "rampingDuration"
+    displayName: "Ramping Duration (e.g. 10s)"
     type: string
   - name: "preAllocatedVUs"
     displayName: "preAllocatedVUs"
