@@ -1,5 +1,7 @@
 import { AmountEuroCents } from "../generated/ecommerce-v1/AmountEuroCents";
+import { Bundle } from "../generated/ecommerce-v2/Bundle";
 import { CalculateFeeRequest as GenCalculateFeeRequest } from "../generated/ecommerce-v1/CalculateFeeRequest";
+import { CalculateFeeRequest as GenCalculateFeeRequestV2 } from "../generated/ecommerce-v2/CalculateFeeRequest";
 import { NewTransactionRequest } from "../generated/ecommerce-v2/NewTransactionRequest";
 import { PaymentContextCode } from "../generated/ecommerce-v1/PaymentContextCode";
 import { PaymentNoticeInfo } from "../generated/ecommerce-v1/PaymentNoticeInfo";
@@ -10,6 +12,7 @@ import * as t from "io-ts"
 
 type RequestAuthorizationRequest = t.TypeOf<typeof GenRequestAuthorizationRequest>;
 type CalculateFeeRequest = t.TypeOf<typeof GenCalculateFeeRequest>;
+type CalculateFeeRequestV2 = t.TypeOf<typeof GenCalculateFeeRequestV2>;
 
 export enum PaymentMethod {
     CARDS,
@@ -22,6 +25,18 @@ export enum PaymentMethod {
     REDIRECT_RBPP,
     REDIRECT_RBPR,
 }
+
+export const pspsIds: Record<PaymentMethod, string> = {
+    [PaymentMethod.CARDS]: "BCITITMM",
+    [PaymentMethod.BANCOMATPAY]: "BCITITMM",
+    [PaymentMethod.PAYPAL]: "BCITITMM",
+    [PaymentMethod.MYBANK]: "BCITITMM",
+    [PaymentMethod.REDIRECT_RPIC]: "BCITITMM",
+    [PaymentMethod.REDIRECT_RBPS]: "POSOIT22XXX",
+    [PaymentMethod.REDIRECT_RBPB]: "PPAYITR1XXX",
+    [PaymentMethod.REDIRECT_RBPP]: "PPAYITR1XXX",
+    [PaymentMethod.REDIRECT_RBPR]: "PPAYITR1XXX",
+};
 
 // These ids are for UAT payment-methods :)
 export const paymentMethodIds: Record<PaymentMethod, string> = {
@@ -46,7 +61,7 @@ export function generateRptId() {
     return result;
 }
 
-function generateOrderId() {
+export function generateOrderId() {
     const length = 18;
     const prefix = "M";
     const alphanums = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._";
@@ -60,11 +75,10 @@ function generateOrderId() {
     return orderId;
 }
 
-export const createActivationRequest = (
-): t.TypeOf<typeof NewTransactionRequest> => ({
+export const createActivationRequest = (orderId: string): t.TypeOf<typeof NewTransactionRequest> => ({
     email: "mario.rossi@gmail.it",
     paymentNotices: Array(5).fill("").map(paymentNotice),
-    orderId: generateOrderId()
+    orderId: orderId
 });
 
 export const paymentNotice = (): PaymentNoticeInfo => ({
@@ -95,59 +109,91 @@ export const createFeeRequest = (): CalculateFeeRequest => {
     };
 }
 
-export const createAuthorizationRequest = (
-    method: PaymentMethod
-) => {
-    const functionMap: Record<PaymentMethod, () => RequestAuthorizationRequest> = {
-        [PaymentMethod.CARDS]: createAuthorizationRequestCards,
-        [PaymentMethod.BANCOMATPAY]: () => createAuthorizationRequestAPM(PaymentMethod.BANCOMATPAY),
-        [PaymentMethod.PAYPAL]: () => createAuthorizationRequestAPM(PaymentMethod.PAYPAL),
-        [PaymentMethod.MYBANK]: () => createAuthorizationRequestAPM(PaymentMethod.MYBANK),
-        [PaymentMethod.REDIRECT_RPIC]: () => createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RPIC),
-        [PaymentMethod.REDIRECT_RBPS]: () => createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RBPS),
-        [PaymentMethod.REDIRECT_RBPB]: () => createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RBPB),
-        [PaymentMethod.REDIRECT_RBPP]: () => createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RBPP),
-        [PaymentMethod.REDIRECT_RBPR]: () => createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RBPR),
+export const createFeeRequestV2 = (): CalculateFeeRequestV2 => {
+    return {
+        bin: "52550002",
+        touchpoint: "CHECKOUT",
+        paymentNotices: [
+            {
+                paymentAmount: 12000,
+                primaryCreditorInstitution: "77777777777",
+                transferList: [
+                    {
+                        creditorInstitution: "77777777777",
+                        digitalStamp: false,
+                        transferCategory: "0101101IM"
+                      },
+                      {
+                        creditorInstitution: "01199250158",
+                        digitalStamp: false,
+                        transferCategory: "0201102IM"
+                      }
+                ]
+            }
+        ],
+        isAllCCP: false
     };
-
-    return functionMap[method]();
 }
 
-export const createAuthorizationRequestCards = (): RequestAuthorizationRequest => ({
-    amount: 100 as AmountEuroCents,
-    fee: 0 as AmountEuroCents,
-    pspId: "PSP_ILA",
+type CreateAuthorizationRequest = (orderId: string, isAllCCP: boolean, amount:AmountEuroCents, bundle: Bundle) => RequestAuthorizationRequest
+
+export const createAuthorizationRequest = (
+    orderId: string,
+    isAllCCP: boolean,
+    amount: AmountEuroCents,
+    bundle: Bundle,
+    method: PaymentMethod
+) => {
+    const functionMap: Record<PaymentMethod, CreateAuthorizationRequest> = {
+        [PaymentMethod.CARDS]: createAuthorizationRequestCards(),
+        [PaymentMethod.BANCOMATPAY]: createAuthorizationRequestAPM(PaymentMethod.BANCOMATPAY),
+        [PaymentMethod.PAYPAL]: createAuthorizationRequestAPM(PaymentMethod.PAYPAL),
+        [PaymentMethod.MYBANK]: createAuthorizationRequestAPM(PaymentMethod.MYBANK),
+        [PaymentMethod.REDIRECT_RPIC]: createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RPIC),
+        [PaymentMethod.REDIRECT_RBPS]: createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RBPS),
+        [PaymentMethod.REDIRECT_RBPB]: createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RBPB),
+        [PaymentMethod.REDIRECT_RBPP]: createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RBPP),
+        [PaymentMethod.REDIRECT_RBPR]: createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RBPR),
+    };
+
+    return functionMap[method](orderId, isAllCCP, amount, bundle);
+}
+
+export const createAuthorizationRequestCards = (): CreateAuthorizationRequest => (orderId, isAllCCP, amount, bundle) => ({
+    amount: amount,
+    fee: bundle.taxPayerFee as AmountEuroCents,
+    pspId: bundle.idPsp!,
     language: LanguageEnum.IT,
     paymentInstrumentId: paymentMethodIds[PaymentMethod.CARDS],
     details: {
         detailType: "cards",
-        orderId: generateOrderId()
+        orderId: orderId
     },
-    isAllCCP: false
+    isAllCCP: isAllCCP
 });
 
-export const createAuthorizationRequestAPM = (method: PaymentMethod): RequestAuthorizationRequest => ({
-    amount: 100 as AmountEuroCents,
-    fee: 0 as AmountEuroCents,
-    pspId: "PSP_ILA",
+export const createAuthorizationRequestAPM = (method: PaymentMethod): CreateAuthorizationRequest => (_, isAllCCP, amount, bundle) => ({
+    amount: amount,
+    fee: bundle.taxPayerFee as AmountEuroCents,
+    pspId: bundle.idPsp!,
     language: LanguageEnum.IT,
     paymentInstrumentId: paymentMethodIds[method],
     details: {
         detailType: "apm",
     },
-    isAllCCP: false
+    isAllCCP: isAllCCP
 });
 
-export const createAuthorizationRequestRedirect = (method: PaymentMethod): RequestAuthorizationRequest => ({
-    amount: 100 as AmountEuroCents,
-    fee: 0 as AmountEuroCents,
-    pspId: "PSP_ILA",
+export const createAuthorizationRequestRedirect = (method: PaymentMethod): CreateAuthorizationRequest => (_, isAllCCP, amount, bundle) => ({
+    amount: amount,
+    fee: bundle.taxPayerFee as AmountEuroCents,
+    pspId: bundle.idPsp!,
     language: LanguageEnum.IT,
     paymentInstrumentId: paymentMethodIds[method],
     details: {
         detailType: "redirect",
     },
-    isAllCCP: false
+    isAllCCP: isAllCCP
 });
 
 export const randomPaymentMethod = (): PaymentMethod => {
