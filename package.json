@@ -16,7 +16,7 @@
     "clean:ts-from-yaml": "rimraf src/generated/payment_manager && rimraf src/generated/pagopa_proxy && rimraf src/generated/pgs",
     "watch": "tsc -w",
     "dev:message-payments": "shx rm -rf dist && webpack && docker run --env-file .env -i --rm -v $(pwd)/dist:/dist loadimpact/k6 run /dist/message_payments.js",
-    "dev:soak-payments": "shx rm -rf dist && webpack && docker run --env-file .env -i --rm -v $(pwd)/dist:/dist loadimpact/k6 run /dist/soak-test-payment.js",
+    "dev:soak-ecommerce-for-checkout": "shx rm -rf dist && webpack && docker run --env-file .env -it --rm -v $(pwd)/dist:/dist loadimpact/k6 run /dist/soak-test-ecommerce-for-checkout.js",
     "start": "shx rm -rf dist && webpack && docker run -e PRODUCER_BASE_URL=${PRODUCER_BASE_URL} -e PU_BASE_URL=${PU_BASE_URL} -e API_ENVIRONMENT=${API_ENVIRONMENT} -e -e API_SUBSCRIPTION_KEY=${API_SUBSCRIPTION_KEY} -e rate=${rate} -e duration=${duration} -e preAllocatedVUs=${preAllocatedVUs} -e maxVUs=${maxVUs} loadimpact/k6 run /dist/message_payments.js",
     "predev": "npm-run-all build",
     "dev": "npm-run-all --parallel start watch",
