@@ -81,8 +81,8 @@ parameters:
     type: boolean
     default: false
     values:
-      - False
-      - True
+      - false
+      - true
 
 stages : 
   - stage : 'run_with_APIM'
