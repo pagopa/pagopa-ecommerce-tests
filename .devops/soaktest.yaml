@@ -58,6 +58,7 @@ parameters:
       - soak-test-payment-methods
       - soak-test-transaction-activation
       - soak-test-transaction-auth
+      - soak-test-ecommerce-for-checkout
       - perf-test-payment-methods
       - perf-test-psps-by-payment-methods
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.

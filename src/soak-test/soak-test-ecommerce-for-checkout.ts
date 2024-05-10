@@ -129,7 +129,6 @@ export default function () {
         { name: "AuthRequest" }
     );
 
-
     // Simulate checkout-fe polling
     url = `${urlBasePathV1}/transactions/${transactionId}`;
     for (let i = 0; i < 5; i++) {
