@@ -68,6 +68,10 @@ export default function () {
             { name: "create-session-test" }
         );
 
+        if (response.status != 200 || response.json() == null) {
+            fail(`Error during create session request ${response.status}`);
+        }
+
         orderId  = (response.json() as unknown as CreateSessionResponse).orderId;
     }
 
@@ -87,7 +91,7 @@ export default function () {
     );
 
     if (response.status != 200 || response.json() == null) {
-        fail('Error into activation request');
+        fail(`Error into activation request ${response.status}`);
     }
 
     let body = response.json() as unknown as NewTransactionResponse;
@@ -115,6 +119,10 @@ export default function () {
         { name: "calculate-fees" }
     );
 
+    if (response.status != 200 || response.json() == null) {
+        fail(`Error during calculate fees request ${response.status}`);
+    }
+
     const pspBundle = (response.json() as unknown as CalculateFeeResponse).bundles.filter(it => it.idPsp == pspsIds[paymentMethod])[0];
 
     // Request authorization
@@ -129,6 +137,10 @@ export default function () {
         { name: "AuthRequest" }
     );
 
+    if (response.status != 200 || response.json() == null) {
+        fail(`Error during auth request ${response.status}`);
+    }
+
     // Simulate checkout-fe polling
     url = `${urlBasePathV1}/transactions/${transactionId}`;
     for (let i = 0; i < 5; i++) {
@@ -140,6 +152,9 @@ export default function () {
             { 'Response status from GET /transactions/{transactionId} is 200': (r) => r.status == 200 },
             { name: "get-transaction-test" }
         );
+        if (response.status != 200 || response.json() == null) {
+            fail(`Error during get transaction ${response.status}`);
+        }
         sleep(3);
     }
 }
