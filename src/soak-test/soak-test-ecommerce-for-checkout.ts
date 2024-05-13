@@ -32,15 +32,18 @@ export let options = {
         "http_req_duration{name:calculate-fee-test}": ["p(95)<=250"],
         "http_req_duration{name:get-transaction-test}": ["p(95)<=250"],
         "http_req_duration{name:authorization-transaction-test}": ["p(95)<=250"],
-        "http_req_duration{name:create-session-test}": ["p(95)<=250"]
+        "http_req_duration{name:create-session-test}": ["p(95)<=250"],
+        "http_req_duration{name:get-session}": ["p(95)<=250"]
     },
 };
 
+export function setup() {
+    console.info(`Using BLUE deployments ${config.USE_BLUE_DEPLOYMENT}`);
+}
 
 export default function () {
     const urlBasePathV1 = getVersionedBaseUrl(config.URL_BASE_PATH, "v1");
-    const urlBasePathV2 = getVersionedBaseUrl(config.URL_BASE_PATH, "v2");
-    
+    const urlBasePathV2 = getVersionedBaseUrl(config.URL_BASE_PATH, "v2");    
 
     const headersParams = {
         headers: {
@@ -100,6 +103,20 @@ export default function () {
 
     if (body.status !== TransactionStatusEnum.ACTIVATED) {
         fail('Error into authorization request');
+    }
+
+    // GET session (aka card data) only for CARDS
+    if (paymentMethod == PaymentMethod.CARDS) {
+        url = `${urlBasePathV1}/payment-methods/${paymentMethodIds[paymentMethod]}/sessions/${orderId}`;
+        http.get(url, {
+            ...headersParams,
+            tags: { name: 'get-session' }
+        });
+
+        check(response,
+            { 'Response status from GET /payment-methods/{paymentMethodId}/sessions/{orderId} is 200': (r) => r.status == 200 },
+            { name: "get-session" }
+        );
     }
 
     const totalAmount = body.payments.map(it => it.amount).reduce((acc, c) => acc + c, 0);
