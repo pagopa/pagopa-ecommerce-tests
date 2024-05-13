@@ -83,13 +83,24 @@ parameters:
     values:
       - false
       - true
-
+  - name: "DEVOPS_POOL_NAME"
+    displayName: "Pool name"
+    type: string
+    default: "Default"
+    values:
+      - "Default"
+      - "pagopa-dev-loadtest-linux"
+      - "pagopa-uat-loadtest-linux"
+    
 stages : 
   - stage : 'run_with_APIM'
     displayName: 'Run with APIM'
     condition: eq(${{parameters.BYPASS_APIM}}, false)
     pool:
+      ${{ if eq(parameters.DEVOPS_POOL_NAME, 'Default') }}:
       vmImage: 'ubuntu-latest'
+      ${{ else }}:
+      name: ${{ parameters.DEVOPS_POOL_NAME }}
     jobs:
       - job: performance_test_with_APIM
         steps:
