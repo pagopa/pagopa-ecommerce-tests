@@ -28,11 +28,11 @@ export let options = {
     thresholds: {
         http_req_duration: ["p(95)<=250"], // 95% of requests must complete below 1.5s
         checks: ['rate>0.9'], // 90% of the request must be completed
-        "http_req_duration{name:activate-transaction-test}": ["p(95)<=250"],
-        "http_req_duration{name:calculate-fee-test}": ["p(95)<=250"],
-        "http_req_duration{name:get-transaction-test}": ["p(95)<=250"],
-        "http_req_duration{name:authorization-transaction-test}": ["p(95)<=250"],
-        "http_req_duration{name:create-session-test}": ["p(95)<=250"],
+        "http_req_duration{name:activate-transaction}": ["p(95)<=250"],
+        "http_req_duration{name:calculate-fees}": ["p(95)<=250"],
+        "http_req_duration{name:get-transaction}": ["p(95)<=250"],
+        "http_req_duration{name:authorization-transaction}": ["p(95)<=250"],
+        "http_req_duration{name:create-session}": ["p(95)<=250"],
         "http_req_duration{name:get-session}": ["p(95)<=250"]
     },
 };
@@ -62,13 +62,13 @@ export default function () {
         let url = `${urlBasePathV1}/payment-methods/${paymentMethodIds[paymentMethod]}/sessions?recaptchaResponse=test`
         let response = http.post(url, JSON.stringify({}), {
             ...headersParams,
-            tags: { name: "create-session-test" },
+            tags: { name: "create-session" },
         });
         
         check(
             response,
             { "Response status from POST /payment-methods/{methodId}/sessions was 200": (r) => r.status == 200 },
-            { name: "create-session-test" }
+            { name: "create-session" }
         );
 
         if (response.status != 200 || response.json() == null) {
@@ -84,13 +84,13 @@ export default function () {
     let url = `${urlBasePathV2}/transactions?recaptchaResponse=test`;
     let response = http.post(url, JSON.stringify(activationBodyRequest), {
         ...headersParams,
-        tags: { name: "activate-transaction-test" },
+        tags: { name: "activate-transaction" },
     });
 
     check(
         response,
         { "Response status from POST /transactions was 200": (r) => r.status == 200 },
-        { name: "activate-transaction-test" }
+        { name: "activate-transaction" }
     );
 
     if (response.status != 200 || response.json() == null) {
@@ -128,7 +128,7 @@ export default function () {
     headersParams.headers["x-transaction-id-from-client"] = transactionId
     response = http.post(url, JSON.stringify(calculateFeeRequest), {
         ...headersParams,
-        tags: { name: "calculate-fee-test" },
+        tags: { name: "calculate-fees" },
     });
 
     check(response,
@@ -147,11 +147,11 @@ export default function () {
     const authRequestBodyRequest = createAuthorizationRequest(orderId, isAllCCP, totalAmount as AmountEuroCents, pspBundle, paymentMethod);
     response = http.post(url, JSON.stringify(authRequestBodyRequest), {
         ...headersParams,
-        tags: { name: "authorization-transaction-test" },
+        tags: { name: "authorization-transaction" },
     });
     check(response,
         { 'Response status from POST /transactions/{transactionId}/auth-requests is 200': (r) => r.status == 200 },
-        { name: "AuthRequest" }
+        { name: "authorization-transaction" }
     );
 
     if (response.status != 200 || response.json() == null) {
@@ -163,11 +163,11 @@ export default function () {
     for (let i = 0; i < 5; i++) {
         response = http.get(url, {
             ...headersParams,
-            tags: { name: "get-transaction-test" },
+            tags: { name: "get-transaction" },
         });
         check(response,
             { 'Response status from GET /transactions/{transactionId} is 200': (r) => r.status == 200 },
-            { name: "get-transaction-test" }
+            { name: "get-transaction" }
         );
         if (response.status != 200 || response.json() == null) {
             fail(`Error during get transaction ${response.status}`);
