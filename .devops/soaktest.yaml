@@ -96,13 +96,13 @@ stages :
   - stage : 'run_with_APIM'
     displayName: 'Run with APIM'
     condition: eq(${{parameters.BYPASS_APIM}}, false)
-    pool:
-      ${{ if eq(parameters.DEVOPS_POOL_NAME, 'Default') }}:
-      vmImage: 'ubuntu-latest'
-      ${{ else }}:
-      name: ${{ parameters.DEVOPS_POOL_NAME }}
     jobs:
       - job: performance_test_with_APIM
+        pool:
+          ${{ if eq(parameters.DEVOPS_POOL_NAME, 'Default') }}:
+            vmImage: 'ubuntu-latest'
+          ${{ else }}:
+            name: ${{ parameters.DEVOPS_POOL_NAME }}
         steps:
           - template: azure-templates/soaktest-template.yaml
             parameters:
@@ -125,10 +125,13 @@ stages :
   - stage : 'run_without_APIM'
     displayName: 'Run without APIM'
     condition: eq(${{parameters.BYPASS_APIM}}, true)
-    pool:
-      name: pagopa-uat-linux
     jobs:
       - job: performance_test_without_APIM
+        pool:
+          ${{ if eq(parameters.DEVOPS_POOL_NAME, 'Default') }}:
+            vmImage: 'ubuntu-latest'
+          ${{ else }}:
+            name: ${{ parameters.DEVOPS_POOL_NAME }}
         steps :
           - template: azure-templates/soaktest-template.yaml
             parameters:
