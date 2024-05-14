@@ -198,6 +198,6 @@ export const createAuthorizationRequestRedirect = (method: PaymentMethod): Creat
 
 export const randomPaymentMethod = (): PaymentMethod => {
     const values = Object.values(PaymentMethod);
-    const randomIndex = Math.floor(Math.random() * ((values.length / 2) - 1));
+    const randomIndex = Math.floor(Math.random() * values.length);
     return randomIndex as PaymentMethod;
 }
