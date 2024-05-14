@@ -34,8 +34,7 @@ export let options = {
 export default function () {
     var transactionId;
     const urlBasePath = config.URL_BASE_PATH;
-    const rptId = generateRptId();
-    const bodyRequest = createActivationRequest(rptId);
+    const bodyRequest = createActivationRequest();
 
     const headersParams = {
         headers: {

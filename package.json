@@ -23,7 +23,7 @@
     "version": "auto-changelog -p --config .auto-changelog.json --unreleased && git add CHANGELOG.md",
     "webpack": "shx rm -rf dist && webpack",
     "generate": "npm-run-all -s generate:ts-from-yaml:*",
-    "generate:ts-from-yaml:ecommerce": "shx rm -rf src/generated/ecommerce && shx mkdir -p src/generated/ecommerce && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/core/api/checkout/checkout_ecommerce/v1/_openapi.json.tpl --no-strict --out-dir src/generated/ecommerce"
+    "generate:ts-from-yaml:ecommerce": "shx rm -rf src/generated/ecommerce && shx mkdir -p src/generated/ecommerce && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/ecommerce-app/api/ecommerce-checkout/v1/_openapi.json.tpl --no-strict --out-dir src/generated/ecommerce"
   },
   "devDependencies": {
       "@babel/core": "7.13.16",
