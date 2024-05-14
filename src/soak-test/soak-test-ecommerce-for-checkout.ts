@@ -20,7 +20,7 @@ export let options = {
         stages: [
           { target: config.rate, duration: config.rampingDuration },
           { target: config.rate, duration: config.duration },
-          //{ target: 0, duration: config.rampingDuration },
+          { target: 0, duration: config.rampingDuration },
         ],
       },
     },
