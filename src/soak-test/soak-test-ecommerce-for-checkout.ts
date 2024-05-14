@@ -20,7 +20,7 @@ export let options = {
         stages: [
           { target: config.rate, duration: config.rampingDuration },
           { target: config.rate, duration: config.duration },
-          { target: 0, duration: config.rampingDuration },
+          //{ target: 0, duration: config.rampingDuration },
         ],
       },
     },
@@ -113,7 +113,7 @@ export default function () {
     let body = response.json() as unknown as NewTransactionResponse;
     let transactionId = body.transactionId;
     headersParams.headers.Authorization = headersParams.headers.Authorization + body.authToken as string;
-
+    headersParams.headers["x-transaction-id-from-client"] = transactionId
     if (body.status !== TransactionStatusEnum.ACTIVATED) {
         fail('Error into authorization request');
     }
@@ -121,7 +121,7 @@ export default function () {
     // GET session (aka card data) only for CARDS
     if (paymentMethod == PaymentMethod.CARDS) {
         url = `${urlBasePathV1}/payment-methods/${paymentMethodIds[paymentMethod]}/sessions/${orderId}`;
-        http.get(url, {
+        response = http.get(url, {
             ...headersParams,
             tags: { name: 'get-session' }
         });
@@ -138,7 +138,6 @@ export default function () {
     // Calculate fees
     url = `${urlBasePathV2}/payment-methods/${paymentMethodIds[paymentMethod]}/fees?maxOccurences=1235`;
     const calculateFeeRequest = createFeeRequestV2();
-    headersParams.headers["x-transaction-id-from-client"] = transactionId
     response = http.post(url, JSON.stringify(calculateFeeRequest), {
         ...headersParams,
         tags: { name: "calculate-fees" },
