@@ -1,7 +1,7 @@
 import { check, fail, sleep } from "k6";
 import http from "k6/http";
 import { getConfigOrThrow, getVersionedBaseUrl } from "../utils/config";
-import { PaymentMethod, createActivationRequest, createAuthorizationRequest, createFeeRequestV2, paymentMethodIds, randomPaymentMethod, generateOrderId, pspsIds } from "../common/soak-test-common"
+import { PaymentMethod, createActivationRequest, createAuthorizationRequest, createFeeRequestV2, paymentMethodIds, randomPaymentMethod, generateOrderId, pspsIds, generateRptId } from "../common/soak-test-common"
 import { NewTransactionResponse } from "../generated/ecommerce-v1/NewTransactionResponse";
 import { CreateSessionResponse } from "../generated/ecommerce-v1/CreateSessionResponse";
 import { CalculateFeeResponse } from "../generated/ecommerce-v2/CalculateFeeResponse";
@@ -33,7 +33,8 @@ export let options = {
         "http_req_duration{name:get-transaction}": ["p(95)<=250"],
         "http_req_duration{name:authorization-transaction}": ["p(95)<=250"],
         "http_req_duration{name:create-session}": ["p(95)<=250"],
-        "http_req_duration{name:get-session}": ["p(95)<=250"]
+        "http_req_duration{name:get-session}": ["p(95)<=250"],
+        "http_req_duration{name:verify-payment-notice}": ["p(95)<=250"]
     },
 };
 
@@ -54,6 +55,18 @@ export default function () {
             ...(config.USE_BLUE_DEPLOYMENT == "True" ? { "deployment": "blue" } : {})
         },
     };
+    // GET payment-request (Node verifyPaymentNotice)
+    let url = `${urlBasePathV1}/payment-requests/${generateRptId()}?recaptchaResponse=test`
+        let response = http.get(url, {
+            ...headersParams,
+            tags: { name: "verify-payment-notice" },
+        });
+        
+        check(
+            response,
+            { "Response status from GET /payment-request/{rptId} was 200": (r) => r.status == 200 },
+            { name: "verify-payment-notice" }
+        );
 
     // POST /sessions
     let orderId = generateOrderId();
@@ -81,8 +94,8 @@ export default function () {
     const activationBodyRequest = createActivationRequest(orderId);
     
     // Activate transaction
-    let url = `${urlBasePathV2}/transactions?recaptchaResponse=test`;
-    let response = http.post(url, JSON.stringify(activationBodyRequest), {
+    url = `${urlBasePathV2}/transactions?recaptchaResponse=test`;
+    response = http.post(url, JSON.stringify(activationBodyRequest), {
         ...headersParams,
         tags: { name: "activate-transaction" },
     });
