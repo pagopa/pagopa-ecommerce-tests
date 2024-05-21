@@ -102,6 +102,6 @@ steps:
         -e NOTICE_CODE_PREFIX=${{ parameters.NOTICE_CODE_PREFIX }} \
         -e USE_BLUE_DEPLOYMENT=${{ parameters.USE_BLUE_DEPLOYMENT }} \
         loadimpact/k6 \
-        run /dist/${{ parameters.SCRIPT }}.js \
+        run /dist/${{ parameters.SCRIPT }}.js  --summary-trend-stats "avg,min,med,max,p(90),p(95),p(99)" \
     timeoutInMinutes: 120
     displayName: Run k6 ${{ parameters.SCRIPT }} on ${{ parameters.DESCRIPTION }} 
