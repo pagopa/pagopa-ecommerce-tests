@@ -53,13 +53,14 @@ export default function () {
             'x-correlation-id': 'c1155812-0f9f-467d-ab67-8e9a84534d48',
             'x-transaction-id-from-client': "",
             ...(config.USE_BLUE_DEPLOYMENT == "True" ? { "deployment": "blue" } : {})
-        },
+        }
     };
     // GET payment-request (Node verifyPaymentNotice)
     let url = `${urlBasePathV1}/payment-requests/${generateRptId()}?recaptchaResponse=test`
         let response = http.get(url, {
             ...headersParams,
             tags: { name: "verify-payment-notice" },
+            timeout: '10s'
         });
         
         check(
@@ -76,6 +77,7 @@ export default function () {
         let response = http.post(url, JSON.stringify({}), {
             ...headersParams,
             tags: { name: "create-session" },
+            timeout: '10s'
         });
         
         check(
@@ -98,6 +100,7 @@ export default function () {
     response = http.post(url, JSON.stringify(activationBodyRequest), {
         ...headersParams,
         tags: { name: "activate-transaction" },
+        timeout: '10s'
     });
 
     check(
@@ -123,7 +126,8 @@ export default function () {
         url = `${urlBasePathV1}/payment-methods/${paymentMethodIds[paymentMethod]}/sessions/${orderId}`;
         response = http.get(url, {
             ...headersParams,
-            tags: { name: 'get-session' }
+            tags: { name: 'get-session' },
+            timeout: '10s'
         });
 
         check(response,
@@ -141,6 +145,7 @@ export default function () {
     response = http.post(url, JSON.stringify(calculateFeeRequest), {
         ...headersParams,
         tags: { name: "calculate-fees" },
+        timeout: '10s'
     });
 
     check(response,
@@ -160,6 +165,7 @@ export default function () {
     response = http.post(url, JSON.stringify(authRequestBodyRequest), {
         ...headersParams,
         tags: { name: "authorization-transaction" },
+        timeout: '10s'
     });
     check(response,
         { 'Response status from POST /transactions/{transactionId}/auth-requests is 200': (r) => r.status == 200 },
@@ -176,6 +182,7 @@ export default function () {
         response = http.get(url, {
             ...headersParams,
             tags: { name: "get-transaction" },
+            timeout: '10s'
         });
         check(response,
             { 'Response status from GET /transactions/{transactionId} is 200': (r) => r.status == 200 },
