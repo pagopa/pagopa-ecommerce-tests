@@ -47,6 +47,10 @@ parameters:
   - name: "rampingDuration"
     displayName: "rampingDuration"
     type: string
+  - name: "USE_BLUE_DEPLOYMENT"
+    displayName: "Use Blue instances"
+    type: boolean
+    default: false
 steps:
   # If a Node version is defined explicitly by parameter, such version is used
   # Else, version is red from .node-version file
@@ -96,7 +100,8 @@ steps:
         -e maxVUs=${{ parameters.maxVUs }} \
         -e rampingDuration=${{ parameters.rampingDuration }} \
         -e NOTICE_CODE_PREFIX=${{ parameters.NOTICE_CODE_PREFIX }} \
+        -e USE_BLUE_DEPLOYMENT=${{ parameters.USE_BLUE_DEPLOYMENT }} \
         loadimpact/k6 \
-        run /dist/${{ parameters.SCRIPT }}.js \
+        run /dist/${{ parameters.SCRIPT }}.js  --summary-trend-stats "avg,min,med,max,p(90),p(95),p(99)" \
     timeoutInMinutes: 120
     displayName: Run k6 ${{ parameters.SCRIPT }} on ${{ parameters.DESCRIPTION }} 

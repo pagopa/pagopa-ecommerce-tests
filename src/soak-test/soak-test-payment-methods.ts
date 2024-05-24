@@ -1,5 +1,5 @@
 import { Int } from "io-ts";
-import { check, fail } from "k6";
+import { JSONObject, check, fail } from "k6";
 import http from "k6/http";
 import { getConfigOrThrow } from "../utils/config";
 
@@ -81,7 +81,7 @@ export default function () {
     );
 
     if (response.status == 200) {
-        paymentMethodId = response.json()["id"];
+        paymentMethodId = (response.json() as JSONObject)["id"];
         //Test for GET single payment method after POST
         url = `${urlBasePath}/checkout/ecommerce/v1/payment-methods/${paymentMethodId}`;
         response = http.get(url, { tags: { name: "get-single-payment-method-test" } });
@@ -106,7 +106,7 @@ export default function () {
         );
 
         if (response.status == 200) {
-            paymentMethodStatus = response.json()["status"];
+            paymentMethodStatus = (response.json() as JSONObject)["status"];
 
             if (paymentMethodStatus === "ENABLED") {
 

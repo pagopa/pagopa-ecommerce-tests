@@ -10,10 +10,10 @@ parameters:
     type: string
     default: "10"
   - name: "duration"
-    displayName: "duration"
+    displayName: "Duration (e.g. 10s)"
     type: string
   - name: "rampingDuration"
-    displayName: "rampingDuration"
+    displayName: "Ramping Duration (e.g. 10s)"
     type: string
   - name: "preAllocatedVUs"
     displayName: "preAllocatedVUs"
@@ -42,6 +42,8 @@ parameters:
       - "https://api.uat.platform.pagopa.it/ecommerce/notifications-service/v1"
       - "https://api.uat.platform.pagopa.it/ecommerce/checkout/v1"
       - "https://api.dev.platform.pagopa.it/ecommerce/checkout/v1"
+      - "https://api.uat.platform.pagopa.it/ecommerce/checkout/"
+      - "https://api.dev.platform.pagopa.it/ecommerce/checkout/"
       - "https://api.uat.platform.pagopa.it"
   - name: "PAYMENT_METHOD_NAME"
     displayName: "PAYMENT_METHOD_NAME"
@@ -56,6 +58,7 @@ parameters:
       - soak-test-payment-methods
       - soak-test-transaction-activation
       - soak-test-transaction-auth
+      - soak-test-ecommerce-for-checkout
       - perf-test-payment-methods
       - perf-test-psps-by-payment-methods
   # optional sub path where the project to be initialized is located. To be used on repository with multiple projects.
@@ -73,15 +76,33 @@ parameters:
     values:
       - False
       - True
-
+  - name: "USE_BLUE_DEPLOYMENT"
+    displayName: "Use Blue instances"
+    type: boolean
+    default: false
+    values:
+      - false
+      - true
+  - name: "DEVOPS_POOL_NAME"
+    displayName: "Pool name"
+    type: string
+    default: "Default"
+    values:
+      - "Default"
+      - "pagopa-dev-loadtest-linux"
+      - "pagopa-uat-loadtest-linux"
+    
 stages : 
   - stage : 'run_with_APIM'
     displayName: 'Run with APIM'
     condition: eq(${{parameters.BYPASS_APIM}}, false)
-    pool:
-      vmImage: 'ubuntu-latest'
     jobs:
       - job: performance_test_with_APIM
+        pool:
+          ${{ if eq(parameters.DEVOPS_POOL_NAME, 'Default') }}:
+            vmImage: 'ubuntu-latest'
+          ${{ else }}:
+            name: ${{ parameters.DEVOPS_POOL_NAME }}
         steps:
           - template: azure-templates/soaktest-template.yaml
             parameters:
@@ -99,14 +120,18 @@ stages :
               DESCRIPTION: ${{ parameters['DESCRIPTION']}}
               NOTICE_CODE_PREFIX: ${{ parameters['NOTICE_CODE_PREFIX']}}
               rampingDuration: ${{ parameters['rampingDuration']}}
+              USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT']}}
               
   - stage : 'run_without_APIM'
     displayName: 'Run without APIM'
     condition: eq(${{parameters.BYPASS_APIM}}, true)
-    pool:
-      name: pagopa-uat-linux
     jobs:
       - job: performance_test_without_APIM
+        pool:
+          ${{ if eq(parameters.DEVOPS_POOL_NAME, 'Default') }}:
+            vmImage: 'ubuntu-latest'
+          ${{ else }}:
+            name: ${{ parameters.DEVOPS_POOL_NAME }}
         steps :
           - template: azure-templates/soaktest-template.yaml
             parameters:
@@ -124,3 +149,4 @@ stages :
               DESCRIPTION: ${{ parameters['DESCRIPTION']}}
               NOTICE_CODE_PREFIX: ${{ parameters['NOTICE_CODE_PREFIX']}}
               rampingDuration: ${{ parameters['rampingDuration']}}
+              USE_BLUE_DEPLOYMENT: ${{ parameters['USE_BLUE_DEPLOYMENT']}}

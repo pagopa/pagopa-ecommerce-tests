@@ -26,6 +26,7 @@ export const IConfig = t.intersection([
   }),
   t.partial({
     API_ENVIRONMENT: NonEmptyString,
+    USE_BLUE_DEPLOYMENT: NonEmptyString
   }),
   K6Config,
 ]);
@@ -61,4 +62,11 @@ export function getConfigOrThrow(): IConfig {
       throw new Error(`Invalid configuration: ${readableReport(errors)}`);
     })
   );
+}
+
+export const getVersionedBaseUrl = (baseUrl: string, version: string): string => {
+  const versionRegex = /\/v\d/gm;
+  return versionRegex.test(baseUrl) ? 
+        baseUrl : 
+        (baseUrl.endsWith("/") ? `${baseUrl}${version}` : `${baseUrl}/${version}`);
 }
