@@ -249,14 +249,14 @@
 					}
 				],
 				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v1/wallets",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/wallets",
 					"host": [
 						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
 						"io",
-						"v1",
+						"v2",
 						"wallets"
 					]
 				},
@@ -566,18 +566,6 @@
 			"name": "Delete Transaction",
 			"event": [
 				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - Wallet Payment] - Delete transaction\", () => {",
-							"  pm.response.to.have.status(202);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
 					"listen": "prerequest",
 					"script": {
 						"exec": [
@@ -647,6 +635,18 @@
 							"    console.log(responseJson);",
 							"    pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
 							"  }",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Wallet Payment] - Delete transaction\", () => {",
+							"  pm.response.to.have.status(202);",
 							"});"
 						],
 						"type": "text/javascript",
