@@ -521,7 +521,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[ecommerce for IO - Wallet Payment] - GET transaction to check status\", () => {",
+							"pm.test(\"[ecommerce for IO - Wallet Payment webview] - GET transaction to check status\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.expect(responseJson.status).to.equals(\"AUTHORIZATION_REQUESTED\");",
