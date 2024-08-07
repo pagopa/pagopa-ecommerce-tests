@@ -31,11 +31,6 @@ parameters:
     type: boolean
     default: true
 
-#  - name: 'MYBANK_GUEST'
-#    displayName: 'Test MyBank pay for APM guest payment flux (only NW)'
-#    type: boolean
-#    default: false
-
 variables:
   - name: 'HOSTNAME'
     ${{ if eq( parameters.ENVIRONMENT, 'UAT') }}:
@@ -131,26 +126,4 @@ stages :
               testResultsFormat: 'JUnit'
               testResultsFiles: '**/*-TEST.xml'
               searchFolder: '$(System.DefaultWorkingDirectory)'
-
-#  - stage: 'API_tests_eCommerce_for_IO_apm_MyBank_NW'
-#    displayName: 'MY BANK - eCommerce for IO - APM - My Bank - NW - Run postman collection'
-#    condition: and(succeeded(), eq('${{parameters.MYBANK_GUEST}}', true))
-#    dependsOn: [ ]
-#    pool:
-#      vmImage: 'ubuntu-latest'
-#    jobs:
-#      - job: api_tests
-#        steps:
-#          - script: |
-#              yarn global add newman
-#            displayName: 'Newman installation'
-#          - script: |
-#              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest.postman_collection.json --env-var WALLET_TOKEN_TEST=$(${{ parameters.ENVIRONMENT }}_WALLET_TOKEN_TEST) --env-var PAYMENT_METHOD_NAME="MYBANK" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-apm-mybank-nw-api-TEST.xml
-#            displayName: 'Run api test'
-#          - task: PublishTestResults@2
-#            condition: succeededOrFailed()
-#            inputs:
-#              testResultsFormat: 'JUnit'
-#              testResultsFiles: '**/*-TEST.xml'
-#              searchFolder: '$(System.DefaultWorkingDirectory)'
 
