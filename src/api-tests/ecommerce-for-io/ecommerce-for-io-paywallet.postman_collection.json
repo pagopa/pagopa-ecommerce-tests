@@ -362,14 +362,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v1/transactions/{{TRANSACTION_ID}}",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/transactions/{{TRANSACTION_ID}}",
 					"host": [
 						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
 						"io",
-						"v1",
+						"v2",
 						"transactions",
 						"{{TRANSACTION_ID}}"
 					]
