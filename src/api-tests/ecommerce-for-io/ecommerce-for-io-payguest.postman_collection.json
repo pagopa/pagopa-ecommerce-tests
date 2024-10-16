@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "ac7acfe9-a435-408c-b5ee-9b6795c53fcf",
+		"_postman_id": "58398099-cdd3-405c-9fb4-7a2132d0f2b6",
 		"name": "eCommerce for IO V2 (pay guest)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "23305473"
@@ -437,6 +437,72 @@
 						"transactions",
 						"{{TRANSACTION_ID}}",
 						"auth-requests"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get last payment method used",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Wallet Payment] - GET last payment method used\", () => {",
+							"  pm.response.to.have.status(200);",
+							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.type).to.equals(\"guest\");",
+							"  pm.expect(responseJson.paymentMethodId).to.equals(pm.environment.get(\"PAYMENT_METHOD_ID\"));",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/user/lastPaymentMethodUsed",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v2",
+						"user",
+						"lastPaymentMethodUsed"
 					]
 				}
 			},
