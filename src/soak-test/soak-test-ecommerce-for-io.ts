@@ -1,15 +1,8 @@
-import { check, fail, sleep } from "k6";
+import { check, fail, sleep} from "k6";
 import http from "k6/http";
-import { getConfigOrThrow, getVersionedBaseUrl } from "../utils/config";
-import { PaymentMethod, createActivationRequest, createAuthorizationRequest, createFeeRequestV2, paymentMethodIds, randomPaymentMethod, generateOrderId, pspsIds, generateRptId } from "../common/soak-test-common"
-import { NewTransactionResponse } from "../generated/ecommerce-v1/NewTransactionResponse";
-import { CreateSessionResponse } from "../generated/ecommerce-v1/CreateSessionResponse";
-import { CalculateFeeResponse } from "../generated/ecommerce-v2/CalculateFeeResponse";
-import { TransactionStatusEnum } from "../generated/ecommerce-v1/TransactionStatus";
-import { AmountEuroCents } from "../generated/ecommerce-v1/AmountEuroCents";
-
-//TODO: tutte le chiamate da farsi su ingress direttamente su istanze blue (per evitare anche scaling up app gateway oltre che modifica policy)
-//TODO: modificare tutte le chiamate per fare solo POST transactions e POST auth requests con dati mockati, user id ecc ecc
+import { getConfigOrThrow } from "../utils/config";
+import { generateRptId, PaymentMethod, paymentMethodIds } from "../common/soak-test-common";
+import { uuid } from "../utils/utils";
 const config = getConfigOrThrow();
 export let options = {
     scenarios: {
@@ -28,36 +21,41 @@ export let options = {
     },
 
     thresholds: {
-        http_req_duration: ["p(95)<=250"], // 95% of requests must complete below 250ms
-        checks: ['rate>0.9'], // 90% of the request must be completed
+        http_req_duration: ["p(95)<=250"], 
+        checks: ['rate>0.9'], 
         "http_req_duration{name:activate-transaction}": ["p(95)<=250"],
-        "http_req_duration{name:calculate-fees}": ["p(95)<=250"],
-        "http_req_duration{name:get-transaction}": ["p(95)<=250"],
-        "http_req_duration{name:authorization-transaction}": ["p(95)<=250"],
-        "http_req_duration{name:create-session}": ["p(95)<=250"],
-        "http_req_duration{name:get-session}": ["p(95)<=250"],
-        "http_req_duration{name:verify-payment-notice}": ["p(95)<=250"]
+        "http_req_duration{name:auth-request}": ["p(95)<=250"],
+        "http_req_duration{name:get-user-stats}": ["p(95)<=250"],
     },
 };
-
+const urlBasePath = "https://weuuat.ecommerce.internal.uat.platform.pagopa.it"
 
 export default function () {
-    const urlBasePathV1 = getVersionedBaseUrl(config.URL_BASE_PATH, "v1");
-    const urlBasePathV2 = getVersionedBaseUrl(config.URL_BASE_PATH, "v2");    
-
+    const randomUUID =  uuid();
+    const rptId = generateRptId();
     const headersParams = {
         headers: {
             'Content-Type': 'application/json',
-            'Authorization': "Bearer ",
-            'x-correlation-id': 'c1155812-0f9f-467d-ab67-8e9a84534d48',
-            'x-transaction-id-from-client': "",
-            ...(config.USE_BLUE_DEPLOYMENT == "True" ? { "deployment": "blue" } : {})
+            'x-client-id': 'IO',
+            'x-correlation-id': randomUUID,
+            'x-user-id': randomUUID,
+            'x-pgs-id': "REDIRECT",
         }
     };
-    let activationBodyRequest = {}
-    // Activate transaction
-    let url = `${urlBasePathV2}/transactions?recaptchaResponse=test`;
-    let response = http.post(url, JSON.stringify(activationBodyRequest), {
+    /* transaction activation */
+    const newTransactionRequest = {
+        paymentNotices: [
+            {
+                rptId: rptId,
+                amount: 120000
+            }
+    
+        ],
+        emailToken: randomUUID,
+        orderId: "E1729083167537t611"
+    }
+    let url = `${urlBasePath}/beta/pagopa-ecommerce-transactions-service/v2.1/transactions`;
+    let response = http.post(url, JSON.stringify(newTransactionRequest), {
         ...headersParams,
         tags: { name: "activate-transaction" },
         timeout: '10s'
@@ -70,50 +68,57 @@ export default function () {
     );
 
     if (response.status != 200 || response.json() == null) {
-        fail(`Error into activation request ${response.status}`);
+        fail(`Error into activation request ${response.status} - ${JSON.stringify(response.body)}`);
     }
-
-    let body = response.json() as unknown as NewTransactionResponse;
-    let transactionId = body.transactionId;
-    headersParams.headers.Authorization = headersParams.headers.Authorization + body.authToken as string;
-    headersParams.headers["x-transaction-id-from-client"] = transactionId
-    if (body.status !== TransactionStatusEnum.ACTIVATED) {
-        fail('Error into authorization request');
+    /* request transaction authorization */
+    const responseBody = response.json() as any;
+    const transactionId = responseBody.transactionId;
+    const authorizationRequest = {
+        amount: responseBody.payments[0].amount,
+        fee: 150,
+        pspId: "PPAYITR1XXX",
+        language: "IT",
+        paymentInstrumentId: paymentMethodIds[PaymentMethod.REDIRECT_RPIC],
+        details: {
+            detailType: "redirect",
+        },
+        isAllCCP: responseBody.payments[0].isAllCCP
     }
-
-
-    // Request authorization
-    url = `${urlBasePathV1}/transactions/${transactionId}/auth-requests`;
-    const authRequestBodyRequest = createAuthorizationRequest(orderId, isAllCCP, totalAmount as AmountEuroCents, pspBundle, paymentMethod);
-    response = http.post(url, JSON.stringify(authRequestBodyRequest), {
+    url = `${urlBasePath}/beta/pagopa-ecommerce-transactions-service/transactions/${transactionId}/auth-requests`;
+    response = http.post(url, JSON.stringify(authorizationRequest), {
         ...headersParams,
-        tags: { name: "authorization-transaction" },
+        tags: { name: "auth-request" },
         timeout: '10s'
     });
-    check(response,
-        { 'Response status from POST /transactions/{transactionId}/auth-requests is 200': (r) => r.status == 200 },
-        { name: "authorization-transaction" }
+
+    check(
+        response,
+        { "Response status from POST /transactions/auth-request was 200": (r) => r.status == 200 },
+        { name: "auth-request" }
     );
 
     if (response.status != 200 || response.json() == null) {
-        fail(`Error during auth request ${response.status}`);
+        fail(`Error into POST auth-request ${response.status} - ${JSON.stringify(response.body)}`);
+    }
+    //wait for user stats to be propagated before getting it
+    sleep(3)
+    /* GET user last payment method used */
+    url = `${urlBasePath}/pagopa-ecommerce-user-stats-service/user/lastPaymentMethodUsed`;
+    response = http.get(url, {
+        ...headersParams,
+        tags: { name: "get-user-stats" },
+        timeout: '10s'
+    });
+
+    check(
+        response,
+        { "Response status from GET /user/lastPaymentMethodUsed was 200": (r) => r.status == 200 },
+        { name: "get-user-stats" }
+    );
+
+    if (response.status != 200 || response.json() == null) {
+        fail(`Error into GET /user/lastPaymentMethodUsed  ${response.status} - ${JSON.stringify(response.body)}`);
     }
 
-    // Simulate checkout-fe polling
-    url = `${urlBasePathV1}/transactions/${transactionId}`;
-    for (let i = 0; i < 5; i++) {
-        response = http.get(url, {
-            ...headersParams,
-            tags: { name: "get-transaction" },
-            timeout: '10s'
-        });
-        check(response,
-            { 'Response status from GET /transactions/{transactionId} is 200': (r) => r.status == 200 },
-            { name: "get-transaction" }
-        );
-        if (response.status != 200 || response.json() == null) {
-            fail(`Error during get transaction ${response.status}`);
-        }
-        sleep(3);
-    }
+    
 }
