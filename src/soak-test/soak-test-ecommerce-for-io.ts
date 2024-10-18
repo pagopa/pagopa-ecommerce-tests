@@ -1,7 +1,7 @@
 import { check, fail, sleep} from "k6";
 import http from "k6/http";
 import { getConfigOrThrow } from "../utils/config";
-import { generateRptId, PaymentMethod, paymentMethodIds } from "../common/soak-test-common";
+import { createFeeRequestV2, generateRptId, PaymentMethod, paymentMethodIds } from "../common/soak-test-common";
 import { uuid } from "../utils/utils";
 const config = getConfigOrThrow();
 export let options = {
@@ -25,6 +25,8 @@ export let options = {
         checks: ['rate>0.9'], 
         "http_req_duration{name:activate-transaction}": ["p(95)<=250"],
         "http_req_duration{name:auth-request}": ["p(95)<=250"],
+        "http_req_duration{name:get-transaction}": ["p(95)<=250"],
+        "http_req_duration{name:calculate-fees}": ["p(95)<=250"],
         "http_req_duration{name:get-user-stats}": ["p(95)<=250"],
     },
 };
@@ -70,11 +72,31 @@ export default function () {
     if (response.status != 200 || response.json() == null) {
         fail(`Error into activation request ${response.status} - ${JSON.stringify(response.body)}`);
     }
+
+    const postTransactionResponseBody = response.json() as any;
+
+      /* Calculate fees */
+      url = `${urlBasePath}/beta/pagopa-ecommerce-payment-methods-service/v2/payment-methods/${paymentMethodIds[PaymentMethod.REDIRECT_RPIC]}/fees?maxOccurences=1235`;
+      const calculateFeeRequest = createFeeRequestV2();
+      response = http.post(url, JSON.stringify(calculateFeeRequest), {
+          ...headersParams,
+          tags: { name: "calculate-fees" },
+          timeout: '10s'
+      });
+  
+      check(response,
+          { 'Response status from POST /payment-methods/{paymentMethodId}/fees is 200': (r) => r.status == 200 },
+          { name: "calculate-fees" }
+      );
+  
+      if (response.status != 200 || response.json() == null) {
+          fail(`Error during calculate fees request ${response.status}`);
+      }
+    
     /* request transaction authorization */
-    const responseBody = response.json() as any;
-    const transactionId = responseBody.transactionId;
+    const transactionId = postTransactionResponseBody.transactionId;
     const authorizationRequest = {
-        amount: responseBody.payments[0].amount,
+        amount: postTransactionResponseBody.payments[0].amount,
         fee: 150,
         pspId: "PPAYITR1XXX",
         language: "IT",
@@ -82,7 +104,7 @@ export default function () {
         details: {
             detailType: "redirect",
         },
-        isAllCCP: responseBody.payments[0].isAllCCP
+        isAllCCP: postTransactionResponseBody.payments[0].isAllCCP
     }
     url = `${urlBasePath}/beta/pagopa-ecommerce-transactions-service/transactions/${transactionId}/auth-requests`;
     response = http.post(url, JSON.stringify(authorizationRequest), {
@@ -100,8 +122,23 @@ export default function () {
     if (response.status != 200 || response.json() == null) {
         fail(`Error into POST auth-request ${response.status} - ${JSON.stringify(response.body)}`);
     }
-    //wait for user stats to be propagated before getting it
-    sleep(3)
+     /*  Simulate checkout-fe polling */
+     url = `${urlBasePath}/beta/pagopa-ecommerce-transactions-service/transactions/${transactionId}`;
+     for (let i = 0; i < 5; i++) {
+         response = http.get(url, {
+             ...headersParams,
+             tags: { name: "get-transaction" },
+             timeout: '10s'
+         });
+         check(response,
+             { 'Response status from GET /transactions/{transactionId} is 200': (r) => r.status == 200 },
+             { name: "get-transaction" }
+         );
+         if (response.status != 200 || response.json() == null) {
+             fail(`Error during get transaction ${response.status}`);
+         }
+         sleep(3);
+     }
     /* GET user last payment method used */
     url = `${urlBasePath}/pagopa-ecommerce-user-stats-service/user/lastPaymentMethodUsed`;
     response = http.get(url, {
