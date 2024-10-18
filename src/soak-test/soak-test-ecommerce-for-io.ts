@@ -31,7 +31,8 @@ export let options = {
     },
 };
 const urlBasePath = "https://weuuat.ecommerce.internal.uat.platform.pagopa.it"
-
+const paymentMethodId = "0d1450f4-b993-4f89-af5a-1770a45f5d71";//PAYPAL per client id IO
+const pspId = "BCITITMM";
 export default function () {
     const randomUUID =  uuid();
     const rptId = generateRptId();
@@ -41,7 +42,7 @@ export default function () {
             'x-client-id': 'IO',
             'x-correlation-id': randomUUID,
             'x-user-id': randomUUID,
-            'x-pgs-id': "REDIRECT",
+            'x-pgs-id': "NPG",
         }
     };
     /* transaction activation */
@@ -76,7 +77,7 @@ export default function () {
     const postTransactionResponseBody = response.json() as any;
 
       /* Calculate fees */
-      url = `${urlBasePath}/beta/pagopa-ecommerce-payment-methods-service/v2/payment-methods/${paymentMethodIds[PaymentMethod.REDIRECT_RPIC]}/fees?maxOccurences=1235`;
+      url = `${urlBasePath}/beta/pagopa-ecommerce-payment-methods-service/v2/payment-methods/${paymentMethodId}/fees?maxOccurences=1235`;
       const calculateFeeRequest = createFeeRequestV2();
       response = http.post(url, JSON.stringify(calculateFeeRequest), {
           ...headersParams,
@@ -97,12 +98,12 @@ export default function () {
     const transactionId = postTransactionResponseBody.transactionId;
     const authorizationRequest = {
         amount: postTransactionResponseBody.payments[0].amount,
-        fee: 150,
-        pspId: "PPAYITR1XXX",
+        fee: 100,
+        pspId: pspId,
         language: "IT",
-        paymentInstrumentId: paymentMethodIds[PaymentMethod.REDIRECT_RPIC],
+        paymentInstrumentId: paymentMethodId,
         details: {
-            detailType: "redirect",
+            detailType: "apm",
         },
         isAllCCP: postTransactionResponseBody.payments[0].isAllCCP
     }
