@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "a4d79283-566d-4ebf-8e16-9ac1d19ddb9b",
+		"_postman_id": "714a6d64-25b6-4832-99d1-9010db43fb96",
 		"name": "eCommerce for IO V2 (pay by wallet)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "23305473"
@@ -468,6 +468,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
+							"",
 							""
 						],
 						"type": "text/javascript",
@@ -511,6 +512,72 @@
 						"auth-requests"
 					]
 				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get last payment method used",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Wallet Payment] - GET last payment method used\", () => {",
+							"  pm.response.to.have.status(200);",
+							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.type).to.equals(\"wallet\");",
+							"  pm.expect(responseJson.walletId).to.equals(pm.environment.get(\"WALLET_ID\"));",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"setTimeout(() => {}, 1000);"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
+					}
+				],
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/user/lastPaymentMethodUsed",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v2",
+						"user",
+						"lastPaymentMethodUsed"
+					]
+				},
+				"description": "1. recupero info relativi alla request payment con verificaRPT se non presente in cache dato rptId\n2. cache info su redis dato rptId"
 			},
 			"response": []
 		},
