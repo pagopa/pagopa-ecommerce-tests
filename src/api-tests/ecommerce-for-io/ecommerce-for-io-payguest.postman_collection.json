@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "58398099-cdd3-405c-9fb4-7a2132d0f2b6",
+		"_postman_id": "bb5d9b1f-8048-4332-b0be-11f914b028eb",
 		"name": "eCommerce for IO V2 (pay guest)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "23305473"
@@ -464,8 +464,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"",
-							""
+							"setTimeout(function(){}, 1000);"
 						],
 						"type": "text/javascript",
 						"packages": {}
