@@ -64,7 +64,7 @@ stages :
   - stage: 'API_tests_eCommerce_for_IO_paypal_NW'
     displayName: 'PAYPAL - eCommerce for IO - Paypal - NW - Run postman collection'
     condition: and(succeeded(), eq('${{parameters.PAYPAL_ONBOARDED}}', true))
-    dependsOn: [ ]
+    dependsOn: API_tests_eCommerce_for_IO_creditCard_NW
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
@@ -86,7 +86,7 @@ stages :
   - stage: 'API_tests_eCommerce_for_IO_apm_Paypal_NW'
     displayName: 'PAYPAL - eCommerce for IO - APM - Paypal - NW - Run postman collection'
     condition: and(succeeded(), eq('${{parameters.PAYPAL_GUEST}}', true))
-    dependsOn: [ ]
+    dependsOn: API_tests_eCommerce_for_IO_paypal_NW
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
@@ -108,7 +108,7 @@ stages :
   - stage: 'API_tests_eCommerce_for_IO_apm_Bancomatpay_NW'
     displayName: 'BPAY - eCommerce for IO - APM - Bancomatpay - NW - Run postman collection'
     condition: and(succeeded(), eq('${{parameters.BANCOMATPAY_GUEST}}', true))
-    dependsOn: [ ]
+    dependsOn: API_tests_eCommerce_for_IO_apm_Paypal_NW
     pool:
       vmImage: 'ubuntu-latest'
     jobs:

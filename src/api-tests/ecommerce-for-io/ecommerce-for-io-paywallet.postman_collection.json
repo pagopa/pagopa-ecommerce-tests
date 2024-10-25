@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "714a6d64-25b6-4832-99d1-9010db43fb96",
+		"_postman_id": "a4def1a4-96a4-48a8-a095-fa56e6bbfbeb",
 		"name": "eCommerce for IO V2 (pay by wallet)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "23305473"
@@ -537,7 +537,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							""
+							"setTimeout(function(){}, 1000);"
 						],
 						"type": "text/javascript",
 						"packages": {}
