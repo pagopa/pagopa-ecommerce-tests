@@ -13,7 +13,7 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - Start session\", () => {",
+							"pm.test(\"[ecommerce for IO - Wallet Payment] - Start session\", () => {",
 							"  pm.response.to.have.status(201);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.token);",
@@ -41,11 +41,6 @@
 					{
 						"key": "Accept",
 						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "x-user-id",
-						"value": "{{userId}}",
 						"type": "text"
 					}
 				],
@@ -658,8 +653,7 @@
 							"  method: 'POST',",
 							"  header: {",
 							"    'Content-Type': `application/json`,",
-							"    'Accept': `application/json`,",
-							"    'x-user-id': `${pm.environment.get(\"userId\")}`",
+							"    'Accept': `application/json`",
 							"  },",
 							"  body: {",
 							"    mode: 'raw',",

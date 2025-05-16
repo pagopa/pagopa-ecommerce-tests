@@ -38,6 +38,13 @@ variables:
     ${{ else }}:
       value: 'https://api.dev.platform.pagopa.it'
 
+variables:
+  - name: 'PAYMENT_USER_ID'
+    ${{ if eq( parameters.ENVIRONMENT, 'UAT') }}:
+      value: 'bc05c4ab-4657-46a3-b379-4f06890032ea'
+    ${{ else }}:
+      value: '05b47118-ac54-4324-90f0-59a784972184'
+
 stages :
   - stage: 'API_tests_eCommerce_for_IO_creditCard_NW'
     displayName: 'CARDS - eCommerce for IO - Credit Card - NW - Run postman collection'
@@ -52,7 +59,7 @@ stages :
               yarn global add newman
             displayName: 'Newman installation'
           - script: |
-              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-paywallet.postman_collection.json --env-var WALLET_TOKEN_TEST=$(${{ parameters.ENVIRONMENT }}_WALLET_TOKEN_TEST) --env-var WALLET_TYPE="CARDS" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-${{ parameters.ENVIRONMENT }}-creditcard-api-TEST.xml
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-paywallet.postman_collection.json --env-var PAYMENT_USER_ID=$(payment_user_id) --env-var WALLET_TYPE="CARDS" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-${{ parameters.ENVIRONMENT }}-creditcard-api-TEST.xml
             displayName: 'Run api test'
           - task: PublishTestResults@2
             condition: succeededOrFailed()
@@ -74,7 +81,7 @@ stages :
               yarn global add newman
             displayName: 'Newman installation'
           - script: |
-              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-paywallet.postman_collection.json --env-var WALLET_TOKEN_TEST=$(${{ parameters.ENVIRONMENT }}_WALLET_TOKEN_TEST) --env-var WALLET_TYPE="PAYPAL" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-${{ parameters.ENVIRONMENT }}-paypal-api-TEST.xml
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-paywallet.postman_collection.json --env-var PAYMENT_USER_ID=$(payment_user_id) --env-var WALLET_TYPE="PAYPAL" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-uat-${{ parameters.ENVIRONMENT }}-paypal-api-TEST.xml
             displayName: 'Run api test'
           - task: PublishTestResults@2
             condition: succeededOrFailed()
@@ -96,7 +103,7 @@ stages :
               yarn global add newman
             displayName: 'Newman installation'
           - script: |
-              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest.postman_collection.json --env-var WALLET_TOKEN_TEST=$(${{ parameters.ENVIRONMENT }}_WALLET_TOKEN_TEST) --env-var PAYMENT_METHOD_NAME="PAYPAL" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-apm-paypal-nw-api-TEST.xml
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest.postman_collection.json --env-var PAYMENT_USER_ID=$(payment_user_id) --env-var PAYMENT_METHOD_NAME="PAYPAL" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-apm-paypal-nw-api-TEST.xml
             displayName: 'Run api test'
           - task: PublishTestResults@2
             condition: succeededOrFailed()
@@ -118,7 +125,7 @@ stages :
               yarn global add newman
             displayName: 'Newman installation'
           - script: |
-              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest.postman_collection.json --env-var WALLET_TOKEN_TEST=$(${{ parameters.ENVIRONMENT }}_WALLET_TOKEN_TEST) --env-var PAYMENT_METHOD_NAME="BANCOMATPAY" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-apm-bpay-nw-api-TEST.xml
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest.postman_collection.json --env-var PAYMENT_USER_ID=$(payment_user_id) --env-var PAYMENT_METHOD_NAME="BANCOMATPAY" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-apm-bpay-nw-api-TEST.xml
             displayName: 'Run api test'
           - task: PublishTestResults@2
             condition: succeededOrFailed()

@@ -44,9 +44,10 @@
 						"type": "text"
 					},
 					{
-						"key": "x-user-id",
-						"value": "{{userId}}",
-						"type": "text"
+						"key": "",
+						"value": "",
+						"type": "text",
+						"disabled": true
 					}
 				],
 				"body": {
@@ -715,8 +716,7 @@
 							"  method: 'POST',",
 							"  header: {",
 							"    'Content-Type': `application/json`,",
-							"    'Accept': `application/json`,",
-							"    'x-user-id': `${pm.environment.get(\"userId\")}`",
+							"    'Accept': `application/json`",
 							"  },",
 							"  body: {",
 							"    mode: 'raw',",
