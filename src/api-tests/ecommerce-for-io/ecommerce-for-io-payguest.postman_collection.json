@@ -1,19 +1,19 @@
 {
 	"info": {
-		"_postman_id": "7db138c2-a70f-419c-977a-f9baf056514a",
+		"_postman_id": "bb5d9b1f-8048-4332-b0be-11f914b028eb",
 		"name": "eCommerce for IO V2 (pay guest)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "23963988"
+		"_exporter_id": "23305473"
 	},
 	"item": [
 		{
-			"name": "Start new eCommerce session transaction",
+			"name": "Start new shared session",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - Start session\", function () {",
+							"pm.test(\"[ecommerce for IO - APM Guest] - Start session\", () => {",
 							"  pm.response.to.have.status(201);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.token);",
@@ -24,26 +24,48 @@
 					}
 				}
 			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {}
+			},
 			"request": {
 				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{WALLET_TOKEN_TEST}}",
-							"type": "string"
-						}
-					]
+					"type": "noauth"
 				},
 				"method": "POST",
-				"header": [],
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "Accept",
+						"value": "application/json",
+						"type": "text"
+					},
+					{
+						"key": "x-user-id",
+						"value": "{{userId}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\": \"{{PAYMENT_USER_ID}}\",\n    \"expiryInMinutes\": 60\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "{{HOSTNAME}}/session-wallet/v1/session",
+					"raw": "{{HOSTNAME}}/session-wallet/mock/v1/session",
 					"host": [
 						"{{HOSTNAME}}"
 					],
 					"path": [
 						"session-wallet",
+						"mock",
 						"v1",
 						"session"
 					]
@@ -464,7 +486,8 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"setTimeout(function(){}, 1000);"
+							"setTimeout(function(){}, 1000);",
+							""
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -556,19 +579,17 @@
 			"response": []
 		},
 		{
-			"name": "Get eCommerce transaction V2 by TRANSACTION_ID webview polling",
+			"name": "Get transaction outcome by TRANSACTION_ID webview polling",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[ecommerce for IO - Wallet Payment webview] - GET transaction V2 to check status\", () => {",
+							"pm.test(\"[ecommerce for IO - Wallet Payment webview] - GET transaction outcome to check status\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
-							"  pm.expect(responseJson.status).to.equals(\"AUTHORIZATION_REQUESTED\");",
-							"  pm.expect(responseJson.clientId).to.equals(\"IO\");",
-							"  pm.expect(responseJson.gatewayInfo.gateway).to.equals(\"NPG\");",
-							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.payments[0].paymentToken);",
+							"  pm.expect(responseJson.outcome).to.equals(17);",
+							"  pm.expect(responseJson.isFinalStatus).to.equals(false);",
 							"});"
 						],
 						"type": "text/javascript",
@@ -590,16 +611,17 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/webview/v2/transactions/{{TRANSACTION_ID}}",
+					"raw": "{{HOSTNAME}}/ecommerce/webview/v1/transactions/{{TRANSACTION_ID}}/outcomes",
 					"host": [
 						"{{HOSTNAME}}"
 					],
 					"path": [
 						"ecommerce",
 						"webview",
-						"v2",
+						"v1",
 						"transactions",
-						"{{TRANSACTION_ID}}"
+						"{{TRANSACTION_ID}}",
+						"outcomes"
 					]
 				}
 			},
@@ -626,11 +648,22 @@
 						"exec": [
 							"pm.environment.set(\"RPTID_NM3_DELETE\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
 							"",
+							"const startSessionMockBody = {",
+							"        \"userId\": `${pm.environment.get(\"PAYMENT_USER_ID\")}`,",
+							"        \"expiryInMinutes\": 60",
+							"};",
+							"",
 							"const startSessionObject = {",
-							"  url: pm.environment.get(\"HOSTNAME\") + \"/session-wallet/v1/session\",",
+							"  url: pm.environment.get(\"HOSTNAME\") + \"/session-wallet/mock/v1/session\",",
 							"  method: 'POST',",
 							"  header: {",
-							"    'Authorization': `Bearer ${pm.environment.get(\"WALLET_TOKEN_TEST\")}`",
+							"    'Content-Type': `application/json`,",
+							"    'Accept': `application/json`,",
+							"    'x-user-id': `${pm.environment.get(\"userId\")}`",
+							"  },",
+							"  body: {",
+							"    mode: 'raw',",
+							"    raw: JSON.stringify(startSessionMockBody)",
 							"  }",
 							"};",
 							"",
