@@ -37,8 +37,6 @@ variables:
       value: 'https://api.uat.platform.pagopa.it'
     ${{ else }}:
       value: 'https://api.dev.platform.pagopa.it'
-
-variables:
   - name: 'PAYMENT_USER_ID'
     ${{ if eq( parameters.ENVIRONMENT, 'UAT') }}:
       value: 'bc05c4ab-4657-46a3-b379-4f06890032ea'
