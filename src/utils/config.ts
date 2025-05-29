@@ -14,6 +14,14 @@ export const K6Config = t.interface({
 });
 export type K6Config = t.TypeOf<typeof K6Config>;
 
+export type IJwtIssuerTestConfig = t.TypeOf<typeof IJwtIssuerTestConfig>;
+export const IJwtIssuerTestConfig = t.intersection([
+  t.partial({
+    URL_BASE_PATH: NonEmptyString,
+  }),
+  K6Config,
+]);
+
 export type IConfig = t.TypeOf<typeof IConfig>;
 export const IConfig = t.intersection([
   t.interface({
@@ -33,6 +41,10 @@ export const IConfig = t.intersection([
 
 // No need to re-evaluate this object for each call
 const errorOrConfig: t.Validation<IConfig> = IConfig.decode({
+  ...__ENV,
+});
+
+const errorOrJwtIssuerTestConfig: t.Validation<IJwtIssuerTestConfig> = IJwtIssuerTestConfig.decode({
   ...__ENV,
 });
 
@@ -58,6 +70,15 @@ export function getConfig(): t.Validation<IConfig> {
 export function getConfigOrThrow(): IConfig {
   return pipe(
     errorOrConfig,
+    E.getOrElseW((errors) => {
+      throw new Error(`Invalid configuration: ${readableReport(errors)}`);
+    })
+  );
+}
+
+export function getJwtIssuerTestConfigOrThrow(): IJwtIssuerTestConfig {
+  return pipe(
+    errorOrJwtIssuerTestConfig,
     E.getOrElseW((errors) => {
       throw new Error(`Invalid configuration: ${readableReport(errors)}`);
     })
