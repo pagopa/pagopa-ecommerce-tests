@@ -177,7 +177,7 @@ export default function () {
     }
 
     // Simulate checkout-fe polling
-    url = `${urlBasePathV1}/transactions/${transactionId}`;
+    url = `${urlBasePathV1}/transactions/${transactionId}/outcomes`;
     for (let i = 0; i < 5; i++) {
         response = http.get(url, {
             ...headersParams,
