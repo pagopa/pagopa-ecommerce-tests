@@ -109,4 +109,11 @@ will result in a test with the following stages:
 | 3     | 10 seconds | from 50 to 0 linearly decreasing |
 
 K6 will use up to 50 VUs to support the stage target req/s starting from 1 pre-allocated VU.
-The test total duration will be 10+60+10 = 80 seconds 
+The test total duration will be 10+60+10 = 80 seconds
+
+*Note*: until we update all the dependencies, the OpenSSL library does not accept anymore hashing functions used by the current
+version of webpack.
+To bypass the error please run the command in this way:
+```
+NODE_OPTIONS="--openssl-legacy-provider" yarn <..>"
+```
