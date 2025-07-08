@@ -57,17 +57,17 @@ export default function () {
     };
     // GET payment-request (Node verifyPaymentNotice)
     let url = `${urlBasePathV1}/payment-requests/${generateRptId()}?recaptchaResponse=test`
-        let response = http.get(url, {
-            ...headersParams,
-            tags: { name: "verify-payment-notice" },
-            timeout: '10s'
-        });
-        
-        check(
-            response,
-            { "Response status from GET /payment-request/{rptId} was 200": (r) => r.status == 200 },
-            { name: "verify-payment-notice" }
-        );
+    let response = http.get(url, {
+        ...headersParams,
+        tags: { name: "verify-payment-notice" },
+        timeout: '10s'
+    });
+    
+    check(
+        response,
+        { "Response status from GET /payment-request/{rptId} was 200": (r) => r.status == 200 },
+        { name: "verify-payment-notice" }
+    );
 
     // POST /sessions
     let orderId = generateOrderId();
@@ -177,7 +177,7 @@ export default function () {
     }
 
     // Simulate checkout-fe polling
-    url = `${urlBasePathV1}/transactions/${transactionId}`;
+    url = `${urlBasePathV1}/transactions/${transactionId}/outcomes`;
     for (let i = 0; i < 5; i++) {
         response = http.get(url, {
             ...headersParams,
