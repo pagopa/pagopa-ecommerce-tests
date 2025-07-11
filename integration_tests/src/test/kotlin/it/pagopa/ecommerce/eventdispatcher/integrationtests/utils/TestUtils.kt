@@ -1,6 +1,7 @@
 package it.pagopa.ecommerce.eventdispatcher.integrationtests.utils
 
 import com.azure.core.util.BinaryData
+import com.azure.core.util.serializer.TypeReference
 import com.azure.storage.queue.QueueAsyncClient
 import it.pagopa.ecommerce.commons.documents.BaseTransactionEvent
 import it.pagopa.ecommerce.commons.domain.v2.TransactionEventCode
@@ -13,8 +14,8 @@ import it.pagopa.ecommerce.commons.queues.mixin.serialization.v2.QueueEventMixIn
 import it.pagopa.ecommerce.eventdispatcher.integrationtests.repository.TransactionsEventStoreRepository
 import it.pagopa.ecommerce.eventdispatcher.integrationtests.repository.TransactionsViewRepository
 import java.time.Duration
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.stream.IntStream
-import kotlin.reflect.KClass
 import kotlin.streams.toList
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
@@ -78,25 +79,32 @@ fun sendExpirationEventToQueue(
 
 fun <T : BaseTransactionEvent<*>> readEventFromQueue(
   queueAsyncClient: QueueAsyncClient,
-  eventClass: KClass<QueueEvent<T>>
+  typeReference: TypeReference<QueueEvent<T>>,
+  transactionId: TransactionId
 ): Mono<T> =
   queueAsyncClient
-    .receiveMessage()
+    .receiveMessages(32, Duration.ofSeconds(1))
     .flatMap {
-      val event = it.body.toObjectAsync(eventClass.java, serializerProvider.createInstance())
+      val event = it.body.toObjectAsync(typeReference, serializerProvider.createInstance())
       event.map { parsedEvent -> Pair(it, parsedEvent.event) }
     }
-    .flatMap { (queueMessage, event) ->
-      queueAsyncClient
-        .deleteMessage(queueMessage.messageId, queueMessage.popReceipt)
-        .thenReturn(event)
+    .filter { (_, event) -> event.transactionId == transactionId.value() }
+    .take(1)
+    .collectList()
+    .filter { it.isNotEmpty() }
+    .flatMap { results ->
+      val (message, event) = results[0]
+      queueAsyncClient.deleteMessage(message.messageId, message.popReceipt).thenReturn(event)
+    }
+    .repeatWhenEmpty {
+      Flux.fromIterable(IntStream.range(0, 5).toList()).delayElements(Duration.ofSeconds(1))
     }
 
 fun pollTransactionForWantedStatus(
   viewRepository: TransactionsViewRepository,
   wantedStatus: TransactionStatusDto,
   transactionId: TransactionId,
-  maxAttempts: Int = 5,
+  maxAttempts: Int = 10,
   queryRate: Duration = Duration.ofSeconds(2)
 ) =
   viewRepository
@@ -117,3 +125,11 @@ fun pollTransactionForWantedStatus(
         RuntimeException(
           "Transaction with id: [${transactionId.value()}] do not reach wanted status: [$wantedStatus] after all retries")
       })
+
+val trxIdCounter = AtomicInteger(0)
+
+fun getProgressiveTrxId(): TransactionId {
+  val prefix = trxIdCounter.addAndGet(1).toString()
+  val reminder = 32 - prefix.length
+  return TransactionId(prefix + "0".repeat(reminder))
+}
