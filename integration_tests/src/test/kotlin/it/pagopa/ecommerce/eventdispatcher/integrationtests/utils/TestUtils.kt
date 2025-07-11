@@ -84,17 +84,12 @@ fun <T : BaseTransactionEvent<*>> readEventFromQueue(
 ): Mono<T> =
   queueAsyncClient
     .receiveMessages(32, Duration.ofSeconds(1))
-    .flatMap {
-      val event = it.body.toObjectAsync(typeReference, serializerProvider.createInstance())
-      event.map { parsedEvent -> Pair(it, parsedEvent.event) }
-    }
-    .filter { (_, event) -> event.transactionId == transactionId.value() }
+    .filter { it.body.toString().contains(transactionId.value()) }
+    .flatMap { queueAsyncClient.deleteMessage(it.messageId, it.popReceipt).thenReturn(it.body) }
+    .flatMap { it.toObjectAsync(typeReference, serializerProvider.createInstance()) }
     .collectList()
     .filter { it.isNotEmpty() }
-    .flatMap { results ->
-      val (message, event) = results[0]
-      queueAsyncClient.deleteMessage(message.messageId, message.popReceipt).thenReturn(event)
-    }
+    .map { it[0].event }
     .repeatWhenEmpty {
       Flux.fromIterable(IntStream.range(0, 20).toList()).delayElements(Duration.ofSeconds(1))
     }
@@ -131,7 +126,7 @@ fun pollTransactionForWantedStatus(
 
 val trxIdCounter = AtomicInteger(0)
 
-fun getProgressiveTrxId(): TransactionId {
+fun getProgressiveTransactionId(): TransactionId {
   val prefix = trxIdCounter.addAndGet(1).toString()
   val reminder = 32 - prefix.length
   return TransactionId(prefix + "0".repeat(reminder))

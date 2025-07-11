@@ -24,7 +24,7 @@ class ActivatedOnlyPendingTransactionTests(
   @Test
   fun `Should handle transaction stuck in ACTIVATED status once expired updating in EXPIRED_NOT_AUTHORIZED status`() {
     // pre-conditions
-    val testTransactionId = getProgressiveTrxId()
+    val testTransactionId = getProgressiveTransactionId()
     val transactionTestData =
       IntegrationTestData(
         events = listOf(TransactionTestUtils.transactionActivateEvent()),

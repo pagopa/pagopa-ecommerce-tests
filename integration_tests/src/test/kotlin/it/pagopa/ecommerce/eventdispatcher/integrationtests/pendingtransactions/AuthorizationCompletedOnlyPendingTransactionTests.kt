@@ -34,7 +34,7 @@ class AuthorizationCompletedOnlyPendingTransactionTests(
   @Test
   fun `Should write event in DLQ for NPG transaction stuck in AUTHORIZATION_COMPLETED status that have been authorized by gateway`() {
     // pre-conditions
-    val testTransactionId = getProgressiveTrxId()
+    val testTransactionId = getProgressiveTransactionId()
     val npgActivationData = TransactionTestUtils.npgTransactionGatewayActivationData()
     (npgActivationData as NpgTransactionGatewayActivationData).correlationId =
       UUID.randomUUID().toString()
@@ -86,7 +86,7 @@ class AuthorizationCompletedOnlyPendingTransactionTests(
   @Test
   fun `Should write event in DLQ for Redirect transaction stuck in AUTHORIZATION_COMPLETED status that have been authorized by gateway`() {
     // pre-conditions
-    val testTransactionId = getProgressiveTrxId()
+    val testTransactionId = getProgressiveTransactionId()
     val transactionActivatedEvent = TransactionTestUtils.transactionActivateEvent()
     val transactionAuthRequestedEvent =
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
