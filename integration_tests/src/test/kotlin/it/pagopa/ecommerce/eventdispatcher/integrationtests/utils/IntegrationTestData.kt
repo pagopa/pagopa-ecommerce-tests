@@ -8,7 +8,7 @@ import java.time.OffsetDateTime
 import java.time.ZoneOffset
 
 data class IntegrationTestData(
-  val events: List<TransactionEvent<Any>>,
+  val events: List<TransactionEvent<out Any>>,
   val view: Transaction,
   val testTransactionId: TransactionId
 ) {

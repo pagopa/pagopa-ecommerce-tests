@@ -3,7 +3,6 @@ package it.pagopa.ecommerce.eventdispatcher.integrationtests.pendingtransactions
 import com.azure.core.util.serializer.TypeReference
 import com.azure.storage.queue.QueueAsyncClient
 import it.pagopa.ecommerce.commons.documents.v2.TransactionActivatedEvent
-import it.pagopa.ecommerce.commons.documents.v2.TransactionEvent
 import it.pagopa.ecommerce.commons.documents.v2.TransactionRefundRetriedEvent
 import it.pagopa.ecommerce.commons.documents.v2.activation.NpgTransactionGatewayActivationData
 import it.pagopa.ecommerce.commons.domain.v2.TransactionEventCode
@@ -17,11 +16,13 @@ import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
+@Order(1)
 class AuthorizationRequestedOnlyPendingTransactionTests(
   @param:Autowired val eventStoreRepository: TransactionsEventStoreRepository,
   @param:Autowired val viewRepository: TransactionsViewRepository,
@@ -36,18 +37,14 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     val npgActivationData = TransactionTestUtils.npgTransactionGatewayActivationData()
     (npgActivationData as NpgTransactionGatewayActivationData).correlationId =
       UUID.randomUUID().toString()
-    val transactionActivatedEvent =
-      TransactionTestUtils.transactionActivateEvent(npgActivationData) as TransactionEvent<Any>
+    val transactionActivatedEvent = TransactionTestUtils.transactionActivateEvent(npgActivationData)
     val transactionAuthRequestedEvent =
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
         TransactionTestUtils.npgTransactionGatewayAuthorizationRequestedData())
     transactionAuthRequestedEvent.data.pspId = "BCITITMM"
     val transactionTestData =
       IntegrationTestData(
-        events =
-          listOf(
-            transactionActivatedEvent as TransactionEvent<Any>,
-            transactionAuthRequestedEvent as TransactionEvent<Any>),
+        events = listOf(transactionActivatedEvent, transactionAuthRequestedEvent),
         view =
           TransactionTestUtils.transactionDocument(
             TransactionStatusDto.AUTHORIZATION_REQUESTED, ZonedDateTime.now()),
@@ -80,8 +77,7 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
         as NpgTransactionGatewayActivationData
     npgActivationData.correlationId = UUID.randomUUID().toString()
     npgActivationData.orderId = npgOrderId
-    val transactionActivatedEvent =
-      TransactionTestUtils.transactionActivateEvent(npgActivationData) as TransactionEvent<Any>
+    val transactionActivatedEvent = TransactionTestUtils.transactionActivateEvent(npgActivationData)
     val transactionAuthRequestedEvent =
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
         TransactionTestUtils.npgTransactionGatewayAuthorizationRequestedData())
@@ -90,10 +86,7 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
       npgOrderId // set NPG order id as authorization request id
     val transactionTestData =
       IntegrationTestData(
-        events =
-          listOf(
-            transactionActivatedEvent as TransactionEvent<Any>,
-            transactionAuthRequestedEvent as TransactionEvent<Any>),
+        events = listOf(transactionActivatedEvent, transactionAuthRequestedEvent),
         view =
           TransactionTestUtils.transactionDocument(
             TransactionStatusDto.AUTHORIZATION_REQUESTED, ZonedDateTime.now()),
@@ -118,7 +111,6 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
             typeReference = object : TypeReference<QueueEvent<TransactionActivatedEvent>>() {},
             transactionId = testTransactionId)
           .doOnNext {
-            assertEquals(testTransactionId.value(), it.transactionId)
             assertEquals(TransactionEventCode.TRANSACTION_ACTIVATED_EVENT.toString(), it.eventCode)
           }
       }
@@ -135,8 +127,7 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
         as NpgTransactionGatewayActivationData
     npgActivationData.correlationId = UUID.randomUUID().toString()
     npgActivationData.orderId = npgOrderId
-    val transactionActivatedEvent =
-      TransactionTestUtils.transactionActivateEvent(npgActivationData) as TransactionEvent<Any>
+    val transactionActivatedEvent = TransactionTestUtils.transactionActivateEvent(npgActivationData)
     val transactionAuthRequestedEvent =
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
         TransactionTestUtils.npgTransactionGatewayAuthorizationRequestedData())
@@ -145,10 +136,7 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
       npgOrderId // set NPG order id as authorization request id
     val transactionTestData =
       IntegrationTestData(
-        events =
-          listOf(
-            transactionActivatedEvent as TransactionEvent<Any>,
-            transactionAuthRequestedEvent as TransactionEvent<Any>),
+        events = listOf(transactionActivatedEvent, transactionAuthRequestedEvent),
         view =
           TransactionTestUtils.transactionDocument(
             TransactionStatusDto.AUTHORIZATION_REQUESTED, ZonedDateTime.now()),
@@ -173,7 +161,6 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
             typeReference = object : TypeReference<QueueEvent<TransactionActivatedEvent>>() {},
             transactionId = testTransactionId)
           .doOnNext {
-            assertEquals(testTransactionId.value(), it.transactionId)
             assertEquals(TransactionEventCode.TRANSACTION_ACTIVATED_EVENT.toString(), it.eventCode)
           }
       }
@@ -190,8 +177,7 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
         as NpgTransactionGatewayActivationData
     npgActivationData.correlationId = UUID.randomUUID().toString()
     npgActivationData.orderId = npgOrderId
-    val transactionActivatedEvent =
-      TransactionTestUtils.transactionActivateEvent(npgActivationData) as TransactionEvent<Any>
+    val transactionActivatedEvent = TransactionTestUtils.transactionActivateEvent(npgActivationData)
     val transactionAuthRequestedEvent =
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
         TransactionTestUtils.npgTransactionGatewayAuthorizationRequestedData())
@@ -200,10 +186,7 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
       npgOrderId // set NPG order id as authorization request id
     val transactionTestData =
       IntegrationTestData(
-        events =
-          listOf(
-            transactionActivatedEvent as TransactionEvent<Any>,
-            transactionAuthRequestedEvent as TransactionEvent<Any>),
+        events = listOf(transactionActivatedEvent, transactionAuthRequestedEvent),
         view =
           TransactionTestUtils.transactionDocument(
             TransactionStatusDto.AUTHORIZATION_REQUESTED, ZonedDateTime.now()),
@@ -228,7 +211,6 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
             typeReference = object : TypeReference<QueueEvent<TransactionRefundRetriedEvent>>() {},
             transactionId = testTransactionId)
           .doOnNext {
-            assertEquals(testTransactionId.value(), it.transactionId)
             assertEquals(
               TransactionEventCode.TRANSACTION_REFUND_RETRIED_EVENT.toString(), it.eventCode)
           }

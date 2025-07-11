@@ -89,7 +89,6 @@ fun <T : BaseTransactionEvent<*>> readEventFromQueue(
       event.map { parsedEvent -> Pair(it, parsedEvent.event) }
     }
     .filter { (_, event) -> event.transactionId == transactionId.value() }
-    .take(1)
     .collectList()
     .filter { it.isNotEmpty() }
     .flatMap { results ->
@@ -97,15 +96,19 @@ fun <T : BaseTransactionEvent<*>> readEventFromQueue(
       queueAsyncClient.deleteMessage(message.messageId, message.popReceipt).thenReturn(event)
     }
     .repeatWhenEmpty {
-      Flux.fromIterable(IntStream.range(0, 5).toList()).delayElements(Duration.ofSeconds(1))
+      Flux.fromIterable(IntStream.range(0, 20).toList()).delayElements(Duration.ofSeconds(1))
     }
+    .switchIfEmpty(
+      Mono.error(
+        RuntimeException(
+          "Cannot found DLQ event for transaction with id: [${transactionId.value()}]")))
 
 fun pollTransactionForWantedStatus(
   viewRepository: TransactionsViewRepository,
   wantedStatus: TransactionStatusDto,
   transactionId: TransactionId,
-  maxAttempts: Int = 10,
-  queryRate: Duration = Duration.ofSeconds(2)
+  maxAttempts: Int = 20,
+  queryRate: Duration = Duration.ofSeconds(1)
 ) =
   viewRepository
     .findByTransactionId(transactionId.value())
