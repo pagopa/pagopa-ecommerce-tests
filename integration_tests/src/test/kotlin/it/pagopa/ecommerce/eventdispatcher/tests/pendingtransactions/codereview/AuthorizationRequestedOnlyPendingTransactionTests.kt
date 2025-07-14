@@ -1,4 +1,4 @@
-package it.pagopa.ecommerce.eventdispatcher.integrationtests.pendingtransactions
+package it.pagopa.ecommerce.eventdispatcher.tests.pendingtransactions.codereview
 
 import com.azure.core.util.serializer.TypeReference
 import com.azure.storage.queue.QueueAsyncClient
@@ -12,20 +12,18 @@ import it.pagopa.ecommerce.commons.domain.v2.TransactionId
 import it.pagopa.ecommerce.commons.generated.server.model.TransactionStatusDto
 import it.pagopa.ecommerce.commons.queues.QueueEvent
 import it.pagopa.ecommerce.commons.v2.TransactionTestUtils
-import it.pagopa.ecommerce.eventdispatcher.integrationtests.repository.TransactionsEventStoreRepository
-import it.pagopa.ecommerce.eventdispatcher.integrationtests.repository.TransactionsViewRepository
-import it.pagopa.ecommerce.eventdispatcher.integrationtests.utils.*
+import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsEventStoreRepository
+import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsViewRepository
+import it.pagopa.ecommerce.eventdispatcher.tests.utils.*
 import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-@Order(1)
 class AuthorizationRequestedOnlyPendingTransactionTests(
   @param:Autowired val eventStoreRepository: TransactionsEventStoreRepository,
   @param:Autowired val viewRepository: TransactionsViewRepository,

@@ -1,4 +1,4 @@
-package it.pagopa.ecommerce.eventdispatcher.integrationtests.utils
+package it.pagopa.ecommerce.eventdispatcher.tests.utils
 
 import it.pagopa.ecommerce.commons.documents.v2.Transaction
 import it.pagopa.ecommerce.commons.documents.v2.TransactionEvent

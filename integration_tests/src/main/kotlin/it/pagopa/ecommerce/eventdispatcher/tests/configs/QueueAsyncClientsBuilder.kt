@@ -1,4 +1,4 @@
-package it.pagopa.ecommerce.eventdispatcher.integrationtests.configs
+package it.pagopa.ecommerce.eventdispatcher.tests.configs
 
 import com.azure.core.http.netty.NettyAsyncHttpClientBuilder
 import com.azure.storage.queue.QueueAsyncClient
@@ -31,6 +31,14 @@ class QueueAsyncClientsBuilder {
   fun closureRetryQueueAsyncClient(
     @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
     @Value("\${azurestorage.queues.transactionclosepaymentretry.name}") queueEventInitName: String
+  ): QueueAsyncClient {
+    return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
+  }
+
+  @Bean
+  fun closePaymentQueueAsyncClient(
+    @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
+    @Value("\${azurestorage.queues.transactionclosepayment.name}") queueEventInitName: String
   ): QueueAsyncClient {
     return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
   }
@@ -77,10 +85,18 @@ class QueueAsyncClientsBuilder {
     return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
   }
 
-  private fun buildQueueAsyncClient(storageConnectionString: String, queueName: String) =
-    QueueClientBuilder()
-      .connectionString(storageConnectionString)
-      .queueName(queueName)
-      .httpClient(NettyAsyncHttpClientBuilder(HttpClient.create().resolver { it.ndots(1) }).build())
-      .buildAsyncClient()
+  private fun buildQueueAsyncClient(
+    storageConnectionString: String,
+    queueName: String
+  ): QueueAsyncClient {
+    val queueClient =
+      QueueClientBuilder()
+        .connectionString(storageConnectionString)
+        .queueName(queueName)
+        .httpClient(
+          NettyAsyncHttpClientBuilder(HttpClient.create().resolver { it.ndots(1) }).build())
+        .buildAsyncClient()
+    queueClient.clearMessages().block() // clear queue
+    return queueClient
+  }
 }

@@ -1,4 +1,4 @@
-package it.pagopa.ecommerce.eventdispatcher.integrationtests.repository
+package it.pagopa.ecommerce.eventdispatcher.tests.repository
 
 import it.pagopa.ecommerce.commons.documents.v2.Transaction
 import org.springframework.data.repository.reactive.ReactiveCrudRepository

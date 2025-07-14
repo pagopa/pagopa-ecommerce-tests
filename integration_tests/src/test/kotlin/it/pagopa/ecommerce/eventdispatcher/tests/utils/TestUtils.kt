@@ -1,9 +1,10 @@
-package it.pagopa.ecommerce.eventdispatcher.integrationtests.utils
+package it.pagopa.ecommerce.eventdispatcher.tests.utils
 
 import com.azure.core.util.BinaryData
 import com.azure.core.util.serializer.TypeReference
 import com.azure.storage.queue.QueueAsyncClient
 import it.pagopa.ecommerce.commons.documents.BaseTransactionEvent
+import it.pagopa.ecommerce.commons.documents.v2.TransactionEvent
 import it.pagopa.ecommerce.commons.domain.v2.TransactionEventCode
 import it.pagopa.ecommerce.commons.domain.v2.TransactionId
 import it.pagopa.ecommerce.commons.generated.server.model.TransactionStatusDto
@@ -11,8 +12,9 @@ import it.pagopa.ecommerce.commons.queues.QueueEvent
 import it.pagopa.ecommerce.commons.queues.StrictJsonSerializerProvider
 import it.pagopa.ecommerce.commons.queues.TracingInfoTest
 import it.pagopa.ecommerce.commons.queues.mixin.serialization.v2.QueueEventMixInClassFieldDiscriminator
-import it.pagopa.ecommerce.eventdispatcher.integrationtests.repository.TransactionsEventStoreRepository
-import it.pagopa.ecommerce.eventdispatcher.integrationtests.repository.TransactionsViewRepository
+import it.pagopa.ecommerce.eventdispatcher.tests.exceptions.NoDlqEventFoundException
+import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsEventStoreRepository
+import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsViewRepository
 import java.time.Duration
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.stream.IntStream
@@ -68,10 +70,22 @@ fun sendExpirationEventToQueue(
     throw RuntimeException(
       "Cannot find any event with code: $eventToSendOnExpirationQueue to send on expiration queue")
   }
+  return sendEventToQueue(
+    event = eventToSend,
+    queueAsyncClient = queueAsyncClient,
+    visibilityTimeout = visibilityTimeout,
+    timeToLive = timeToLive)
+}
+
+fun sendEventToQueue(
+  event: TransactionEvent<out Any>,
+  queueAsyncClient: QueueAsyncClient,
+  visibilityTimeout: Duration = Duration.ofSeconds(0), // immediately visible on the queue
+  timeToLive: Duration = Duration.ofSeconds(-1) // never expires
+): Mono<Unit> {
   val binaryData =
     BinaryData.fromObject(
-      QueueEvent(eventToSend, TracingInfoTest.MOCK_TRACING_INFO),
-      serializerProvider.createInstance())
+      QueueEvent(event, TracingInfoTest.MOCK_TRACING_INFO), serializerProvider.createInstance())
   return queueAsyncClient
     .sendMessageWithResponse(binaryData, visibilityTimeout, timeToLive)
     .then(Mono.just(Unit))
@@ -83,7 +97,7 @@ fun <T : BaseTransactionEvent<*>> readEventFromQueue(
   transactionId: TransactionId
 ): Mono<T> =
   queueAsyncClient
-    .receiveMessages(32, Duration.ofSeconds(1))
+    .receiveMessages(1, Duration.ofSeconds(1))
     .filter { it.body.toString().contains(transactionId.value()) }
     .flatMap { queueAsyncClient.deleteMessage(it.messageId, it.popReceipt).thenReturn(it.body) }
     .flatMap { it.toObjectAsync(typeReference, serializerProvider.createInstance()) }
@@ -95,7 +109,7 @@ fun <T : BaseTransactionEvent<*>> readEventFromQueue(
     }
     .switchIfEmpty(
       Mono.error(
-        RuntimeException(
+        NoDlqEventFoundException(
           "Cannot found DLQ event for transaction with id: [${transactionId.value()}]")))
 
 fun pollTransactionForWantedStatus(
