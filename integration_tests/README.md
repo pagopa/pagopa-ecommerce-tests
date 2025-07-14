@@ -63,8 +63,10 @@ Then from current project directory run :
 ```sh
 #install commons library locally in local M2 cache
 ./mvnw validate -PinstallCommons
-#then execute tests
-./mvnw test
+#then execute code review tests
+./mvnw test -PcodeReviewTests
+#or integration tests
+./mvnw test -PintegrationTests
 ```
 
 ## Code formatting
