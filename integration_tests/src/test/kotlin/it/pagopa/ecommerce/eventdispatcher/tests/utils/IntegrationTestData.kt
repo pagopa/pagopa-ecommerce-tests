@@ -16,7 +16,7 @@ data class IntegrationTestData(
   init {
     // ensure all events have the input test transaction id and that are creation date ordered
     // (simulate event temporal sequence)
-    val now = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).minus(Duration.ofHours(1))
+    val now = OffsetDateTime.now().atZoneSameInstant(ZoneOffset.UTC).minus(Duration.ofHours(2))
     events.forEachIndexed { idx, event ->
       event.transactionId = testTransactionId.value()
       event.creationDate = now.plus(Duration.ofSeconds(idx.toLong())).toString()
