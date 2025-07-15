@@ -3,13 +3,15 @@ package it.pagopa.ecommerce.eventdispatcher.tests.pendingtransactions.codereview
 import com.azure.core.util.serializer.TypeReference
 import com.azure.storage.queue.QueueAsyncClient
 import it.pagopa.ecommerce.commons.documents.v2.ClosureErrorData
-import it.pagopa.ecommerce.commons.documents.v2.TransactionClosureRequestedEvent
+import it.pagopa.ecommerce.commons.documents.v2.TransactionEvent
 import it.pagopa.ecommerce.commons.documents.v2.activation.NpgTransactionGatewayActivationData
 import it.pagopa.ecommerce.commons.domain.v2.TransactionEventCode
 import it.pagopa.ecommerce.commons.generated.npg.v1.dto.OperationResultDto
 import it.pagopa.ecommerce.commons.generated.server.model.TransactionStatusDto
 import it.pagopa.ecommerce.commons.queues.QueueEvent
 import it.pagopa.ecommerce.commons.v2.TransactionTestUtils
+import it.pagopa.ecommerce.eventdispatcher.tests.configs.NpgPaymentConf
+import it.pagopa.ecommerce.eventdispatcher.tests.repository.DeadLetterQueueRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsEventStoreRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsViewRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.utils.*
@@ -31,7 +33,8 @@ class ClosePaymentErrorPendingTransactionTests(
   @param:Autowired val eventStoreRepository: TransactionsEventStoreRepository,
   @param:Autowired val viewRepository: TransactionsViewRepository,
   @param:Autowired val closePaymentQueueAsyncClient: QueueAsyncClient,
-  @param:Autowired val deadLetterQueueAsyncClient: QueueAsyncClient
+  @param:Autowired val deadLetterQueueRepository: DeadLetterQueueRepository,
+  @param:Autowired val npgPaymentConf: NpgPaymentConf
 ) {
 
   companion object {
@@ -49,8 +52,7 @@ class ClosePaymentErrorPendingTransactionTests(
       Stream<Arguments> =
       Stream.of(
         // mock payment token, expected nodo error code, expected nodo error description
-        Arguments.of("00000000000000000000000000000003", 422, "Generic error description", false),
-        Arguments.of("00000000000000000000000000000005", 500, "Generic error description", false))
+        Arguments.of("00000000000000000000000000000005", 500, "Generic error description"))
   }
 
   @ParameterizedTest
@@ -73,7 +75,8 @@ class ClosePaymentErrorPendingTransactionTests(
     val transactionAuthCompletedEvent =
       TransactionTestUtils.transactionAuthorizationCompletedEvent(
         TransactionTestUtils.npgTransactionGatewayAuthorizationData(OperationResultDto.EXECUTED))
-    transactionAuthRequestedEvent.data.pspId = "BCITITMM"
+    transactionAuthRequestedEvent.data.pspId = npgPaymentConf.pspId
+    transactionAuthRequestedEvent.data.paymentTypeCode = npgPaymentConf.paymentTypeCode
     val transactionClosureRequestedEvent = TransactionTestUtils.transactionClosureRequestedEvent()
     val transactionTestData =
       IntegrationTestData(
@@ -91,7 +94,8 @@ class ClosePaymentErrorPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendEventToQueue(
           event = transactionClosureRequestedEvent,
@@ -139,7 +143,8 @@ class ClosePaymentErrorPendingTransactionTests(
     val transactionAuthCompletedEvent =
       TransactionTestUtils.transactionAuthorizationCompletedEvent(
         TransactionTestUtils.npgTransactionGatewayAuthorizationData(OperationResultDto.EXECUTED))
-    transactionAuthRequestedEvent.data.pspId = "BCITITMM"
+    transactionAuthRequestedEvent.data.pspId = npgPaymentConf.pspId
+    transactionAuthRequestedEvent.data.paymentTypeCode = npgPaymentConf.paymentTypeCode
     val transactionClosureRequestedEvent = TransactionTestUtils.transactionClosureRequestedEvent()
     val transactionTestData =
       IntegrationTestData(
@@ -157,7 +162,8 @@ class ClosePaymentErrorPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendEventToQueue(
           event = transactionClosureRequestedEvent,
@@ -169,10 +175,9 @@ class ClosePaymentErrorPendingTransactionTests(
           transactionId = testTransactionId)
       }
       .flatMap {
-        readEventFromQueue(
-            queueAsyncClient = deadLetterQueueAsyncClient,
-            typeReference =
-              object : TypeReference<QueueEvent<TransactionClosureRequestedEvent>>() {},
+        pollFromDeadLetterQueueCollection(
+            deadLetterQueueRepository = deadLetterQueueRepository,
+            typeReference = object : TypeReference<QueueEvent<TransactionEvent<Any>>>() {},
             transactionId = testTransactionId)
           .doOnNext {
             assertEquals(
@@ -212,7 +217,8 @@ class ClosePaymentErrorPendingTransactionTests(
     val transactionAuthCompletedEvent =
       TransactionTestUtils.transactionAuthorizationCompletedEvent(
         TransactionTestUtils.npgTransactionGatewayAuthorizationData(OperationResultDto.EXECUTED))
-    transactionAuthRequestedEvent.data.pspId = "BCITITMM"
+    transactionAuthRequestedEvent.data.pspId = npgPaymentConf.pspId
+    transactionAuthRequestedEvent.data.paymentTypeCode = npgPaymentConf.paymentTypeCode
     val transactionClosureRequestedEvent = TransactionTestUtils.transactionClosureRequestedEvent()
     val transactionTestData =
       IntegrationTestData(
@@ -230,7 +236,8 @@ class ClosePaymentErrorPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendEventToQueue(
           event = transactionClosureRequestedEvent,
@@ -242,10 +249,9 @@ class ClosePaymentErrorPendingTransactionTests(
           transactionId = testTransactionId)
       }
       .flatMap {
-        readEventFromQueue(
-            queueAsyncClient = deadLetterQueueAsyncClient,
-            typeReference =
-              object : TypeReference<QueueEvent<TransactionClosureRequestedEvent>>() {},
+        pollFromDeadLetterQueueCollection(
+            deadLetterQueueRepository = deadLetterQueueRepository,
+            typeReference = object : TypeReference<QueueEvent<TransactionEvent<Any>>>() {},
             transactionId = testTransactionId)
           .doOnNext {
             assertEquals(

@@ -3,6 +3,7 @@ package it.pagopa.ecommerce.eventdispatcher.tests.pendingtransactions.integratio
 import com.azure.storage.queue.QueueAsyncClient
 import it.pagopa.ecommerce.commons.generated.server.model.TransactionStatusDto
 import it.pagopa.ecommerce.commons.v2.TransactionTestUtils
+import it.pagopa.ecommerce.eventdispatcher.tests.repository.DeadLetterQueueRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsEventStoreRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsViewRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.utils.*
@@ -16,7 +17,8 @@ import org.springframework.boot.test.context.SpringBootTest
 class ActivatedOnlyPendingTransactionTests(
   @param:Autowired val eventStoreRepository: TransactionsEventStoreRepository,
   @param:Autowired val viewRepository: TransactionsViewRepository,
-  @param:Autowired val expirationQueueAsyncClient: QueueAsyncClient
+  @param:Autowired val expirationQueueAsyncClient: QueueAsyncClient,
+  @param:Autowired val deadLetterQueueRepository: DeadLetterQueueRepository
 ) {
 
   @Test
@@ -34,7 +36,8 @@ class ActivatedOnlyPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendExpirationEventToQueue(
           testData = transactionTestData, queueAsyncClient = expirationQueueAsyncClient))

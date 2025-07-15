@@ -2,16 +2,17 @@ package it.pagopa.ecommerce.eventdispatcher.tests.pendingtransactions.codereview
 
 import com.azure.core.util.serializer.TypeReference
 import com.azure.storage.queue.QueueAsyncClient
-import it.pagopa.ecommerce.commons.documents.v2.TransactionActivatedEvent
 import it.pagopa.ecommerce.commons.documents.v2.TransactionAuthorizationRequestData
-import it.pagopa.ecommerce.commons.documents.v2.TransactionRefundRequestedEvent
-import it.pagopa.ecommerce.commons.documents.v2.TransactionRefundRetriedEvent
+import it.pagopa.ecommerce.commons.documents.v2.TransactionEvent
 import it.pagopa.ecommerce.commons.documents.v2.activation.NpgTransactionGatewayActivationData
 import it.pagopa.ecommerce.commons.domain.v2.TransactionEventCode
 import it.pagopa.ecommerce.commons.domain.v2.TransactionId
 import it.pagopa.ecommerce.commons.generated.server.model.TransactionStatusDto
 import it.pagopa.ecommerce.commons.queues.QueueEvent
 import it.pagopa.ecommerce.commons.v2.TransactionTestUtils
+import it.pagopa.ecommerce.eventdispatcher.tests.configs.NpgPaymentConf
+import it.pagopa.ecommerce.eventdispatcher.tests.configs.RedirectPaymentConf
+import it.pagopa.ecommerce.eventdispatcher.tests.repository.DeadLetterQueueRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsEventStoreRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsViewRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.utils.*
@@ -28,7 +29,9 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
   @param:Autowired val eventStoreRepository: TransactionsEventStoreRepository,
   @param:Autowired val viewRepository: TransactionsViewRepository,
   @param:Autowired val expirationQueueAsyncClient: QueueAsyncClient,
-  @param:Autowired val deadLetterQueueAsyncClient: QueueAsyncClient
+  @param:Autowired val deadLetterQueueRepository: DeadLetterQueueRepository,
+  @param:Autowired val npgPaymentConf: NpgPaymentConf,
+  @param:Autowired val redirectPaymentConf: RedirectPaymentConf
 ) {
 
   @Test
@@ -42,7 +45,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     val transactionAuthRequestedEvent =
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
         TransactionTestUtils.npgTransactionGatewayAuthorizationRequestedData())
-    transactionAuthRequestedEvent.data.pspId = "BCITITMM"
+    transactionAuthRequestedEvent.data.pspId = npgPaymentConf.pspId
+    transactionAuthRequestedEvent.data.paymentTypeCode = npgPaymentConf.paymentTypeCode
     val transactionTestData =
       IntegrationTestData(
         events = listOf(transactionActivatedEvent, transactionAuthRequestedEvent),
@@ -54,7 +58,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendExpirationEventToQueue(
           testData = transactionTestData, queueAsyncClient = expirationQueueAsyncClient))
@@ -82,7 +87,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     val transactionAuthRequestedEvent =
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
         TransactionTestUtils.npgTransactionGatewayAuthorizationRequestedData())
-    transactionAuthRequestedEvent.data.pspId = "BCITITMM" // set intesa as PSP
+    transactionAuthRequestedEvent.data.pspId = npgPaymentConf.pspId
+    transactionAuthRequestedEvent.data.paymentTypeCode = npgPaymentConf.paymentTypeCode
     transactionAuthRequestedEvent.data.authorizationRequestId =
       npgOrderId // set NPG order id as authorization request id
     val transactionTestData =
@@ -96,7 +102,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendExpirationEventToQueue(
           testData = transactionTestData, queueAsyncClient = expirationQueueAsyncClient))
@@ -107,9 +114,9 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
           transactionId = testTransactionId)
       }
       .flatMap {
-        readEventFromQueue(
-            queueAsyncClient = deadLetterQueueAsyncClient,
-            typeReference = object : TypeReference<QueueEvent<TransactionActivatedEvent>>() {},
+        pollFromDeadLetterQueueCollection(
+            deadLetterQueueRepository = deadLetterQueueRepository,
+            typeReference = object : TypeReference<QueueEvent<TransactionEvent<Any>>>() {},
             transactionId = testTransactionId)
           .doOnNext {
             assertEquals(TransactionEventCode.TRANSACTION_ACTIVATED_EVENT.toString(), it.eventCode)
@@ -132,7 +139,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     val transactionAuthRequestedEvent =
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
         TransactionTestUtils.npgTransactionGatewayAuthorizationRequestedData())
-    transactionAuthRequestedEvent.data.pspId = "BCITITMM" // set intesa as PSP
+    transactionAuthRequestedEvent.data.pspId = npgPaymentConf.pspId
+    transactionAuthRequestedEvent.data.paymentTypeCode = npgPaymentConf.paymentTypeCode
     transactionAuthRequestedEvent.data.authorizationRequestId =
       npgOrderId // set NPG order id as authorization request id
     val transactionTestData =
@@ -146,7 +154,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendExpirationEventToQueue(
           testData = transactionTestData, queueAsyncClient = expirationQueueAsyncClient))
@@ -157,9 +166,9 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
           transactionId = testTransactionId)
       }
       .flatMap {
-        readEventFromQueue(
-            queueAsyncClient = deadLetterQueueAsyncClient,
-            typeReference = object : TypeReference<QueueEvent<TransactionActivatedEvent>>() {},
+        pollFromDeadLetterQueueCollection(
+            deadLetterQueueRepository = deadLetterQueueRepository,
+            typeReference = object : TypeReference<QueueEvent<TransactionEvent<Any>>>() {},
             transactionId = testTransactionId)
           .doOnNext {
             assertEquals(TransactionEventCode.TRANSACTION_ACTIVATED_EVENT.toString(), it.eventCode)
@@ -182,7 +191,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     val transactionAuthRequestedEvent =
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
         TransactionTestUtils.npgTransactionGatewayAuthorizationRequestedData())
-    transactionAuthRequestedEvent.data.pspId = "BCITITMM" // set intesa as PSP
+    transactionAuthRequestedEvent.data.pspId = npgPaymentConf.pspId
+    transactionAuthRequestedEvent.data.paymentTypeCode = npgPaymentConf.paymentTypeCode
     transactionAuthRequestedEvent.data.authorizationRequestId =
       npgOrderId // set NPG order id as authorization request id
     val transactionTestData =
@@ -196,7 +206,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendExpirationEventToQueue(
           testData = transactionTestData, queueAsyncClient = expirationQueueAsyncClient))
@@ -207,13 +218,13 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
           transactionId = testTransactionId)
       }
       .flatMap {
-        readEventFromQueue(
-            queueAsyncClient = deadLetterQueueAsyncClient,
-            typeReference = object : TypeReference<QueueEvent<TransactionRefundRetriedEvent>>() {},
+        pollFromDeadLetterQueueCollection(
+            deadLetterQueueRepository = deadLetterQueueRepository,
+            object : TypeReference<QueueEvent<TransactionEvent<Any>>>() {},
             transactionId = testTransactionId)
           .doOnNext {
             assertEquals(
-              TransactionEventCode.TRANSACTION_REFUND_RETRIED_EVENT.toString(), it.eventCode)
+              TransactionEventCode.TRANSACTION_REFUND_REQUESTED_EVENT.toString(), it.eventCode)
           }
       }
       .block(Duration.ofMinutes(1))
@@ -228,8 +239,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
         TransactionAuthorizationRequestData.PaymentGateway.REDIRECT,
         TransactionTestUtils.redirectTransactionGatewayAuthorizationRequestedData())
-    transactionAuthRequestedEvent.data.pspId = "BCITITMM"
-    transactionAuthRequestedEvent.data.paymentTypeCode = "RBPR"
+    transactionAuthRequestedEvent.data.pspId = redirectPaymentConf.pspId
+    transactionAuthRequestedEvent.data.paymentTypeCode = redirectPaymentConf.paymentTypeCode
     val transactionTestData =
       IntegrationTestData(
         events = listOf(transactionActivatedEvent, transactionAuthRequestedEvent),
@@ -241,7 +252,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendExpirationEventToQueue(
           testData = transactionTestData, queueAsyncClient = expirationQueueAsyncClient))
@@ -265,8 +277,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
         TransactionAuthorizationRequestData.PaymentGateway.REDIRECT,
         TransactionTestUtils.redirectTransactionGatewayAuthorizationRequestedData())
-    transactionAuthRequestedEvent.data.pspId = "BCITITMM"
-    transactionAuthRequestedEvent.data.paymentTypeCode = "RBPR"
+    transactionAuthRequestedEvent.data.pspId = redirectPaymentConf.pspId
+    transactionAuthRequestedEvent.data.paymentTypeCode = redirectPaymentConf.paymentTypeCode
     val transactionTestData =
       IntegrationTestData(
         events = listOf(transactionActivatedEvent, transactionAuthRequestedEvent),
@@ -278,7 +290,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendExpirationEventToQueue(
           testData = transactionTestData, queueAsyncClient = expirationQueueAsyncClient))
@@ -289,10 +302,9 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
           transactionId = testTransactionId)
       }
       .flatMap {
-        readEventFromQueue(
-            queueAsyncClient = deadLetterQueueAsyncClient,
-            typeReference =
-              object : TypeReference<QueueEvent<TransactionRefundRequestedEvent>>() {},
+        pollFromDeadLetterQueueCollection(
+            deadLetterQueueRepository = deadLetterQueueRepository,
+            typeReference = object : TypeReference<QueueEvent<TransactionEvent<Any>>>() {},
             transactionId = testTransactionId)
           .doOnNext {
             assertEquals(
@@ -313,8 +325,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
         TransactionAuthorizationRequestData.PaymentGateway.REDIRECT,
         TransactionTestUtils.redirectTransactionGatewayAuthorizationRequestedData())
-    transactionAuthRequestedEvent.data.pspId = "BCITITMM"
-    transactionAuthRequestedEvent.data.paymentTypeCode = "RBPR"
+    transactionAuthRequestedEvent.data.pspId = redirectPaymentConf.pspId
+    transactionAuthRequestedEvent.data.paymentTypeCode = redirectPaymentConf.paymentTypeCode
     val transactionTestData =
       IntegrationTestData(
         events = listOf(transactionActivatedEvent, transactionAuthRequestedEvent),
@@ -326,7 +338,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendExpirationEventToQueue(
           testData = transactionTestData, queueAsyncClient = expirationQueueAsyncClient))
@@ -337,10 +350,9 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
           transactionId = testTransactionId)
       }
       .flatMap {
-        readEventFromQueue(
-            queueAsyncClient = deadLetterQueueAsyncClient,
-            typeReference =
-              object : TypeReference<QueueEvent<TransactionRefundRequestedEvent>>() {},
+        pollFromDeadLetterQueueCollection(
+            deadLetterQueueRepository = deadLetterQueueRepository,
+            typeReference = object : TypeReference<QueueEvent<TransactionEvent<Any>>>() {},
             transactionId = testTransactionId)
           .doOnNext {
             assertEquals(
@@ -361,8 +373,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
       TransactionTestUtils.transactionAuthorizationRequestedEvent(
         TransactionAuthorizationRequestData.PaymentGateway.REDIRECT,
         TransactionTestUtils.redirectTransactionGatewayAuthorizationRequestedData())
-    transactionAuthRequestedEvent.data.pspId = "BCITITMM"
-    transactionAuthRequestedEvent.data.paymentTypeCode = "RBPR"
+    transactionAuthRequestedEvent.data.pspId = redirectPaymentConf.pspId
+    transactionAuthRequestedEvent.data.paymentTypeCode = redirectPaymentConf.paymentTypeCode
     val transactionTestData =
       IntegrationTestData(
         events = listOf(transactionActivatedEvent, transactionAuthRequestedEvent),
@@ -374,7 +386,8 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendExpirationEventToQueue(
           testData = transactionTestData, queueAsyncClient = expirationQueueAsyncClient))
@@ -385,13 +398,13 @@ class AuthorizationRequestedOnlyPendingTransactionTests(
           transactionId = testTransactionId)
       }
       .flatMap {
-        readEventFromQueue(
-            queueAsyncClient = deadLetterQueueAsyncClient,
-            typeReference = object : TypeReference<QueueEvent<TransactionRefundRetriedEvent>>() {},
+        pollFromDeadLetterQueueCollection(
+            deadLetterQueueRepository = deadLetterQueueRepository,
+            typeReference = object : TypeReference<QueueEvent<TransactionEvent<Any>>>() {},
             transactionId = testTransactionId)
           .doOnNext {
             assertEquals(
-              TransactionEventCode.TRANSACTION_REFUND_RETRIED_EVENT.toString(), it.eventCode)
+              TransactionEventCode.TRANSACTION_REFUND_REQUESTED_EVENT.toString(), it.eventCode)
           }
       }
       .block(Duration.ofMinutes(1))

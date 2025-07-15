@@ -2,14 +2,16 @@ package it.pagopa.ecommerce.eventdispatcher.tests.pendingtransactions.codereview
 
 import com.azure.core.util.serializer.TypeReference
 import com.azure.storage.queue.QueueAsyncClient
-import it.pagopa.ecommerce.commons.documents.v2.TransactionActivatedEvent
 import it.pagopa.ecommerce.commons.documents.v2.TransactionClosureData
+import it.pagopa.ecommerce.commons.documents.v2.TransactionEvent
 import it.pagopa.ecommerce.commons.documents.v2.activation.NpgTransactionGatewayActivationData
 import it.pagopa.ecommerce.commons.domain.v2.TransactionEventCode
 import it.pagopa.ecommerce.commons.generated.npg.v1.dto.OperationResultDto
 import it.pagopa.ecommerce.commons.generated.server.model.TransactionStatusDto
 import it.pagopa.ecommerce.commons.queues.QueueEvent
 import it.pagopa.ecommerce.commons.v2.TransactionTestUtils
+import it.pagopa.ecommerce.eventdispatcher.tests.configs.NpgPaymentConf
+import it.pagopa.ecommerce.eventdispatcher.tests.repository.DeadLetterQueueRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsEventStoreRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsViewRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.utils.*
@@ -28,7 +30,8 @@ class ClosedPendingTransactionTests(
   @param:Autowired val eventStoreRepository: TransactionsEventStoreRepository,
   @param:Autowired val viewRepository: TransactionsViewRepository,
   @param:Autowired val expirationQueueAsyncClient: QueueAsyncClient,
-  @param:Autowired val deadLetterQueueAsyncClient: QueueAsyncClient
+  @param:Autowired val deadLetterQueueRepository: DeadLetterQueueRepository,
+  @param:Autowired val npgPaymentConf: NpgPaymentConf
 ) {
 
   @Test
@@ -45,7 +48,8 @@ class ClosedPendingTransactionTests(
     val transactionAuthCompletedEvent =
       TransactionTestUtils.transactionAuthorizationCompletedEvent(
         TransactionTestUtils.npgTransactionGatewayAuthorizationData(OperationResultDto.EXECUTED))
-    transactionAuthRequestedEvent.data.pspId = "BCITITMM"
+    transactionAuthRequestedEvent.data.pspId = npgPaymentConf.pspId
+    transactionAuthRequestedEvent.data.paymentTypeCode = npgPaymentConf.paymentTypeCode
     val transactionClosureRequestedEvent = TransactionTestUtils.transactionClosureRequestedEvent()
     val transactionClosedEvent =
       TransactionTestUtils.transactionClosedEvent(TransactionClosureData.Outcome.OK)
@@ -66,7 +70,8 @@ class ClosedPendingTransactionTests(
     populateDbWithTestData(
         eventStoreRepository = eventStoreRepository,
         viewRepository = viewRepository,
-        integrationTestData = transactionTestData)
+        integrationTestData = transactionTestData,
+        deadLetterQueueRepository = deadLetterQueueRepository)
       .then(
         sendExpirationEventToQueue(
           testData = transactionTestData, queueAsyncClient = expirationQueueAsyncClient))
@@ -77,9 +82,9 @@ class ClosedPendingTransactionTests(
           transactionId = testTransactionId)
       }
       .flatMap {
-        readEventFromQueue(
-            queueAsyncClient = deadLetterQueueAsyncClient,
-            typeReference = object : TypeReference<QueueEvent<TransactionActivatedEvent>>() {},
+        pollFromDeadLetterQueueCollection(
+            deadLetterQueueRepository = deadLetterQueueRepository,
+            typeReference = object : TypeReference<QueueEvent<TransactionEvent<Any>>>() {},
             transactionId = testTransactionId)
           .doOnNext {
             assertEquals(TransactionEventCode.TRANSACTION_ACTIVATED_EVENT.toString(), it.eventCode)

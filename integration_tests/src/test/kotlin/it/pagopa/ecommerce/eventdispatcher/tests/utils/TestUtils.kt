@@ -13,6 +13,7 @@ import it.pagopa.ecommerce.commons.queues.StrictJsonSerializerProvider
 import it.pagopa.ecommerce.commons.queues.TracingInfoTest
 import it.pagopa.ecommerce.commons.queues.mixin.serialization.v2.QueueEventMixInClassFieldDiscriminator
 import it.pagopa.ecommerce.eventdispatcher.tests.exceptions.NoDlqEventFoundException
+import it.pagopa.ecommerce.eventdispatcher.tests.repository.DeadLetterQueueRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsEventStoreRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsViewRepository
 import java.time.Duration
@@ -29,6 +30,7 @@ val logger: Logger = LoggerFactory.getLogger("TestUtils")
 fun populateDbWithTestData(
   eventStoreRepository: TransactionsEventStoreRepository,
   viewRepository: TransactionsViewRepository,
+  deadLetterQueueRepository: DeadLetterQueueRepository,
   integrationTestData: IntegrationTestData
 ): Mono<Unit> {
   val transactionId = integrationTestData.testTransactionId.value()
@@ -43,10 +45,15 @@ fun populateDbWithTestData(
       logger.info("View with _id: [{}] deleted successfully", transactionId)
       viewRepository.save(integrationTestData.view)
     }
-    .flatMapMany {
+    .flatMap {
       logger.info("View saved successfully")
-      eventStoreRepository.saveAll(integrationTestData.events)
+      eventStoreRepository.saveAll(integrationTestData.events).last()
     }
+    .flatMapMany {
+      logger.info("Deleting DLQ events for transaction with id: [{}]", transactionId)
+      deadLetterQueueRepository.findByDataContainsTransactionId(transactionId)
+    }
+    .flatMap { deadLetterQueueRepository.deleteById(it.id) }
     .then(Mono.just(Unit))
 }
 
@@ -91,26 +98,31 @@ fun sendEventToQueue(
     .then(Mono.just(Unit))
 }
 
-fun <T : BaseTransactionEvent<*>> readEventFromQueue(
-  queueAsyncClient: QueueAsyncClient,
+fun <T : BaseTransactionEvent<*>> pollFromDeadLetterQueueCollection(
+  deadLetterQueueRepository: DeadLetterQueueRepository,
   typeReference: TypeReference<QueueEvent<T>>,
   transactionId: TransactionId
 ): Mono<T> =
-  queueAsyncClient
-    .receiveMessages(1, Duration.ofSeconds(1))
-    .filter { it.body.toString().contains(transactionId.value()) }
-    .flatMap { queueAsyncClient.deleteMessage(it.messageId, it.popReceipt).thenReturn(it.body) }
-    .flatMap { it.toObjectAsync(typeReference, serializerProvider.createInstance()) }
+  Mono.just(1)
+    .doOnNext { logger.info("searching DLQ collection event with id: [{}]", transactionId.value()) }
+    .flatMapMany {
+      deadLetterQueueRepository.findByDataContainsTransactionId(transactionId.value())
+    }
     .collectList()
     .filter { it.isNotEmpty() }
-    .map { it[0].event }
+    .map { it[0] }
+    .flatMap {
+      deadLetterQueueRepository.deleteById(it.id).thenReturn(BinaryData.fromString(it.data))
+    }
+    .flatMap { it.toObjectAsync(typeReference, serializerProvider.createInstance()) }
+    .map { it.event }
     .repeatWhenEmpty {
       Flux.fromIterable(IntStream.range(0, 20).toList()).delayElements(Duration.ofSeconds(1))
     }
     .switchIfEmpty(
       Mono.error(
         NoDlqEventFoundException(
-          "Cannot found DLQ event for transaction with id: [${transactionId.value()}]")))
+          "Cannot found DLQ event for transaction with id: [${transactionId.value()}] into dead letter collection")))
 
 fun pollTransactionForWantedStatus(
   viewRepository: TransactionsViewRepository,

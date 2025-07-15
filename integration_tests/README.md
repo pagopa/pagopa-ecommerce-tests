@@ -44,6 +44,10 @@ These are all environment variables needed by the application:
 | TRANSACTIONS_DEAD_LETTER_QUEUE_NAME                   | Queue name were event that cannot be processed successfully are forwarded                                                                                  | string  |         |
 | TRANSACTIONS_AUTHORIZATION_REQUESTED_QUEUE_NAME       | Queue name for payment gateway authorization requested transactions                                                                                        | string  |         |
 | TRANSACTIONS_AUTHORIZATION_OUTCOME_WAITING_QUEUE_NAME | Queue name for payment gateway authorization requested retry transactions                                                                                  | string  |         |
+| REDIRECT_TEST_CONF_PSP_ID                             | PSP id that will be used during Redirect tests                                                                                                             | string  |         |
+| REDIRECT_TEST_CONF_PAYMENT_TYPE_CODE                  | Payment type code that will be used during Redirect tests                                                                                                  | string  |         |
+| NPG_TEST_CONF_PSP_ID                                  | PSP id that will be used during NPG tests                                                                                                                  | string  |         |
+| NPG_TEST_CONF_PAYMENT_TYPE_CODE                       | Payment type code that will be used during NGP tests                                                                                                       | string  |         |
 
 An example configuration of these environment variables is in the `.env.local` file.
 
