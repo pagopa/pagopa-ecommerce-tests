@@ -59,7 +59,9 @@ see [docs](https://www.mongodb.com/docs/drivers/java/sync/v4.3/fundamentals/conn
 Set environment variables locally on the terminal with:
 
 ```sh
-export $(grep -v '^#' .env.example | xargs)
+cp .env.example .env
+# personalize configuration, if needed and then set those variables as local environment variables
+export $(grep -v '^#' .env | xargs)
 ```
 
 Then from current project directory run :
@@ -71,6 +73,18 @@ Then from current project directory run :
 ./mvnw test -PcodeReviewTests
 #or integration tests
 ./mvnw test -PintegrationTests
+```
+
+or using docker as test runner environment (useful in pipeline where cannot install external dependencies such as java
+etc)
+
+```sh
+#build runner image
+docker build -t testRunner . 
+#execute integration tests
+docker run --mount type=bind,src=$PWD,dst=/workspace/app testRunner integration
+#or execute code review tests
+docker run --mount type=bind,src=$PWD,dst=/workspace/app testRunner codeReview
 ```
 
 ## Code formatting
