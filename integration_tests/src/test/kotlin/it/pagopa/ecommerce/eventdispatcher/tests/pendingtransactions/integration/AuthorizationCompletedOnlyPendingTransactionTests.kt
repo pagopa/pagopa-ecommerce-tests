@@ -1,4 +1,4 @@
-package it.pagopa.ecommerce.eventdispatcher.tests.pendingtransactions.codereview
+package it.pagopa.ecommerce.eventdispatcher.tests.pendingtransactions.integration
 
 import com.azure.core.util.serializer.TypeReference
 import com.azure.storage.queue.QueueAsyncClient

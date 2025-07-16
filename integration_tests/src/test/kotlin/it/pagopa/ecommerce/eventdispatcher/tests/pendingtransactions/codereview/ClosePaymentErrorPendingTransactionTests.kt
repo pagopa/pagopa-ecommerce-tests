@@ -10,7 +10,7 @@ import it.pagopa.ecommerce.commons.generated.npg.v1.dto.OperationResultDto
 import it.pagopa.ecommerce.commons.generated.server.model.TransactionStatusDto
 import it.pagopa.ecommerce.commons.queues.QueueEvent
 import it.pagopa.ecommerce.commons.v2.TransactionTestUtils
-import it.pagopa.ecommerce.eventdispatcher.tests.configs.NpgPaymentConf
+import it.pagopa.ecommerce.eventdispatcher.tests.configs.testdata.gateway.NpgPaymentConf
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.DeadLetterQueueRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsEventStoreRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsViewRepository

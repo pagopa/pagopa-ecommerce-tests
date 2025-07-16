@@ -7,7 +7,7 @@ import it.pagopa.ecommerce.commons.documents.v2.activation.NpgTransactionGateway
 import it.pagopa.ecommerce.commons.generated.npg.v1.dto.OperationResultDto
 import it.pagopa.ecommerce.commons.generated.server.model.TransactionStatusDto
 import it.pagopa.ecommerce.commons.v2.TransactionTestUtils
-import it.pagopa.ecommerce.eventdispatcher.tests.configs.NpgPaymentConf
+import it.pagopa.ecommerce.eventdispatcher.tests.configs.testdata.gateway.NpgPaymentConf
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.DeadLetterQueueRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsEventStoreRepository
 import it.pagopa.ecommerce.eventdispatcher.tests.repository.TransactionsViewRepository
@@ -15,13 +15,11 @@ import it.pagopa.ecommerce.eventdispatcher.tests.utils.*
 import java.time.Duration
 import java.time.ZonedDateTime
 import java.util.*
-import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 
 @SpringBootTest
-@Order(1)
 class NotificationRequestedPendingTransactionTests(
   @param:Autowired val eventStoreRepository: TransactionsEventStoreRepository,
   @param:Autowired val viewRepository: TransactionsViewRepository,

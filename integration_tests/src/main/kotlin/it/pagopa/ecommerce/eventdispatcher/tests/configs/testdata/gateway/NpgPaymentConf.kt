@@ -1,4 +1,4 @@
-package it.pagopa.ecommerce.eventdispatcher.tests.configs
+package it.pagopa.ecommerce.eventdispatcher.tests.configs.testdata.gateway
 
 import org.springframework.boot.context.properties.ConfigurationProperties
 

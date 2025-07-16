@@ -47,6 +47,7 @@ These are all environment variables needed by the application:
 | REDIRECT_TEST_CONF_PAYMENT_TYPE_CODE                  | Payment type code that will be used during Redirect tests                                                                                                  | string  |         |
 | NPG_TEST_CONF_PSP_ID                                  | PSP id that will be used during NPG tests                                                                                                                  | string  |         |
 | NPG_TEST_CONF_PAYMENT_TYPE_CODE                       | Payment type code that will be used during NGP tests                                                                                                       | string  |         |
+| USER_EMAIL_PDV_TOKEN                                  | PDV user mail token to be injected into tests                                                                                                              | string  |         |
 
 An example configuration of these environment variables is in the `.env.local` file.
 
