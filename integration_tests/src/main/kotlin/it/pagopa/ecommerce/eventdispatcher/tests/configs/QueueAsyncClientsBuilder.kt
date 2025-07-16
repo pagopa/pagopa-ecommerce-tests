@@ -11,85 +11,84 @@ import reactor.netty.http.client.HttpClient
 @Configuration
 class QueueAsyncClientsBuilder {
 
-    @Bean
-    fun refundQueueAsyncClient(
-        @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
-        @Value("\${azurestorage.queues.transactionsrefund.name}") queueEventInitName: String,
-    ): QueueAsyncClient {
-        return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
-    }
+  @Bean
+  fun refundQueueAsyncClient(
+    @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
+    @Value("\${azurestorage.queues.transactionsrefund.name}") queueEventInitName: String,
+  ): QueueAsyncClient {
+    return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
+  }
 
-    @Bean
-    fun refundRetryQueueAsyncClient(
-        @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
-        @Value("\${azurestorage.queues.transactionrefundretry.name}") queueEventInitName: String,
-    ): QueueAsyncClient {
-        return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
-    }
+  @Bean
+  fun refundRetryQueueAsyncClient(
+    @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
+    @Value("\${azurestorage.queues.transactionrefundretry.name}") queueEventInitName: String,
+  ): QueueAsyncClient {
+    return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
+  }
 
-    @Bean
-    fun closureRetryQueueAsyncClient(
-        @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
-        @Value("\${azurestorage.queues.transactionclosepaymentretry.name}") queueEventInitName: String
-    ): QueueAsyncClient {
-        return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
-    }
+  @Bean
+  fun closureRetryQueueAsyncClient(
+    @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
+    @Value("\${azurestorage.queues.transactionclosepaymentretry.name}") queueEventInitName: String
+  ): QueueAsyncClient {
+    return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
+  }
 
-    @Bean
-    fun closePaymentQueueAsyncClient(
-        @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
-        @Value("\${azurestorage.queues.transactionclosepayment.name}") queueEventInitName: String
-    ): QueueAsyncClient {
-        return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
-    }
+  @Bean
+  fun closePaymentQueueAsyncClient(
+    @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
+    @Value("\${azurestorage.queues.transactionclosepayment.name}") queueEventInitName: String
+  ): QueueAsyncClient {
+    return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
+  }
 
-    @Bean
-    fun notificationRetryQueueAsyncClient(
-        @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
-        @Value("\${azurestorage.queues.transactionnotificationretry.name}") queueEventInitName: String,
-    ): QueueAsyncClient {
-        return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
-    }
+  @Bean
+  fun notificationRetryQueueAsyncClient(
+    @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
+    @Value("\${azurestorage.queues.transactionnotificationretry.name}") queueEventInitName: String,
+  ): QueueAsyncClient {
+    return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
+  }
 
-    @Bean
-    fun expirationQueueAsyncClient(
-        @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
-        @Value("\${azurestorage.queues.transactionexpiration.name}") queueEventInitName: String,
-    ): QueueAsyncClient {
-        return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
-    }
+  @Bean
+  fun expirationQueueAsyncClient(
+    @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
+    @Value("\${azurestorage.queues.transactionexpiration.name}") queueEventInitName: String,
+  ): QueueAsyncClient {
+    return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
+  }
 
-    @Bean
-    fun authRequestedQueueAsyncClient(
-        @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
-        @Value("\${azurestorage.queues.transactionauthorizationrequested.name}")
-        queueEventInitName: String,
-    ): QueueAsyncClient {
-        return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
-    }
+  @Bean
+  fun authRequestedQueueAsyncClient(
+    @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
+    @Value("\${azurestorage.queues.transactionauthorizationrequested.name}")
+    queueEventInitName: String,
+  ): QueueAsyncClient {
+    return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
+  }
 
-    @Bean
-    fun authRequestedOutcomeWaitingQueueAsyncClient(
-        @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
-        @Value("\${azurestorage.queues.transactionauthorizationoutcomewaiting.name}")
-        queueEventInitName: String,
-    ): QueueAsyncClient {
-        return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
-    }
+  @Bean
+  fun authRequestedOutcomeWaitingQueueAsyncClient(
+    @Value("\${azurestorage.transient.connectionstring}") storageConnectionString: String,
+    @Value("\${azurestorage.queues.transactionauthorizationoutcomewaiting.name}")
+    queueEventInitName: String,
+  ): QueueAsyncClient {
+    return buildQueueAsyncClient(storageConnectionString, queueEventInitName)
+  }
 
-    private fun buildQueueAsyncClient(
-        storageConnectionString: String,
-        queueName: String
-    ): QueueAsyncClient {
-        val queueClient =
-            QueueClientBuilder()
-                .connectionString(storageConnectionString)
-                .queueName(queueName)
-                .httpClient(
-                    NettyAsyncHttpClientBuilder(HttpClient.create().resolver { it.ndots(1) }).build()
-                )
-                .buildAsyncClient()
-        queueClient.clearMessages().block() // clear queue
-        return queueClient
-    }
+  private fun buildQueueAsyncClient(
+    storageConnectionString: String,
+    queueName: String
+  ): QueueAsyncClient {
+    val queueClient =
+      QueueClientBuilder()
+        .connectionString(storageConnectionString)
+        .queueName(queueName)
+        .httpClient(
+          NettyAsyncHttpClientBuilder(HttpClient.create().resolver { it.ndots(1) }).build())
+        .buildAsyncClient()
+    queueClient.clearMessages().block() // clear queue
+    return queueClient
+  }
 }
