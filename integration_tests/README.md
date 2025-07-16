@@ -80,7 +80,7 @@ etc)
 
 ```sh
 #build runner image
-docker build -t testRunner . 
+docker build -t testRunner .
 #execute integration tests
 docker run --mount type=bind,src=$PWD,dst=/workspace/app testRunner integration
 #or execute code review tests
