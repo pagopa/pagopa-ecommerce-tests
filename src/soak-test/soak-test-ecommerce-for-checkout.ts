@@ -18,9 +18,9 @@ export let options = {
         preAllocatedVUs: config.preAllocatedVUs,
         maxVUs: config.maxVUs,
         stages: [
-          { target: config.rate, duration: config.rampingDuration },
+          { target: config.rate, duration: "10m" },
           { target: config.rate, duration: config.duration },
-          { target: 0, duration: config.rampingDuration },
+          { target: 0, duration: "1m" },
         ],
       },
     },
@@ -43,8 +43,10 @@ export function setup() {
 }
 
 export default function () {
-    const urlBasePathV1 = getVersionedBaseUrl(config.URL_BASE_PATH, "v1");
-    const urlBasePathV2 = getVersionedBaseUrl(config.URL_BASE_PATH, "v2");    
+    const urlBasePathV1 = config.URL_BASE_PATH
+    const urlBasePathV2 = config.URL_BASE_PATH
+
+    console.log({urlBasePathV1, urlBasePathV2})
 
     const headersParams = {
         headers: {
@@ -52,16 +54,20 @@ export default function () {
             'Authorization': "Bearer ",
             'x-correlation-id': 'c1155812-0f9f-467d-ab67-8e9a84534d48',
             'x-transaction-id-from-client': "",
-            ...(config.USE_BLUE_DEPLOYMENT == "True" ? { "deployment": "blue" } : {})
+            "deployment": "blue",
+            "x-client-id": "CHECKOUT",
+            "x-pgs-id": "NPG"
         }
     };
     // GET payment-request (Node verifyPaymentNotice)
-    let url = `${urlBasePathV1}/payment-requests/${generateRptId()}?recaptchaResponse=test`
+    let url = `${urlBasePathV1}/pagopa-ecommerce-payment-requests-service/payment-requests/${generateRptId()}?recaptchaResponse=test`
     let response = http.get(url, {
         ...headersParams,
         tags: { name: "verify-payment-notice" },
         timeout: '10s'
     });
+
+    console.log("URL: ======", url)
     
     check(
         response,
@@ -73,7 +79,7 @@ export default function () {
     let orderId = generateOrderId();
     const paymentMethod: PaymentMethod = randomPaymentMethod();
     if (paymentMethod == PaymentMethod.CARDS) {
-        let url = `${urlBasePathV1}/payment-methods/${paymentMethodIds[paymentMethod]}/sessions?recaptchaResponse=test`
+        let url = `${urlBasePathV1}/pagopa-ecommerce-payment-methods-service/payment-methods/${paymentMethodIds[paymentMethod]}/sessions?recaptchaResponse=test`
         let response = http.post(url, JSON.stringify({}), {
             ...headersParams,
             tags: { name: "create-session" },
@@ -96,7 +102,7 @@ export default function () {
     const activationBodyRequest = createActivationRequest(orderId);
     
     // Activate transaction
-    url = `${urlBasePathV2}/transactions?recaptchaResponse=test`;
+    url = `${urlBasePathV2}/pagopa-ecommerce-transactions-service/v2/transactions?recaptchaResponse=test`;
     response = http.post(url, JSON.stringify(activationBodyRequest), {
         ...headersParams,
         tags: { name: "activate-transaction" },
@@ -123,7 +129,7 @@ export default function () {
 
     // GET session (aka card data) only for CARDS
     if (paymentMethod == PaymentMethod.CARDS) {
-        url = `${urlBasePathV1}/payment-methods/${paymentMethodIds[paymentMethod]}/sessions/${orderId}`;
+        url = `${urlBasePathV1}/pagopa-ecommerce-payment-methods-service/payment-methods/${paymentMethodIds[paymentMethod]}/sessions/${orderId}`;
         response = http.get(url, {
             ...headersParams,
             tags: { name: 'get-session' },
@@ -140,13 +146,15 @@ export default function () {
     const isAllCCP = body.payments[0].isAllCCP;
 
     // Calculate fees
-    url = `${urlBasePathV2}/payment-methods/${paymentMethodIds[paymentMethod]}/fees?maxOccurences=1235`;
+    url = `${urlBasePathV2}/pagopa-ecommerce-payment-methods-service/v2/payment-methods/${paymentMethodIds[paymentMethod]}/fees?maxOccurences=1235`;
     const calculateFeeRequest = createFeeRequestV2();
     response = http.post(url, JSON.stringify(calculateFeeRequest), {
         ...headersParams,
         tags: { name: "calculate-fees" },
         timeout: '10s'
     });
+
+    console.log("fees URL", url)
 
     check(response,
         { 'Response status from POST /payment-methods/{paymentMethodId}/fees is 200': (r) => r.status == 200 },
@@ -160,7 +168,10 @@ export default function () {
     const pspBundle = (response.json() as unknown as CalculateFeeResponse).bundles.filter(it => it.idPsp == pspsIds[paymentMethod])[0];
 
     // Request authorization
-    url = `${urlBasePathV1}/transactions/${transactionId}/auth-requests`;
+    url = `${urlBasePathV1}/pagopa-ecommerce-transactions-service/transactions/${transactionId}/auth-requests`;
+
+    console.log("request URL", url)
+
     const authRequestBodyRequest = createAuthorizationRequest(orderId, isAllCCP, totalAmount as AmountEuroCents, pspBundle, paymentMethod);
     response = http.post(url, JSON.stringify(authRequestBodyRequest), {
         ...headersParams,
@@ -173,11 +184,12 @@ export default function () {
     );
 
     if (response.status != 200 || response.json() == null) {
-        fail(`Error during auth request ${response.status}`);
+        fail(`Error during auth request ${response.status} ${console.log(response.body?.toString())}`);
     }
 
     // Simulate checkout-fe polling
-    url = `${urlBasePathV1}/transactions/${transactionId}/outcomes`;
+    url = `${urlBasePathV1}/pagopa-ecommerce-transactions-service/transactions/${transactionId}/outcomes`;
+    console.log("OUTCOMES URL", url)
     for (let i = 0; i < 5; i++) {
         response = http.get(url, {
             ...headersParams,
