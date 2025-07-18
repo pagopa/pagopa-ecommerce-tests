@@ -19,8 +19,8 @@ export let options = {
         maxVUs: config.maxVUs,
         stages: [
           { target: config.rate, duration: "10m" },
-          { target: config.rate, duration: config.duration },
-          { target: 0, duration: "1m" },
+          { target: config.rate, duration: "1h" },
+          { target: 0, duration: "10m" },
         ],
       },
     },
@@ -46,7 +46,7 @@ export default function () {
     const urlBasePathV1 = config.URL_BASE_PATH
     const urlBasePathV2 = config.URL_BASE_PATH
 
-    console.log({urlBasePathV1, urlBasePathV2})
+    //console.log({urlBasePathV1, urlBasePathV2})
 
     const headersParams = {
         headers: {
@@ -67,7 +67,7 @@ export default function () {
         timeout: '10s'
     });
 
-    console.log("URL: ======", url)
+   // console.log("URL: ======", url)
     
     check(
         response,
@@ -154,7 +154,7 @@ export default function () {
         timeout: '10s'
     });
 
-    console.log("fees URL", url)
+    //console.log("fees URL", url)
 
     check(response,
         { 'Response status from POST /payment-methods/{paymentMethodId}/fees is 200': (r) => r.status == 200 },
@@ -170,7 +170,7 @@ export default function () {
     // Request authorization
     url = `${urlBasePathV1}/pagopa-ecommerce-transactions-service/transactions/${transactionId}/auth-requests`;
 
-    console.log("request URL", url)
+    //console.log("request URL", url)
 
     const authRequestBodyRequest = createAuthorizationRequest(orderId, isAllCCP, totalAmount as AmountEuroCents, pspBundle, paymentMethod);
     response = http.post(url, JSON.stringify(authRequestBodyRequest), {
@@ -189,7 +189,7 @@ export default function () {
 
     // Simulate checkout-fe polling
     url = `${urlBasePathV1}/pagopa-ecommerce-transactions-service/transactions/${transactionId}/outcomes`;
-    console.log("OUTCOMES URL", url)
+   //console.log("OUTCOMES URL", url)
     for (let i = 0; i < 5; i++) {
         response = http.get(url, {
             ...headersParams,
