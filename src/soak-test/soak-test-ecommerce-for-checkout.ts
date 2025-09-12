@@ -1,7 +1,7 @@
 import { check, fail, sleep } from "k6";
 import http from "k6/http";
 import { getConfigOrThrow, getVersionedBaseUrl } from "../utils/config";
-import { PaymentMethod, createActivationRequest, createAuthorizationRequest, createFeeRequestV2, paymentMethodIds, randomPaymentMethod, generateOrderId, pspsIds, generateRptId } from "../common/soak-test-common"
+import { PaymentMethod, createActivationRequest, createAuthorizationRequest, createFeeRequestV2, paymentMethodIds, randomPaymentMethod, generateOrderId, pspsIds, generateRptId, createPatchAuthorizationRequest } from "../common/soak-test-common"
 import { NewTransactionResponse } from "../generated/ecommerce-v1/NewTransactionResponse";
 import { CreateSessionResponse } from "../generated/ecommerce-v1/CreateSessionResponse";
 import { CalculateFeeResponse } from "../generated/ecommerce-v2/CalculateFeeResponse";
@@ -34,7 +34,8 @@ export let options = {
         "http_req_duration{name:authorization-transaction}": ["p(95)<=250"],
         "http_req_duration{name:create-session}": ["p(95)<=250"],
         "http_req_duration{name:get-session}": ["p(95)<=250"],
-        "http_req_duration{name:verify-payment-notice}": ["p(95)<=250"]
+        "http_req_duration{name:verify-payment-notice}": ["p(95)<=250"],
+        "http_req_duration{name:patch-auth-request}": ["p(95)<=250"]
     },
 };
 
@@ -187,10 +188,34 @@ export default function () {
         fail(`Error during auth request ${response.status} ${console.log(response.body?.toString())}`);
     }
 
+    // PATCH authorization
+    url = `${urlBasePathV2}/pagopa-ecommerce-transactions-service/v2/transactions/${transactionId}/auth-requests`;
+
+    // console.log("PATCH authorization request URL", url)
+
+    const authRequestPatchBodyRequest = createPatchAuthorizationRequest(paymentMethod, orderId, pspBundle.idPsp!!, transactionId);
+    sleep(3);
+    
+    response = http.patch(url, JSON.stringify(authRequestPatchBodyRequest), {
+        ...headersParams,
+        tags: { name: "patch-auth-request" },
+        timeout: '10s'
+    });
+    check(response,
+        { 'Response status from PATCH /transactions/{transactionId}/auth-requests is 200': (r) => r.status == 200 },
+        { name: "patch-auth-request" }
+    );
+
+    if (response.status != 200 || response.json() == null) {
+        fail(`Error during auth completed ${response.status} ${console.log(response.body?.toString())}`);
+    } 
+
+
     // Simulate checkout-fe polling
     url = `${urlBasePathV1}/pagopa-ecommerce-transactions-service/transactions/${transactionId}/outcomes`;
    //console.log("OUTCOMES URL", url)
     for (let i = 0; i < 5; i++) {
+        sleep(3);
         response = http.get(url, {
             ...headersParams,
             tags: { name: "get-transaction" },
@@ -203,6 +228,5 @@ export default function () {
         if (response.status != 200 || response.json() == null) {
             fail(`Error during get transaction ${response.status}`);
         }
-        sleep(3);
     }
 }

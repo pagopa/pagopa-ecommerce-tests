@@ -196,6 +196,59 @@ export const createAuthorizationRequestRedirect = (method: PaymentMethod): Creat
     isAllCCP: isAllCCP
 });
 
+export const createPatchAuthorizationRequest = (
+    method: PaymentMethod,
+    orderId: string,
+    pspId: string,
+    transactionId: string
+) => {
+    const functionMap: Record<PaymentMethod, any> = {
+        [PaymentMethod.CARDS]: createNpgPatchAuthorizationRequest(orderId),
+        [PaymentMethod.BANCOMATPAY]: createNpgPatchAuthorizationRequest(orderId),
+        [PaymentMethod.PAYPAL]: createNpgPatchAuthorizationRequest(orderId),
+        [PaymentMethod.MYBANK]: createNpgPatchAuthorizationRequest(orderId),
+        [PaymentMethod.REDIRECT_RPIC]: createRedirectPatchAuthorizationRequest(pspId, "456"), //mock node forwarder response value for idPspTransaction
+        [PaymentMethod.REDIRECT_RBPS]: createRedirectPatchAuthorizationRequest(pspId, "456"),
+        [PaymentMethod.REDIRECT_RBPB]: createRedirectPatchAuthorizationRequest(pspId, "456"),
+        [PaymentMethod.REDIRECT_RBPP]: createRedirectPatchAuthorizationRequest(pspId, "456"),
+        [PaymentMethod.REDIRECT_RBPR]: createRedirectPatchAuthorizationRequest(pspId, "456"),
+    };
+
+    return functionMap[method]();
+}
+
+export const createNpgPatchAuthorizationRequest = (orderId: string): any => () => ({
+    
+  outcomeGateway: {
+    paymentGatewayType: "NPG",
+    operationResult: "EXECUTED",
+    orderId,
+    operationId: "operationId",
+    authorizationCode: "000",
+    paymentEndToEndId: "7865211165",
+    rrn: "7865211165",
+    outcome: "OK"
+  },
+  timestampOperation: "2025-09-11T12:32:10.935Z"
+});
+
+export const createRedirectPatchAuthorizationRequest = (pspId: string, transactionId: string): any => () => ({
+outcomeGateway: {
+    paymentGatewayType: "REDIRECT",
+    operationResult: "OK",
+    operationId: "pspId",
+    paymentEndToEndId: "7865211165",
+    rrn: "7865211165",
+    pspId,
+    pspTransactionId: transactionId,
+    outcome: "OK"
+  },
+  timestampOperation: "2025-09-11T12:32:10.935Z"
+});
+
+
+
+
 export const randomPaymentMethod = (): PaymentMethod => {
     const values = Object.values(PaymentMethod);
     const randomIndex = Math.floor(Math.random() * ((values.length / 2)));
