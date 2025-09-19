@@ -31,7 +31,7 @@ export let options = {
         http_req_duration: ["p(95)<250"], // 99% of requests must complete below 250ms
         checks: ['rate>0.9'], // 90% of the request must be completed
         "http_req_duration{name:retrieve-all-payment-methods}": ["p(95)<250"],
-        "http_req_duration{name:get-single-payment-method-test}": ["p(95)<1000"]
+        "http_req_duration{name:get-single-payment-method-test}": ["p(95)<250"]
     },
 };
 
