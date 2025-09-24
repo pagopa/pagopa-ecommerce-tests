@@ -3,13 +3,13 @@ import http from "k6/http";
 
 // TO BE CONFIGURED
 const config = {
-    preAllocatedVUs: 1,
-    maxVUs: 2,
-    rate: 1,
-    rampingDuration: '30s',
-    duration: '5m',
-    URL_BASE_PATH: 'https://weudev.ecommerce.internal.dev.platform.pagopa.it',
-    API_KEY: '___API_KEY___'
+    preAllocatedVUs: 50,
+    maxVUs: 200,
+    rate: 200,
+    rampingDuration: '10m',
+    duration: '3h',
+    URL_BASE_PATH: 'https://weuuat.ecommerce.internal.uat.platform.pagopa.it',
+    API_KEY: 'TO_UPDATE_WITH_A_VALID_API_KEY'
 }
 
 export let options = {
@@ -90,7 +90,7 @@ export default function () {
                 headers: {
                     'Content-Type': 'application/json',
                     'x-api-key': config.API_KEY,
-                    'x-client-id': 'CHECKOUT'
+                    'x-client-id': 'IO'
                 },  
             };
 
