@@ -6,7 +6,7 @@
         <collectionProp name="Arguments.arguments">
           <elementProp name="USE_BLUE_DEPLOYMENT" elementType="Argument">
             <stringProp name="Argument.name">USE_BLUE_DEPLOYMENT</stringProp>
-            <stringProp name="Argument.value">False</stringProp>
+            <stringProp name="Argument.value">True</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
           <elementProp name="URL_BASE_PATH" elementType="Argument">
@@ -21,7 +21,7 @@
           </elementProp>
           <elementProp name="USE_PAYMENT_METHOD" elementType="Argument">
             <stringProp name="Argument.name">USE_PAYMENT_METHOD</stringProp>
-            <stringProp name="Argument.value">PAYPAL</stringProp>
+            <stringProp name="Argument.value">CARDS</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
         </collectionProp>
@@ -106,6 +106,18 @@ final Map&lt;PaymentMethod, String&gt; paymentMethodIds = [
     (PaymentMethod.REDIRECT_RBPR): &apos;86fb578f-e3c4-47bc-bce3-85a3171a4b13&apos;,
 ]
 
+final Map&lt;PaymentMethod, String&gt; pspsIds = [
+    (PaymentMethod.CARDS):        &quot;BCITITMM&quot;,
+    (PaymentMethod.BANCOMATPAY):  &quot;BCITITMM&quot;,
+    (PaymentMethod.PAYPAL):       &quot;BCITITMM&quot;,
+    (PaymentMethod.MYBANK):       &quot;BCITITMM&quot;,
+    (PaymentMethod.REDIRECT_RPIC):&quot;BCITITMM&quot;,
+    (PaymentMethod.REDIRECT_RBPS):&quot;POSOIT22XXX&quot;,
+    (PaymentMethod.REDIRECT_RBPB):&quot;PPAYITR1XXX&quot;,
+    (PaymentMethod.REDIRECT_RBPP):&quot;PPAYITR1XXX&quot;,
+    (PaymentMethod.REDIRECT_RBPR):&quot;PPAYITR1XXX&quot;,
+]
+
 if (vars.get(&apos;PAYMENT_METHOD&apos;) == null &amp;&amp; vars.get(&apos;PAYMENT_METHOD_ID&apos;) == null) {
 	def values = PaymentMethod.values()
 	int half = (int) (values.length / 2)
@@ -120,9 +132,27 @@ if (vars.get(&apos;PAYMENT_METHOD&apos;) == null &amp;&amp; vars.get(&apos;PAYME
 	def paymentMethodId = paymentMethodIds[paymentMethod]
 	vars.put(&apos;PAYMENT_METHOD_ID&apos;, paymentMethodId)
 	log.info(&quot;PAYMENT_METHOD_ID: &quot; + paymentMethodId);
-}</stringProp>
+
+
+	def paymentMethodPSPId = pspsIds[paymentMethod]
+	vars.put(&apos;PAYMENT_METHOD_PSP_ID&apos;, paymentMethodPSPId)
+	
+}
+
+
+</stringProp>
           <stringProp name="scriptLanguage">groovy</stringProp>
         </JSR223PreProcessor>
+        <hashTree/>
+        <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults">
+          <stringProp name="HTTPSampler.domain">${URL_BASE_PATH}</stringProp>
+          <stringProp name="HTTPSampler.port">443</stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+        </ConfigTestElement>
         <hashTree/>
         <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
           <collectionProp name="HeaderManager.headers">
@@ -149,10 +179,7 @@ if (vars.get(&apos;PAYMENT_METHOD&apos;) == null &amp;&amp; vars.get(&apos;PAYME
           </collectionProp>
         </HeaderManager>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Verify Payment Notice">
-          <stringProp name="HTTPSampler.domain">${URL_BASE_PATH}</stringProp>
-          <stringProp name="HTTPSampler.port">443</stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Verify Payment Notice">
           <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/payment-requests/${RPT_ID}</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -207,10 +234,7 @@ log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Post Create Session [CARDS]">
-            <stringProp name="HTTPSampler.domain">${URL_BASE_PATH}</stringProp>
-            <stringProp name="HTTPSampler.port">443</stringProp>
-            <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Create Session (CARDS)">
             <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/payment-methods/${PAYMENT_METHOD_ID}/sessions</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -229,7 +253,7 @@ log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">tags</stringProp>
@@ -242,24 +266,16 @@ log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
               </collectionProp>
             </HeaderManager>
             <hashTree/>
-            <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor">
-              <stringProp name="scriptLanguage">groovy</stringProp>
-              <stringProp name="parameters"></stringProp>
-              <stringProp name="filename"></stringProp>
-              <stringProp name="cacheKey">true</stringProp>
-              <stringProp name="script">import groovy.json.JsonSlurper
-
-def body = new JsonSlurper().parseText(prev.getResponseDataAsString())
-vars.put(&apos;ORDER_ID&apos;, body.orderId as String)
-</stringProp>
-            </JSR223PostProcessor>
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor">
+              <stringProp name="JSONPostProcessor.referenceNames">ORDER_ID</stringProp>
+              <stringProp name="JSONPostProcessor.jsonPathExprs">$.orderId</stringProp>
+              <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+              <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+            </JSONPostProcessor>
             <hashTree/>
           </hashTree>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Post Activate Transaction">
-          <stringProp name="HTTPSampler.domain">${URL_BASE_PATH}</stringProp>
-          <stringProp name="HTTPSampler.port">443</stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Activate Transaction">
           <stringProp name="HTTPSampler.path">${BASE_PATH_V2}/transactions?recaptchaResponse=test</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -283,6 +299,7 @@ vars.put(&apos;ORDER_ID&apos;, body.orderId as String)
             <stringProp name="cacheKey">true</stringProp>
             <stringProp name="script">import groovy.json.JsonOutput
 import java.security.SecureRandom
+
 def rnd = new SecureRandom()
 
 def generateRptId = {
@@ -366,10 +383,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Session [CARDS]">
-            <stringProp name="HTTPSampler.domain">${URL_BASE_PATH}</stringProp>
-            <stringProp name="HTTPSampler.port">443</stringProp>
-            <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Session (CARDS)">
             <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/payment-methods/${PAYMENT_METHOD_ID}/sessions/${ORDER_ID}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -395,10 +409,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
             <hashTree/>
           </hashTree>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Post Calculate Fees">
-          <stringProp name="HTTPSampler.domain">${URL_BASE_PATH}</stringProp>
-          <stringProp name="HTTPSampler.port">443</stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Calculate Fees">
           <stringProp name="HTTPSampler.path">${BASE_PATH_V2}/payment-methods/${PAYMENT_METHOD_ID}/fees?maxOccurences=1235</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -450,52 +461,15 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
             </collectionProp>
           </HeaderManager>
           <hashTree/>
-          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor">
-            <stringProp name="scriptLanguage">groovy</stringProp>
-            <stringProp name="parameters"></stringProp>
-            <stringProp name="filename"></stringProp>
-            <stringProp name="cacheKey">true</stringProp>
-            <stringProp name="script">import groovy.json.JsonSlurper
-import groovy.json.JsonOutput
-
-enum PaymentMethod {
-    CARDS, BANCOMATPAY, PAYPAL, MYBANK, REDIRECT_RPIC, REDIRECT_RBPS, REDIRECT_RBPB, REDIRECT_RBPP, REDIRECT_RBPR
-}
-
-final Map&lt;PaymentMethod, String&gt; pspsIds = [
-    (PaymentMethod.CARDS):        &quot;BCITITMM&quot;,
-    (PaymentMethod.BANCOMATPAY):  &quot;BCITITMM&quot;,
-    (PaymentMethod.PAYPAL):       &quot;BCITITMM&quot;,
-    (PaymentMethod.MYBANK):       &quot;BCITITMM&quot;,
-    (PaymentMethod.REDIRECT_RPIC):&quot;BCITITMM&quot;,
-    (PaymentMethod.REDIRECT_RBPS):&quot;POSOIT22XXX&quot;,
-    (PaymentMethod.REDIRECT_RBPB):&quot;PPAYITR1XXX&quot;,
-    (PaymentMethod.REDIRECT_RBPP):&quot;PPAYITR1XXX&quot;,
-    (PaymentMethod.REDIRECT_RBPR):&quot;PPAYITR1XXX&quot;,
-]
-
-// Parse response
-def body = new JsonSlurper().parseText(prev.getResponseDataAsString())
-
-
-def pmStr = (vars.get(&apos;PAYMENT_METHOD&apos;) ?: &apos;&apos;).trim()
-
-def targetId = pspsIds[PaymentMethod.valueOf(pmStr)]?.toString()
-def bundles = (body.bundles instanceof Collection) ? body.bundles : []
-def pspBundle = bundles.find { (it.idPsp ?: it[&apos;idPsp&apos;])?.toString() == targetId }
-def jsonStr = JsonOutput.toJson(pspBundle)
-vars.put(&apos;PSP_BUNDLE&apos;, jsonStr)
-
-
-log.info(&quot;PSP_BUNDLE: &quot; + JsonOutput.prettyPrint(jsonStr))
-</stringProp>
-          </JSR223PostProcessor>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor">
+            <stringProp name="JSONPostProcessor.referenceNames">PSP_BUNDLE</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.bundles[?(@.idPsp == &apos;${PAYMENT_METHOD_PSP_ID}&apos;)]</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Post Request Authorization Transaction">
-          <stringProp name="HTTPSampler.domain">${URL_BASE_PATH}</stringProp>
-          <stringProp name="HTTPSampler.port">443</stringProp>
-          <stringProp name="HTTPSampler.protocol">https</stringProp>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Request Authorization Transaction">
           <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/transactions/${TRANSACTION_ID}/auth-requests</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -522,88 +496,69 @@ import groovy.json.JsonOutput
 import org.apache.jmeter.config.Arguments
 
 
-enum PaymentMethod {
-    CARDS, BANCOMATPAY, PAYPAL, MYBANK, REDIRECT_RPIC, REDIRECT_RBPS, REDIRECT_RBPB, REDIRECT_RBPP, REDIRECT_RBPR
-}
-
-final Map&lt;PaymentMethod, String&gt; paymentMethodIds = [
-    (PaymentMethod.CARDS)        : &apos;378d0b4f-8b69-46b0-8215-07785fe1aad4&apos;,
-    (PaymentMethod.BANCOMATPAY)  : &apos;870d0704-e8af-4e00-a2d1-1af18e144789&apos;,
-    (PaymentMethod.PAYPAL)       : &apos;8991c3f1-4ac4-418c-a359-5aaa9199bbeb&apos;,
-    (PaymentMethod.MYBANK)       : &apos;2c61e6ed-f874-4b30-97ef-bdf89d488ee4&apos;,
-    (PaymentMethod.REDIRECT_RPIC): &apos;1c636589-8a81-4478-b725-33fb65d8a2d0&apos;,
-    (PaymentMethod.REDIRECT_RBPS): &apos;3a199dbc-f17e-4fd8-9a6f-a677698144a5&apos;,
-    (PaymentMethod.REDIRECT_RBPB): &apos;b6fd7e8e-7373-496d-b64f-111766b5ad9c&apos;,
-    (PaymentMethod.REDIRECT_RBPP): &apos;79e8e075-9840-4eac-9c4e-8da637d68469&apos;,
-    (PaymentMethod.REDIRECT_RBPR): &apos;86fb578f-e3c4-47bc-bce3-85a3171a4b13&apos;,
-]
-
-def createAuthorizationRequestCards = { String orderIdArg, boolean isAllCCPArg, int amountArg, Map bundle -&gt;
+def createAuthorizationRequestCards = { String orderIdArg, boolean isAllCCPArg, int amountArg, Map bundle, String paymentInstrumentId -&gt;
     [
         amount             : amountArg,
         fee                : (bundle.taxPayerFee as Integer),
         pspId              : (bundle.idPsp as String),
         language           : &apos;IT&apos;,
-        paymentInstrumentId: paymentMethodIds[&apos;CARDS&apos;],
+        paymentInstrumentId: paymentInstrumentId,
         details            : [ detailType: &apos;cards&apos;, orderId: orderIdArg ],
         isAllCCP           : isAllCCPArg
     ]
 }
 
 
-def createAuthorizationRequestAPM = { PaymentMethod method -&gt;
-    return { String _orderId, boolean isAllCCPArg, int amountArg, Map bundle -&gt;
-        [
-            amount             : amountArg,
-            fee                : (bundle.taxPayerFee as Integer),
-            pspId              : (bundle.idPsp as String),
-            language           : &apos;IT&apos;,
-            paymentInstrumentId: paymentMethodIds[method],
-            details            : [ detailType: &apos;apm&apos; ],
-            isAllCCP           : isAllCCPArg
-        ]
-    }
+def createAuthorizationRequestAPM = { String _orderId, boolean isAllCCPArg, int amountArg, Map bundle, String paymentInstrumentId -&gt;
+   [
+       amount             : amountArg,
+       fee                : (bundle.taxPayerFee as Integer),
+       pspId              : (bundle.idPsp as String),
+       language           : &apos;IT&apos;,
+       paymentInstrumentId: paymentInstrumentId,
+       details            : [ detailType: &apos;apm&apos; ],
+       isAllCCP           : isAllCCPArg
+   ]
 }
 
 
-def createAuthorizationRequestRedirect = { PaymentMethod method -&gt;
-    return { String _orderId, boolean isAllCCPArg, int amountArg, Map bundle -&gt;
-        [
-            amount             : amountArg,
-            fee                : (bundle.taxPayerFee as Integer),
-            pspId              : (bundle.idPsp as String),
-            language           : &apos;IT&apos;,
-            paymentInstrumentId: paymentMethodIds[method],
-            details            : [ detailType: &apos;redirect&apos; ],
-            isAllCCP           : isAllCCPArg
-        ]
-    }
+def createAuthorizationRequestRedirect = { String _orderId, boolean isAllCCPArg, int amountArg, Map bundle, String paymentInstrumentId -&gt;
+   [
+       amount             : amountArg,
+       fee                : (bundle.taxPayerFee as Integer),
+       pspId              : (bundle.idPsp as String),
+       language           : &apos;IT&apos;,
+       paymentInstrumentId: paymentInstrumentId,
+       details            : [ detailType: &apos;redirect&apos; ],
+       isAllCCP           : isAllCCPArg
+   ]
 }
 
 def functionMap = [
-    (PaymentMethod.CARDS)       : createAuthorizationRequestCards,
-    (PaymentMethod.BANCOMATPAY) : createAuthorizationRequestAPM(PaymentMethod.BANCOMATPAY),
-    (PaymentMethod.PAYPAL)      : createAuthorizationRequestAPM(PaymentMethod.PAYPAL),
-    (PaymentMethod.MYBANK)      : createAuthorizationRequestAPM(PaymentMethod.MYBANK),
-    (PaymentMethod.REDIRECT_RPIC): createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RPIC),
-    (PaymentMethod.REDIRECT_RBPS): createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RBPS),
-    (PaymentMethod.REDIRECT_RBPB): createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RBPB),
-    (PaymentMethod.REDIRECT_RBPP): createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RBPP),
-    (PaymentMethod.REDIRECT_RBPR): createAuthorizationRequestRedirect(PaymentMethod.REDIRECT_RBPR),
+    &quot;CARDS&quot;       : createAuthorizationRequestCards,
+    &quot;BANCOMATPAY&quot; : createAuthorizationRequestAPM,
+    &quot;PAYPAL&quot;      : createAuthorizationRequestAPM,
+    &quot;MYBANK&quot;      : createAuthorizationRequestAPM,
+    &quot;REDIRECT_RPIC&quot;: createAuthorizationRequestRedirect,
+    &quot;REDIRECT_RBPS&quot;: createAuthorizationRequestRedirect,
+    &quot;PaymentMethod.REDIRECT_RBPB&quot;: createAuthorizationRequestRedirect,
+    &quot;PaymentMethod.REDIRECT_RBPP&quot;: createAuthorizationRequestRedirect,
+    &quot;PaymentMethod.REDIRECT_RBPR&quot;: createAuthorizationRequestRedirect,
 ]
 
 
-def paymentMethod = PaymentMethod.valueOf(vars.get(&apos;PAYMENT_METHOD&apos;))
+def paymentMethod = vars.get(&apos;PAYMENT_METHOD&apos;)
+def paymentInstrumentId = vars.get(&apos;PAYMENT_METHOD_ID&apos;)
 def builder = functionMap[paymentMethod]
 
 def parseBool = { String s -&gt; s?.equalsIgnoreCase(&apos;true&apos;) }
-
 
 def authReq = builder(
 	vars.get(&apos;ORDER_ID&apos;),
 	parseBool(vars.get(&apos;IS_ALL_CCP&apos;)),
 	vars.get(&apos;TOTAL_AMOUNT&apos;).toInteger(),
-	new JsonSlurper().parseText(vars.get(&apos;PSP_BUNDLE&apos;)) as Map
+	new JsonSlurper().parseText(vars.get(&apos;PSP_BUNDLE&apos;)) as Map,
+	paymentInstrumentId
 )
 
 def jsonBody = JsonOutput.toJson(authReq)
@@ -630,14 +585,7 @@ log.info(&quot;AUTH_REQUEST_JSON: &quot; + JsonOutput.prettyPrint(jsonBody));
           <stringProp name="LoopController.loops">5</stringProp>
         </LoopController>
         <hashTree>
-          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer [sleep 3s]">
-            <stringProp name="ConstantTimer.delay">3000</stringProp>
-          </ConstantTimer>
-          <hashTree/>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get Transaction">
-            <stringProp name="HTTPSampler.domain">${URL_BASE_PATH}</stringProp>
-            <stringProp name="HTTPSampler.port">443</stringProp>
-            <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Transaction">
             <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/transactions/${TRANSACTION_ID}/outcomes</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -662,6 +610,10 @@ log.info(&quot;AUTH_REQUEST_JSON: &quot; + JsonOutput.prettyPrint(jsonBody));
             </HeaderManager>
             <hashTree/>
           </hashTree>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer [sleep 3s]">
+            <stringProp name="ConstantTimer.delay">3000</stringProp>
+          </ConstantTimer>
+          <hashTree/>
         </hashTree>
       </hashTree>
       <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
