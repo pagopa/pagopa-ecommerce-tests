@@ -117,7 +117,7 @@ final Map&lt;PaymentMethod, String&gt; pspsIds = [
 
 if (vars.get(&apos;PAYMENT_METHOD&apos;) == null &amp;&amp; vars.get(&apos;PAYMENT_METHOD_ID&apos;) == null) {
 	def values = PaymentMethod.values()
-	int half = (int) (values.length / 2)
+	int half = (int) (values.length-1)
 	int idx = new Random().nextInt(half)
 	
 	def paymentMethod = (vars.get(&apos;USE_PAYMENT_METHOD&apos;) ?  PaymentMethod.valueOf(vars.get(&apos;USE_PAYMENT_METHOD&apos;).trim().toUpperCase()) : values[idx])
@@ -195,7 +195,7 @@ if (vars.get(&apos;PAYMENT_METHOD&apos;) == null &amp;&amp; vars.get(&apos;PAYME
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor" enabled="true">
             <stringProp name="scriptLanguage">groovy</stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="filename"></stringProp>
@@ -208,7 +208,7 @@ vars.put(&apos;RPT_ID&apos;, rpt)
 log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">tags</stringProp>
@@ -231,7 +231,7 @@ log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Create Session (CARDS)">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Create Session (CARDS)" enabled="true">
             <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/payment-methods/${PAYMENT_METHOD_ID}/sessions</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -263,7 +263,7 @@ log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
               </collectionProp>
             </HeaderManager>
             <hashTree/>
-            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor">
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor" enabled="true">
               <stringProp name="JSONPostProcessor.referenceNames">ORDER_ID</stringProp>
               <stringProp name="JSONPostProcessor.jsonPathExprs">$.orderId</stringProp>
               <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
@@ -289,7 +289,7 @@ log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor" enabled="true">
             <stringProp name="scriptLanguage">groovy</stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="filename"></stringProp>
@@ -332,7 +332,7 @@ vars.put(&apos;ACTIVATION_REQUEST_JSON&apos;, json)
 log.info(&quot;ACTIVATION_REQUEST_JSON:\n${json}&quot;)</stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">tags</stringProp>
@@ -345,7 +345,7 @@ log.info(&quot;ACTIVATION_REQUEST_JSON:\n${json}&quot;)</stringProp>
             </collectionProp>
           </HeaderManager>
           <hashTree/>
-          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor">
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor" enabled="true">
             <stringProp name="scriptLanguage">groovy</stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="filename"></stringProp>
@@ -380,7 +380,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Session (CARDS)">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Session (CARDS)" enabled="true">
             <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/payment-methods/${PAYMENT_METHOD_ID}/sessions/${ORDER_ID}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -391,7 +391,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">tags</stringProp>
@@ -538,9 +538,9 @@ def functionMap = [
     &quot;MYBANK&quot;      : createAuthorizationRequestAPM,
     &quot;REDIRECT_RPIC&quot;: createAuthorizationRequestRedirect,
     &quot;REDIRECT_RBPS&quot;: createAuthorizationRequestRedirect,
-    &quot;PaymentMethod.REDIRECT_RBPB&quot;: createAuthorizationRequestRedirect,
-    &quot;PaymentMethod.REDIRECT_RBPP&quot;: createAuthorizationRequestRedirect,
-    &quot;PaymentMethod.REDIRECT_RBPR&quot;: createAuthorizationRequestRedirect,
+    &quot;REDIRECT_RBPB&quot;: createAuthorizationRequestRedirect,
+    &quot;REDIRECT_RBPP&quot;: createAuthorizationRequestRedirect,
+    &quot;REDIRECT_RBPR&quot;: createAuthorizationRequestRedirect,
 ]
 
 
@@ -564,7 +564,7 @@ log.info(&quot;AUTH_REQUEST_JSON: &quot; + JsonOutput.prettyPrint(jsonBody));
 </stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">tags</stringProp>
@@ -593,7 +593,7 @@ log.info(&quot;AUTH_REQUEST_JSON: &quot; + JsonOutput.prettyPrint(jsonBody));
             </elementProp>
           </HTTPSamplerProxy>
           <hashTree>
-            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
               <collectionProp name="HeaderManager.headers">
                 <elementProp name="" elementType="Header">
                   <stringProp name="Header.name">tags</stringProp>
