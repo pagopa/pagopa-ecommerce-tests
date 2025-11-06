@@ -21,12 +21,14 @@
           </elementProp>
         </collectionProp>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group">
         <intProp name="ThreadGroup.num_threads">17</intProp>
         <intProp name="ThreadGroup.ramp_time">600</intProp>
-        <longProp name="ThreadGroup.duration">4200</longProp>
+        <longProp name="ThreadGroup.duration">3600</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
@@ -36,7 +38,7 @@
         </elementProp>
       </ThreadGroup>
       <hashTree>
-        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor for Header">
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor for Header" enabled="true">
           <stringProp name="cacheKey">true</stringProp>
           <stringProp name="filename"></stringProp>
           <stringProp name="parameters"></stringProp>
@@ -141,7 +143,7 @@ if (vars.get(&apos;PAYMENT_METHOD&apos;) == null &amp;&amp; vars.get(&apos;PAYME
           <stringProp name="scriptLanguage">groovy</stringProp>
         </JSR223PreProcessor>
         <hashTree/>
-        <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults">
+        <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults" enabled="true">
           <stringProp name="HTTPSampler.domain">${URL_BASE_PATH}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
           <stringProp name="HTTPSampler.protocol">https</stringProp>
@@ -151,7 +153,7 @@ if (vars.get(&apos;PAYMENT_METHOD&apos;) == null &amp;&amp; vars.get(&apos;PAYME
           <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
         </ConfigTestElement>
         <hashTree/>
-        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
           <collectionProp name="HeaderManager.headers">
             <elementProp name="" elementType="Header">
               <stringProp name="Header.name">Content-Type</stringProp>
@@ -176,7 +178,7 @@ if (vars.get(&apos;PAYMENT_METHOD&apos;) == null &amp;&amp; vars.get(&apos;PAYME
           </collectionProp>
         </HeaderManager>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Verify Payment Notice">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Verify Payment Notice" enabled="true">
           <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/payment-requests/${RPT_ID}</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -222,7 +224,7 @@ log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If PAYMENT_METHOD == CARDS">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If PAYMENT_METHOD == CARDS" enabled="true">
           <stringProp name="IfController.condition">${__groovy(
   def pm = vars.get(&apos;PAYMENT_METHOD&apos;);
   pm == &apos;CARDS&apos;
@@ -272,7 +274,7 @@ log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
             <hashTree/>
           </hashTree>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Activate Transaction">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Activate Transaction" enabled="true">
           <stringProp name="HTTPSampler.path">${BASE_PATH_V2}/transactions?recaptchaResponse=test</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -371,7 +373,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
           </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If PAYMENT_METHOD == CARDS">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If PAYMENT_METHOD == CARDS" enabled="true">
           <stringProp name="IfController.condition">${__groovy(
   def pm = vars.get(&apos;PAYMENT_METHOD&apos;);
   pm == &apos;CARDS&apos;
@@ -406,7 +408,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
             <hashTree/>
           </hashTree>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Calculate Fees">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Calculate Fees" enabled="true">
           <stringProp name="HTTPSampler.path">${BASE_PATH_V2}/payment-methods/${PAYMENT_METHOD_ID}/fees?maxOccurences=1235</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -445,7 +447,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">tags</stringProp>
@@ -458,7 +460,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
             </collectionProp>
           </HeaderManager>
           <hashTree/>
-          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor">
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor" enabled="true">
             <stringProp name="JSONPostProcessor.referenceNames">PSP_BUNDLE</stringProp>
             <stringProp name="JSONPostProcessor.jsonPathExprs">$.bundles[?(@.idPsp == &apos;${PAYMENT_METHOD_PSP_ID}&apos;)]</stringProp>
             <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
@@ -466,7 +468,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
           </JSONPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Request Authorization Transaction">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Request Authorization Transaction" enabled="true">
           <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/transactions/${TRANSACTION_ID}/auth-requests</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -483,7 +485,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor" enabled="true">
             <stringProp name="scriptLanguage">groovy</stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="filename"></stringProp>
@@ -578,11 +580,11 @@ log.info(&quot;AUTH_REQUEST_JSON: &quot; + JsonOutput.prettyPrint(jsonBody));
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Pool Outcomes (x5)">
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Pool Outcomes (x5)" enabled="true">
           <stringProp name="LoopController.loops">5</stringProp>
         </LoopController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Transaction">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Transaction" enabled="true">
             <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/transactions/${TRANSACTION_ID}/outcomes</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -607,13 +609,13 @@ log.info(&quot;AUTH_REQUEST_JSON: &quot; + JsonOutput.prettyPrint(jsonBody));
             </HeaderManager>
             <hashTree/>
           </hashTree>
-          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer [sleep 3s]">
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer [sleep 3s]" enabled="true">
             <stringProp name="ConstantTimer.delay">3000</stringProp>
           </ConstantTimer>
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
