@@ -262,7 +262,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods/f25399bf-c56f-4bd2-adc9-7aef87410609/redirectUrl?rpt_id={{RPTID_NM3}}&amount=1000",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods/{{PAYMENT_METHOD_ID}}/redirectUrl?rpt_id={{RPTID_NM3}}&amount=1000",
 					"host": [
 						"{{HOSTNAME}}"
 					],
@@ -271,7 +271,7 @@
 						"io",
 						"v2",
 						"payment-methods",
-						"f25399bf-c56f-4bd2-adc9-7aef87410609",
+						"{{PAYMENT_METHOD_ID}}",
 						"redirectUrl"
 					],
 					"query": [
