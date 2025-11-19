@@ -196,26 +196,26 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - Get payment method\", function () {",
+							"pm.test(\"[ecommerce for IO - Guest Cards] - Get redirect URL\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.redirectUrl).to.be.a('string');",
+							"  pm.expect(responseJson.redirectUrl).to.include('scelta-salvataggio-carta');",
+							"  ",
+							"  // extract session token from redirectUrl",
 							"  const redirectUrl = responseJson.redirectUrl;",
+							"  const sessionTokenMatch = redirectUrl.match(/[?&#]sessionToken=([^&#]+)/);",
+							"  ",
+							"  if (sessionTokenMatch && sessionTokenMatch[1]) {",
+							"    const sessionToken = sessionTokenMatch[1];",
+							"    pm.environment.set('WEBVIEW_SESSION_TOKEN', sessionToken);",
+							"    console.log('Session token extracted from redirect URL');",
+							"  } else {",
+							"    throw new Error('Could not extract sessionToken from redirectUrl');",
+							"  }",
 							"});"
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							" "
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -245,7 +245,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods/{{PAYMENT_METHOD_ID}}/redirectUrl?rpt_id={{RPTID_NM3}}&amount=1000",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods/{{PAYMENT_METHOD_ID}}/redirectUrl?rpt_id={{RPTID_NM3}}&amount={{AMOUNT}}",
 					"host": [
 						"{{HOSTNAME}}"
 					],
@@ -264,8 +264,84 @@
 						},
 						{
 							"key": "amount",
-							"value": "1000"
+							"value": "{{AMOUNT}}"
 						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create payment method session to get orderId",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"const sdk = require('postman-collection');",
+							"",
+							"pm.test(\"[ecommerce for IO - Guest Cards] - Create payment method session\", function () {",
+							"  pm.response.to.have.status(200);",
+							"  const responseJson = pm.response.json();",
+							"  ",
+							"  pm.expect(responseJson.orderId).to.be.a('string');",
+							"  pm.expect(responseJson.correlationId).to.be.a('string');",
+							"  pm.expect(responseJson.paymentMethodData).to.be.an('object');",
+							"  pm.expect(responseJson.paymentMethodData.paymentMethod).to.equal('CARDS');",
+							"  pm.expect(responseJson.paymentMethodData.form).to.be.an('array');",
+							"  ",
+							"  pm.environment.set('ORDER_ID', responseJson.orderId);",
+							"  pm.environment.set('CORRELATION_ID', responseJson.correlationId);",
+							"  ",
+							"  console.log(`Order ID retrieved: ${responseJson.orderId}`);",
+							"  console.log(`Correlation ID: ${responseJson.correlationId}`);",
+							"  ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{WEBVIEW_SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-client-id",
+						"value": "IO",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/webview/v1/payment-methods/{{PAYMENT_METHOD_ID}}/sessions",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"webview",
+						"v1",
+						"payment-methods",
+						"{{PAYMENT_METHOD_ID}}",
+						"sessions"
 					]
 				}
 			},
@@ -278,26 +354,26 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - Activate ecommerce transaction\", () => {",
+							"pm.test(\"[ecommerce for IO - Guest Cards] - Activate ecommerce transaction\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.transactionId).to.be.a('string');",
+							"  pm.expect(responseJson.authToken).to.be.a('string');",
+							"  pm.expect(responseJson.status).to.equal('ACTIVATED');",
+							"  ",
 							"  pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
-							" });"
+							"  ",
+							"  // check we have the orderId from the previous session creation step",
+							"  const orderId = pm.environment.get('ORDER_ID');",
+							"  if (!orderId || orderId === 'ORDER_ID') {",
+							"    throw new Error('Valid orderId not found in environment');",
+							"  }",
+							"  ",
+							"  console.log(`Transaction created - ID: ${responseJson.transactionId}`);",
+							"  console.log(`Using orderId from session: ${orderId}`);",
+							"});"
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -339,34 +415,35 @@
 			"response": []
 		},
 		{
-			"name": "Get fees by amount and paymentMethodId by orderId",
+			"name": "Delete Transaction (Cleanup)",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - Get fees by walletId and paymentToken\", function () {",
-							"  pm.response.to.have.status(200);",
-							"  const responseJson = pm.response.json();",
-							"  const searchedIdPsp = pm.environment.get(\"ID_PSP\");",
-							"  pm.environment.set(\"ID_PSP\", responseJson.bundles.filter(b => b.idPsp === searchedIdPsp)[0].idPsp);",
-							"  pm.environment.set(\"FEE\", responseJson.bundles.filter(b => b.idPsp === searchedIdPsp)[0].taxPayerFee);",
+							"pm.test(\"[ecommerce for IO - Guest Cards] - Delete transaction (cleanup)\", function () {",
+							"  pm.response.to.have.status(202);",
+							"  console.log('Transaction cleaned up successfully');",
+							"  console.log('');",
+							"  console.log('='.repeat(70));",
+							"  console.log('Guest card payment SETUP flow completed successfully!');",
+							"  console.log('='.repeat(70));",
+							"  console.log('');",
+							"  console.log('This test validates the guest card payment setup flow:');",
+							"  console.log('  Session creation');",
+							"  console.log('  Payment info retrieval');",
+							"  console.log('  Payment method selection (CARDS)');",
+							"  console.log('  Redirect URL generation');",
+                            "  console.log('  Guest payment by card choice (no wallet onboarding)');",
+							"  console.log('  Payment method session creation (orderId)');",
+							"  console.log('  Transaction creation');",
+							"  console.log('  Transaction cleanup');",
+							"  console.log('');",
+							"  console.log('  NOTE: Complete E2E flow (fees + auth + GDI) requires browser');",
+							"  console.log('  interaction and is tested via E2E instead.');",
 							"});"
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							" "
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -381,89 +458,10 @@
 						}
 					]
 				},
-				"method": "POST",
+				"method": "DELETE",
 				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{   \n    \"orderId\": \"{{ORDER_ID}}\",\n    \"language\": \"it\",\n    \"paymentAmount\": {{AMOUNT}},\n    \"primaryCreditorInstitution\": \"77777777777\",\n    \"isAllCCP\": true,\n    \"transferList\": [\n        {\n            \"creditorInstitution\": \"77777777777\",\n            \"digitalStamp\": false,\n            \"transferCategory\": \"77777777777\"\n        }\n    ]\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
 				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods/{{PAYMENT_METHOD_ID}}/fees",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"ecommerce",
-						"io",
-						"v2",
-						"payment-methods",
-						"{{PAYMENT_METHOD_ID}}",
-						"fees"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Start new auth request by orderId",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - Authorization request\", function () {",
-							"  pm.response.to.have.status(200);",
-							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"AUTHORIZATION_URL\", responseJson.authorizationUrl);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"amount\": {{AMOUNT}},\n    \"fee\": {{FEE}},\n    \"pspId\": \"{{ID_PSP}}\",\n    \"language\": \"IT\",\n    \"isAllCCP\": true,\n    \"details\": {\n        \"detailType\": \"cards\",\n        \"orderId\": \"{{ORDER_ID}}\",\n        \"paymentMethodId\": \"{{PAYMENT_METHOD_ID}}\"\n    }\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/transactions/{{TRANSACTION_ID}}/auth-requests",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/transactions/{{TRANSACTION_ID}}",
 					"host": [
 						"{{HOSTNAME}}"
 					],
@@ -472,8 +470,7 @@
 						"io",
 						"v2",
 						"transactions",
-						"{{TRANSACTION_ID}}",
-						"auth-requests"
+						"{{TRANSACTION_ID}}"
 					]
 				}
 			},
