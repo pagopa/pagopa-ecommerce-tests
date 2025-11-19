@@ -165,12 +165,12 @@ When the user chooses "Sì", fills card details and submits through NPG iframes,
 
 ### Required Variables (passed via `--env-var` in pipeline)
 
-| Variable              | Description               | Example Value                                                                                                          |
-|-----------------------|---------------------------|------------------------------------------------------------------------------------------------------------------------|
-| `HOSTNAME`            | API base URL              | `https://api.dev.platform.pagopa.it`                                                                                   |
-| `USER_ID`             | Test user ID              | `05b47118-ac54-4324-90f0-59a784972184` (guest cards)<br>`21c6d8b5-1407-49aa-b39c-a635a1b186ce` (contextual onboarding) |
-| `WALLET_TOKEN_TEST`   | Session wallet auth token | `$(WALLET_TOKEN_TEST_DEV)` (secret)                                                                                    |
-| `PAYMENT_METHOD_NAME` | Payment method to use     | `"CARDS"`                                                                                                              |
+| Variable              | Description               | Example Value                          |
+|-----------------------|---------------------------|----------------------------------------|
+| `HOSTNAME`            | API base URL              | `https://api.dev.platform.pagopa.it`   |
+| `USER_ID`             | Test user ID              | `05b47118-ac54-4324-90f0-59a784972184` |
+| `WALLET_TOKEN_TEST`   | Session wallet auth token | `$(WALLET_TOKEN_TEST_DEV)` (secret)    |
+| `PAYMENT_METHOD_NAME` | Payment method to use     | `"CARDS"`                              |
 
 ### Dynamically Set Variables (by collection)
 
@@ -223,7 +223,7 @@ newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest-cards.postma
 #### Via Newman (CI Pipeline)
 ```bash
 newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-contextual-onboarding.postman_collection.json \
-  --env-var USER_ID="21c6d8b5-1407-49aa-b39c-a635a1b186ce" \
+  --env-var USER_ID="<valid_id>" \
   --env-var PAYMENT_METHOD_NAME="CARDS" \
   --env-var HOSTNAME="https://api.dev.platform.pagopa.it" \
   --env-var WALLET_TOKEN_TEST="<secret-token>" \
@@ -236,8 +236,8 @@ newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-contextual-onboarding
 1. Import `ecommerce-for-io-contextual-onboarding.postman_collection.json`
 2. Set environment variables:
    - `HOSTNAME`: `https://api.dev.platform.pagopa.it`
-   - `USER_ID`: `21c6d8b5-1407-49aa-b39c-a635a1b186ce`
+   - `USER_ID`: `<valid_id`
    - `PAYMENT_METHOD_NAME`: `CARDS`
-   - `WALLET_TOKEN_TEST`: `<your-test-token>`
+   - `WALLET_TOKEN_TEST`: `<secret>`
 3. Run collection
 
