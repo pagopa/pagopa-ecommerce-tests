@@ -31,6 +31,11 @@ parameters:
     type: boolean
     default: true
 
+  - name: 'CARDS_GUEST'
+    displayName: 'Test cards for guest payment flux - setup flow onl'
+    type: boolean
+    default: true
+
 variables:
   - name: 'HOSTNAME'
     ${{ if eq( parameters.ENVIRONMENT, 'UAT') }}:
@@ -124,6 +129,27 @@ stages :
             displayName: 'Newman installation'
           - script: |
               newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest.postman_collection.json --env-var PAYMENT_USER_ID=$(payment_user_id) --env-var PAYMENT_METHOD_NAME="BANCOMATPAY" --env-var HOSTNAME=$(hostname) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-apm-bpay-nw-api-TEST.xml
+            displayName: 'Run api test'
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml'
+              searchFolder: '$(System.DefaultWorkingDirectory)'
+
+  - stage: 'API_tests_eCommerce_for_IO_guest_Cards_NW'
+    displayName: 'CARDS - eCommerce for IO - Guest Cards - Setup Flow - NW - Run postman collection'
+    condition: and(succeeded(), eq('${{parameters.CARDS_GUEST}}', true))
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: api_tests
+        steps:
+          - script: |
+              yarn global add newman
+            displayName: 'Newman installation'
+          - script: |
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest-cards.postman_collection.json --env-var USER_ID=$(payment_user_id) --env-var PAYMENT_METHOD_NAME="CARDS" --env-var HOSTNAME=$(hostname) --env-var WALLET_TOKEN_TEST=$(wallet_token_test) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-guest-cards-api-TEST.xml
             displayName: 'Run api test'
           - task: PublishTestResults@2
             condition: succeededOrFailed()
