@@ -16,7 +16,7 @@ This directory contains Postman collections for testing eCommerce for IO payment
 - Supports non-card payment methods (PayPal, BPAY)
 - Complete flow from session to authorization
 
-### 3. `ecommerce-for-io-V2-payguest-cards.postman_collection.json`
+### 3. `ecommerce-for-io-payguest-cards.postman_collection.json`
 **Flow:** Guest payment with cards - SETUP FLOW ONLY
 - Tests the new card save choice functionality ("No, non salvare")
 - Validates setup phase: session → payment method session → transaction → cleanup
@@ -112,7 +112,7 @@ newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest-cards.postma
 ```
 
 ### Via Postman UI (Local Testing)
-1. Import `ecommerce-for-io-V2-payguest-cards.postman_collection.json`
+1. Import `ecommerce-for-io-payguest-cards.postman_collection.json`
 2. Set environment variables:
    - `HOSTNAME`: `https://api.dev.platform.pagopa.it`
    - `USER_ID`: `05b47118-ac54-4324-90f0-59a784972184`
