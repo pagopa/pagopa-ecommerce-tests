@@ -1,0 +1,513 @@
+{
+	"info": {
+		"_postman_id": "44881e50-f70d-4c69-b7ef-82ccba152388",
+		"name": "eCommerce for IO V2 (contextual wallet onboarding)",
+		"description": "API test collection for contextual wallet onboarding payment flow",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "22960470"
+	},
+	"item": [
+		{
+			"name": "Start new eCommerce session transaction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Contextual Onboarding] - Start session\", function () {",
+							"  pm.response.to.have.status(201);",
+							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.token).to.be.a('string');",
+							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.token);",
+							"  console.log(\"Session token created successfully\");",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{WALLET_TOKEN_TEST}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"userId\": \"{{USER_ID}}\",\n    \"expiryInMinutes\": 90000\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/session-wallet/mock/v1/session",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"session-wallet",
+						"mock",
+						"v1",
+						"session"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Payment Info by rptId",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Contextual Onboarding] - GET payment info by RPT id\", () => {",
+							"  pm.response.to.have.status(200);",
+							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.paymentContextCode).to.be.a('string');",
+							"  pm.expect(responseJson.rptId).to.be.a('string');",
+							"  pm.expect(responseJson.amount).to.be.a('number');",
+							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentContextCode);",
+							"  pm.environment.set(\"RPTID_NM3\", responseJson.rptId);",
+							"  pm.environment.set(\"AMOUNT\", responseJson.amount);",
+							"  console.log(`Payment info retrieved - Amount: ${responseJson.amount}, RPT ID: ${responseJson.rptId}`);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"// Generate random RPT ID (77777777777 + 18 random digits)",
+							"pm.environment.set(\"RPTID_NM3\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-requests/{{RPTID_NM3}}",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v2",
+						"payment-requests",
+						"{{RPTID_NM3}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all payment methods",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Contextual Onboarding] - Get payment method\", function () {",
+							"  pm.response.to.have.status(200);",
+							"  const responseJson = pm.response.json();",
+							"  let searchedPaymentMethodName = pm.environment.get(\"PAYMENT_METHOD_NAME\");",
+							"  let paymentMethod = responseJson.paymentMethods.filter(p => p.name === searchedPaymentMethodName)[0];",
+							"  if(paymentMethod) {",
+							"    pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethod.id);",
+							"    console.log(`Selected payment method: ${paymentMethod.name} (ID: ${paymentMethod.id})`);",
+							"  } else {",
+							"    throw Error(`No payment method found for name ${searchedPaymentMethodName}`);",
+							"  }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v2",
+						"payment-methods"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get method redirect url",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Contextual Onboarding] - Get redirect URL\", function () {",
+							"  pm.response.to.have.status(200);",
+							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.redirectUrl).to.be.a('string');",
+							"  pm.expect(responseJson.redirectUrl).to.include('scelta-salvataggio-carta');",
+							"  ",
+							"  // extract session token from redirectUrl",
+							"  const redirectUrl = responseJson.redirectUrl;",
+							"  const sessionTokenMatch = redirectUrl.match(/[?&#]sessionToken=([^&#]+)/);",
+							"  ",
+							"  if (sessionTokenMatch && sessionTokenMatch[1]) {",
+							"    const sessionToken = sessionTokenMatch[1];",
+							"    pm.environment.set('WEBVIEW_SESSION_TOKEN', sessionToken);",
+							"    console.log('Session token extracted from redirect URL');",
+							"  } else {",
+							"    throw new Error('Could not extract sessionToken from redirectUrl');",
+							"  }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods/{{PAYMENT_METHOD_ID}}/redirectUrl?rpt_id={{RPTID_NM3}}&amount={{AMOUNT}}",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v2",
+						"payment-methods",
+						"{{PAYMENT_METHOD_ID}}",
+						"redirectUrl"
+					],
+					"query": [
+						{
+							"key": "rpt_id",
+							"value": "{{RPTID_NM3}}"
+						},
+						{
+							"key": "amount",
+							"value": "{{AMOUNT}}"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create webview transaction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Contextual Onboarding] - Create webview transaction\", function () {",
+							"  pm.response.to.have.status(200);",
+							"  const responseJson = pm.response.json();",
+							"  ",
+							"  pm.expect(responseJson.transactionId).to.be.a('string');",
+							"  pm.expect(responseJson.status).to.equal('ACTIVATED');",
+							"  pm.expect(responseJson.authToken).to.be.a('string');",
+							"  ",
+							"  pm.environment.set('TRANSACTION_ID', responseJson.transactionId);",
+							"  pm.environment.set('ECOMMERCE_AUTH_TOKEN', responseJson.authToken);",
+							"  ",
+							"  console.log(`Webview transaction created - ID: ${responseJson.transactionId}`);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{WEBVIEW_SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"paymentNotices\": [\n        {\n            \"rptId\": \"{{RPTID_NM3}}\",\n            \"amount\": \"{{AMOUNT}}\"\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/webview/v1/transactions",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"webview",
+						"v1",
+						"transactions"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create wallet for transaction",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Contextual Onboarding] - Create wallet\", function () {",
+							"  pm.response.to.have.status(201);",
+							"  const responseJson = pm.response.json();",
+							"  ",
+							"  pm.expect(responseJson.walletId).to.be.a('string');",
+							"  pm.expect(responseJson.redirectUrl).to.be.a('string');",
+							"  ",
+							"  pm.environment.set('WALLET_ID', responseJson.walletId);",
+							"  ",
+							"  // extract wallet jwt token from redirectUrl for next request",
+							"  const redirectUrl = responseJson.redirectUrl;",
+							"  const walletTokenMatch = redirectUrl.match(/walletToken=([^&#]+)/);",
+							"  ",
+							"  if (walletTokenMatch && walletTokenMatch[1]) {",
+							"    pm.environment.set('WALLET_JWT_TOKEN', walletTokenMatch[1]);",
+							"    console.log(`Wallet created - ID: ${responseJson.walletId}`);",
+							"  } else {",
+							"    throw new Error('Could not extract wallet JWT token from redirectUrl');",
+							"  }",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{WEBVIEW_SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "x-ecommerce-session-token",
+						"value": "{{ECOMMERCE_AUTH_TOKEN}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"useDiagnosticTracing\": true,\n    \"paymentMethodId\": \"{{PAYMENT_METHOD_ID}}\",\n    \"amount\": \"{{AMOUNT}}\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/webview/v1/transactions/{{TRANSACTION_ID}}/wallets",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"webview",
+						"v1",
+						"transactions",
+						"{{TRANSACTION_ID}}",
+						"wallets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create wallet session",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Contextual Onboarding] - Create wallet session\", function () {",
+							"  pm.response.to.have.status(200);",
+							"  const responseJson = pm.response.json();",
+							"  ",
+							"  pm.expect(responseJson.orderId).to.be.a('string');",
+							"  pm.expect(responseJson.sessionData).to.be.an('object');",
+							"  pm.expect(responseJson.sessionData.paymentMethodType).to.equal('cards');",
+							"  pm.expect(responseJson.sessionData.cardFormFields).to.be.an('array');",
+							"  ",
+							"  pm.environment.set('ORDER_ID', responseJson.orderId);",
+							"  ",
+							"  console.log(`Wallet NPG session created - orderId: ${responseJson.orderId}`);",
+							"  console.log('');",
+							"  console.log('='.repeat(70));",
+							"  console.log('Contextual onboarding setup flow completed successfully!');",
+							"  console.log('='.repeat(70));",
+							"  console.log('');",
+							"  console.log('This test validates the contextual onboarding setup flow:');",
+							"  console.log('  ✓ Session creation');",
+							"  console.log('  ✓ Payment info retrieval');",
+							"  console.log('  ✓ Payment method selection (CARDS)');",
+							"  console.log('  ✓ Redirect URL generation');",
+							"  console.log('  ✓ Webview transaction creation');",
+							"  console.log('  ✓ Wallet creation');",
+							"  console.log('  ✓ Wallet session creation (orderId)');",
+							"  console.log('');",
+							"  console.log('  NOTE: Complete flow requires browser interaction');",
+							"  console.log('  and is tested via E2E instead.');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{WALLET_JWT_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"paymentMethodType\": \"cards\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/webview-payment-wallet/v1/wallets/{{WALLET_ID}}/sessions",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"webview-payment-wallet",
+						"v1",
+						"wallets",
+						"{{WALLET_ID}}",
+						"sessions"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}
