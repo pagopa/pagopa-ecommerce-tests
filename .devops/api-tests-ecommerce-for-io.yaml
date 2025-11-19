@@ -36,6 +36,11 @@ parameters:
     type: boolean
     default: true
 
+  - name: 'CARDS_CONTEXTUAL_ONBOARDING'
+    displayName: 'Test cards for contextual onboarding flux - setup flow (CHK-4619)'
+    type: boolean
+    default: true
+
 variables:
   - name: 'HOSTNAME'
     ${{ if eq( parameters.ENVIRONMENT, 'UAT') }}:
@@ -150,6 +155,27 @@ stages :
             displayName: 'Newman installation'
           - script: |
               newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest-cards.postman_collection.json --env-var USER_ID=$(payment_user_id) --env-var PAYMENT_METHOD_NAME="CARDS" --env-var HOSTNAME=$(hostname) --env-var WALLET_TOKEN_TEST=$(wallet_token_test) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-guest-cards-api-TEST.xml
+            displayName: 'Run api test'
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml'
+              searchFolder: '$(System.DefaultWorkingDirectory)'
+
+  - stage: 'API_tests_eCommerce_for_IO_contextual_onboarding_NW'
+    displayName: 'CARDS - eCommerce for IO - Contextual Onboarding - Setup Flow - NW - Run postman collection'
+    condition: and(succeeded(), eq('${{parameters.CARDS_CONTEXTUAL_ONBOARDING}}', true))
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: api_tests
+        steps:
+          - script: |
+              yarn global add newman
+            displayName: 'Newman installation'
+          - script: |
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-contextual-onboarding.postman_collection.json --env-var USER_ID=$(payment_user_id) --env-var PAYMENT_METHOD_NAME="CARDS" --env-var HOSTNAME=$(hostname) --env-var WALLET_TOKEN_TEST=$(wallet_token_test) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-contextual-onboarding-api-TEST.xml
             displayName: 'Run api test'
           - task: PublishTestResults@2
             condition: succeededOrFailed()
