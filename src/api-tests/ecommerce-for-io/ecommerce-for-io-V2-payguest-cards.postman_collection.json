@@ -2,6 +2,7 @@
 	"info": {
 		"_postman_id": "36201f06-b7aa-4561-9b9b-927c4bdd50a1",
 		"name": "eCommerce for IO V2 (guest payment with cards)",
+		"description": "API test collection for guest card payment flow",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "22960470"
 	},
@@ -13,15 +14,15 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - Start session\", function () {",
+							"pm.test(\"[ecommerce for IO - Guest Cards] - Start session\", function () {",
 							"  pm.response.to.have.status(201);",
 							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.token).to.be.a('string');",
 							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.token);",
+							"  console.log(\"Session token created successfully\");",
 							"});"
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -69,29 +70,29 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - GET payment info by RPT id\", () => {",
+							"pm.test(\"[ecommerce for IO - Guest Cards] - GET payment info by RPT id\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.paymentContextCode).to.be.a('string');",
+							"  pm.expect(responseJson.rptId).to.be.a('string');",
+							"  pm.expect(responseJson.amount).to.be.a('number');",
 							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentContextCode);",
 							"  pm.environment.set(\"RPTID_NM3\", responseJson.rptId);",
 							"  pm.environment.set(\"AMOUNT\", responseJson.amount);",
+							"  console.log(`Payment info retrieved - Amount: ${responseJson.amount}, RPT ID: ${responseJson.rptId}`);",
 							"});"
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
+						"type": "text/javascript"
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set(\"RPTID_NM3\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
-							""
+							"// Generate random RPT ID (77777777777 + 18 random digits)",
+							"pm.environment.set(\"RPTID_NM3\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));"
 						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
+						"type": "text/javascript"
 					}
 				}
 			],
@@ -107,14 +108,7 @@
 					]
 				},
 				"method": "GET",
-				"header": [
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
+				"header": [],
 				"url": {
 					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-requests/{{RPTID_NM3}}",
 					"host": [
@@ -138,31 +132,20 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - Get payment method\", function () {",
+							"pm.test(\"[ecommerce for IO - Guest Cards] - Get payment method\", function () {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  let searchedPaymentMethodName = pm.environment.get(\"PAYMENT_METHOD_NAME\");",
 							"  let paymentMethod = responseJson.paymentMethods.filter(p => p.name === searchedPaymentMethodName)[0];",
 							"  if(paymentMethod) {",
 							"    pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethod.id);",
-							"    console.log(`Selected payment method: ${paymentMethod.name}`);",
+							"    console.log(`Selected payment method: ${paymentMethod.name} (ID: ${paymentMethod.id})`);",
 							"  } else {",
 							"    throw Error(`No payment method found for name ${searchedPaymentMethodName}`);",
 							"  }",
 							"});"
 						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							" "
-						],
-						"type": "text/javascript",
-						"packages": {}
+						"type": "text/javascript"
 					}
 				}
 			],
