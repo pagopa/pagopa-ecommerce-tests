@@ -106,7 +106,7 @@ stages :
   - stage: 'API_tests_eCommerce_for_IO_creditCard_NW'
     displayName: 'CARDS - eCommerce for IO - Credit Card - NW - Run postman collection'
     condition: and(succeeded(), eq('${{parameters.CARDS_ONBOARDED}}', true))
-    dependsOn: [ ]
+    dependsOn: API_tests_eCommerce_for_IO_guest_Cards_NW
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
