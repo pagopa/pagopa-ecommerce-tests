@@ -194,23 +194,23 @@ When the user chooses "Sì", the flow creates a wallet, validates card data thro
 
 ### Dynamically Set Variables (by collection)
 
-| Variable                | Set By                        | Description                                   |
-|-------------------------|-------------------------------|-----------------------------------------------|
-| `SESSION_TOKEN`         | Start session                 | Session authentication token                  |
-| `RPTID_NM3`             | Pre-request script            | Randomly generated RPTID                      |
-| `PAYMENT_TOKEN`         | Get payment info              | Payment context code                          |
-| `AMOUNT`                | Get payment info              | Payment amount (e.g., 12000 cents)            |
-| `PAYMENT_METHOD_ID`     | Get payment methods           | Payment method ID for CARDS                   |
-| `WEBVIEW_SESSION_TOKEN` | Get redirect URL test         | Extracted from redirectUrl for NPG session    |
-| `ORDER_ID`              | Create payment method session | orderId from NPG session creation             |
-| `NPG_CORRELATION_ID`    | Create payment method session | NPG correlation ID (extracted from form src)  |
-| `NPG_SESSION_ID`        | Create payment method session | NPG session ID (extracted from form src)      |
-| `NPG_IFRAME_FIELD_URL`  | Create payment method session | Full NPG iframe field URL                     |
-| `TRANSACTION_ID`        | Start transaction             | Created transaction ID                        |
-| `OUTCOME_TOKEN`         | Start transaction             | authToken for transaction outcomes API (guest)|
-| `WALLET_ID`             | Create wallet                 | Created wallet ID (contextual onboarding only)|
-| `ECOMMERCE_AUTH_TOKEN`  | Create webview transaction    | eCommerce auth token (contextual onboarding)  |
-| `WALLET_JWT_TOKEN`      | Create wallet                 | Wallet JWT token (contextual onboarding only) |
+| Variable                | Set By                        | Description                                    |
+|-------------------------|-------------------------------|------------------------------------------------|
+| `SESSION_TOKEN`         | Start session                 | Session authentication token                   |
+| `RPTID_NM3`             | Pre-request script            | Randomly generated RPTID                       |
+| `PAYMENT_TOKEN`         | Get payment info              | Payment context code                           |
+| `AMOUNT`                | Get payment info              | Payment amount (e.g., 12000 cents)             |
+| `PAYMENT_METHOD_ID`     | Get payment methods           | Payment method ID for CARDS                    |
+| `WEBVIEW_SESSION_TOKEN` | Get redirect URL test         | Extracted from redirectUrl for NPG session     |
+| `ORDER_ID`              | Create payment method session | orderId from NPG session creation              |
+| `NPG_CORRELATION_ID`    | Create payment method session | NPG correlation ID (extracted from form src)   |
+| `NPG_SESSION_ID`        | Create payment method session | NPG session ID (extracted from form src)       |
+| `NPG_IFRAME_FIELD_URL`  | Create payment method session | Full NPG iframe field URL                      |
+| `TRANSACTION_ID`        | Start transaction             | Created transaction ID                         |
+| `OUTCOME_TOKEN`         | Start transaction             | authToken for transaction outcomes API (guest) |
+| `WALLET_ID`             | Create wallet                 | Created wallet ID (contextual onboarding only) |
+| `ECOMMERCE_AUTH_TOKEN`  | Create webview transaction    | eCommerce auth token (contextual onboarding)   |
+| `WALLET_JWT_TOKEN`      | Create wallet                 | Wallet JWT token (contextual onboarding only)  |
 
 ### Hardcoded Values (in collection)
 
