@@ -291,12 +291,31 @@
 							"  pm.expect(responseJson.paymentMethodData.form).to.be.an('array');",
 							"  ",
 							"  pm.environment.set('ORDER_ID', responseJson.orderId);",
-							"  pm.environment.set('CORRELATION_ID', responseJson.correlationId);",
+							"  ",
+							"  // extract npg session data from form src URL",
+							"  saveNpgData(responseJson);",
 							"  ",
 							"  console.log(`Order ID retrieved: ${responseJson.orderId}`);",
 							"  console.log(`Correlation ID: ${responseJson.correlationId}`);",
+							"});",
+							"",
+							"function saveNpgData(response) {",
+							"  console.log('Extracting NPG session data...');",
+							"  const fieldUrl = response.paymentMethodData.form[0].src;",
 							"  ",
-							"});"
+							"  const parsedUrl = new sdk.Url(fieldUrl).toJSON();",
+							"  const correlationId = parsedUrl.query.find((queryParam) => queryParam.key === 'correlationid').value;",
+							"  const sessionId = parsedUrl.query.find((queryParam) => queryParam.key === 'sessionid').value.replaceAll('%2F', '/').replaceAll('%2B', '+').replaceAll('%3D', '=');",
+							"  const fieldId = parsedUrl.query.find((queryParam) => queryParam.key === 'id').value;",
+							"  ",
+							"  console.log(`Correlation ID: [${correlationId}]`);",
+							"  console.log(`Session ID: [${sessionId}]`);",
+							"  console.log(`Field ID: [${fieldId}]`);",
+							"  ",
+							"  pm.environment.set('NPG_CORRELATION_ID', correlationId);",
+							"  pm.environment.set('NPG_SESSION_ID', sessionId);",
+							"  pm.environment.set('NPG_IFRAME_FIELD_URL', fieldUrl);",
+							"}"
 						],
 						"type": "text/javascript"
 					}
@@ -362,6 +381,7 @@
 							"  pm.expect(responseJson.status).to.equal('ACTIVATED');",
 							"  ",
 							"  pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
+							"  pm.environment.set(\"OUTCOME_TOKEN\", responseJson.authToken);",
 							"  ",
 							"  // check we have the orderId from the previous session creation step",
 							"  const orderId = pm.environment.get('ORDER_ID');",
@@ -370,6 +390,7 @@
 							"  }",
 							"  ",
 							"  console.log(`Transaction created - ID: ${responseJson.transactionId}`);",
+							"  console.log(`Outcome token saved for transaction outcomes API`);",
 							"  console.log(`Using orderId from session: ${orderId}`);",
 							"});"
 						],
@@ -415,32 +436,210 @@
 			"response": []
 		},
 		{
-			"name": "Delete Transaction (Cleanup)",
+			"name": "Get NPG field (populate NPG cookies)",
 			"event": [
 				{
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"[ecommerce for IO - Guest Cards] - Delete transaction (cleanup)\", function () {",
-							"  pm.response.to.have.status(202);",
-							"  console.log('Transaction cleaned up successfully');",
-							"  console.log('');",
-							"  console.log('='.repeat(70));",
-							"  console.log('Guest card payment SETUP flow completed successfully!');",
-							"  console.log('='.repeat(70));",
-							"  console.log('');",
-							"  console.log('This test validates the guest card payment setup flow:');",
-							"  console.log('  Session creation');",
-							"  console.log('  Payment info retrieval');",
-							"  console.log('  Payment method selection (CARDS)');",
-							"  console.log('  Redirect URL generation');",
-                            "  console.log('  Guest payment by card choice (no wallet onboarding)');",
-							"  console.log('  Payment method session creation (orderId)');",
-							"  console.log('  Transaction creation');",
-							"  console.log('  Transaction cleanup');",
-							"  console.log('');",
-							"  console.log('  NOTE: Complete E2E flow (fees + auth + GDI) requires browser');",
-							"  console.log('  interaction and is tested via E2E instead.');",
+							"pm.test(\"[ecommerce for IO - Guest Cards] - Get NPG field settings\", function () {",
+							"  pm.response.to.have.status(200);",
+							"  console.log('NPG cookies populated successfully');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true,
+				"disabledSystemHeaders": {
+					"user-agent": true,
+					"accept": true,
+					"accept-encoding": true,
+					"connection": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json; charset=utf-8",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Dest",
+						"value": "empty",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Mode",
+						"value": "cors",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Site",
+						"value": "same-origin",
+						"type": "text"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "{{$guid}}",
+						"type": "text"
+					},
+					{
+						"key": "Correlation-Id",
+						"value": "{{NPG_CORRELATION_ID}}",
+						"type": "text"
+					},
+					{
+						"key": "session",
+						"value": "{{NPG_SESSION_ID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://stg-ta.nexigroup.com/fe/build/field_settings/CARD_NUMBER?lang=ITA",
+					"protocol": "https",
+					"host": [
+						"stg-ta",
+						"nexigroup",
+						"com"
+					],
+					"path": [
+						"fe",
+						"build",
+						"field_settings",
+						"CARD_NUMBER"
+					],
+					"query": [
+						{
+							"key": "lang",
+							"value": "ITA"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Fill NPG text data (populate iframe card data fields)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Guest Cards] - Fill NPG card data\", function () {",
+							"  pm.response.to.have.status(200);",
+							"  console.log('NPG card data filled successfully');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disabledSystemHeaders": {
+					"user-agent": true,
+					"accept": true,
+					"accept-encoding": true,
+					"connection": true
+				}
+			},
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json; charset=utf-8",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Dest",
+						"value": "empty",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Mode",
+						"value": "cors",
+						"type": "text"
+					},
+					{
+						"key": "Sec-Fetch-Site",
+						"value": "same-origin",
+						"type": "text"
+					},
+					{
+						"key": "Idempotency-Key",
+						"value": "{{$guid}}",
+						"type": "text"
+					},
+					{
+						"key": "Correlation-Id",
+						"value": "{{NPG_CORRELATION_ID}}",
+						"type": "text"
+					},
+					{
+						"key": "session",
+						"value": "{{NPG_SESSION_ID}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"fieldValues\": [\n        {\n            \"id\": \"EXPIRATION_DATE\",\n            \"value\": \"12/30\"\n        },\n        {\n            \"id\": \"CARD_NUMBER\",\n            \"value\": \"4242424242424242\"\n        },\n        {\n            \"id\": \"SECURITY_CODE\",\n            \"value\": \"123\"\n        },\n        {\n            \"id\": \"CARDHOLDER_NAME\",\n            \"value\": \"Test Test\"\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://stg-ta.nexigroup.com/fe/build/text/",
+					"protocol": "https",
+					"host": [
+						"stg-ta",
+						"nexigroup",
+						"com"
+					],
+					"path": [
+						"fe",
+						"build",
+						"text",
+						""
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get fees by amount and paymentMethodId by orderId",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Guest Cards] - Get fees\", function () {",
+							"  pm.response.to.have.status(200);",
+							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.bundles).to.be.an('array');",
+							"  console.log(`Fees retrieved successfully`);",
 							"});"
 						],
 						"type": "text/javascript"
@@ -458,10 +657,76 @@
 						}
 					]
 				},
-				"method": "DELETE",
+				"method": "POST",
 				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"orderId\": \"{{ORDER_ID}}\",\n    \"language\": \"it\",\n    \"paymentAmount\": {{AMOUNT}},\n    \"primaryCreditorInstitution\": \"77777777777\",\n    \"isAllCCP\": true,\n    \"transferList\": [\n        {\n            \"creditorInstitution\": \"77777777777\",\n            \"digitalStamp\": false,\n            \"transferCategory\": \"77777777777\"\n        }\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
 				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/transactions/{{TRANSACTION_ID}}",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods/{{PAYMENT_METHOD_ID}}/fees",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"io",
+						"v2",
+						"payment-methods",
+						"{{PAYMENT_METHOD_ID}}",
+						"fees"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Start new auth request by orderId",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Guest Cards] - Authorization request\", function () {",
+							"  pm.response.to.have.status(200);",
+							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.authorizationUrl).to.be.a('string');",
+							"  console.log(`Authorization URL: ${responseJson.authorizationUrl}`);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{SESSION_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"amount\": {{AMOUNT}},\n    \"fee\": 95,\n    \"pspId\": \"BNLIITRR\",\n    \"language\": \"IT\",\n    \"isAllCCP\": true,\n    \"details\": {\n        \"detailType\": \"cards\",\n        \"orderId\": \"{{ORDER_ID}}\",\n        \"paymentMethodId\": \"{{PAYMENT_METHOD_ID}}\"\n    }\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/transactions/{{TRANSACTION_ID}}/auth-requests",
 					"host": [
 						"{{HOSTNAME}}"
 					],
@@ -470,7 +735,88 @@
 						"io",
 						"v2",
 						"transactions",
-						"{{TRANSACTION_ID}}"
+						"{{TRANSACTION_ID}}",
+						"auth-requests"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get transaction outcomes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[ecommerce for IO - Guest Cards] - Get transaction outcomes\", function () {",
+							"  pm.response.to.have.status(200);",
+							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.outcome).to.be.a('number');",
+							"  pm.expect(responseJson.outcome).to.be.oneOf([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 25, 99, 116, 117, 121]);",
+							"  pm.expect(responseJson.isFinalStatus).to.be.a('boolean');",
+							"  ",
+							"  console.log('');",
+							"  console.log('='.repeat(70));",
+							"  console.log('Guest card payment flow completed successfully!');",
+							"  console.log('='.repeat(70));",
+							"  console.log('');",
+							"  console.log('Flow validated:');",
+							"  console.log('  1. Session creation');",
+							"  console.log('  2. Payment info retrieval');",
+							"  console.log('  3. Payment method selection (CARDS)');",
+							"  console.log('  4. Redirect URL generation & webview session extraction');",
+							"  console.log('  5. Payment method session creation (NPG orderId)');",
+							"  console.log('  6. NPG field initialization');",
+							"  console.log('  7. NPG card data population');",
+							"  console.log('  8. Transaction activation');",
+							"  console.log('  9. Fees calculation');",
+							"  console.log('  10. Authorization request');",
+							"  console.log('  11. Transaction outcomes validation');",
+							"  console.log('');",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"disableBodyPruning": true
+			},
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{OUTCOME_TOKEN}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/webview/v1/transactions/{{TRANSACTION_ID}}/outcomes",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"webview",
+						"v1",
+						"transactions",
+						"{{TRANSACTION_ID}}",
+						"outcomes"
 					]
 				}
 			},
