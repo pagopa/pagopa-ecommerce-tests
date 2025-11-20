@@ -41,7 +41,7 @@
         <stringProp name="TestPlan.comments">Thread pool che simula un insieme di utenti che usa l&apos;app IO</stringProp>
         <stringProp name="ThreadGroup.num_threads">${USERS_NUMBER}</stringProp>
         <intProp name="ThreadGroup.ramp_time">0</intProp>
-        <longProp name="ThreadGroup.duration">600</longProp>
+        <longProp name="ThreadGroup.duration">1800</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
@@ -295,7 +295,7 @@ vars.put(&quot;CONTEXTUAL_ONBOARDING_SESSION_TOKEN&quot;, fragments[&quot;sessio
           </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create payment method session" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create payment method session">
           <stringProp name="TestPlan.comments">Create a new NPG session using payment methods POST session</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
@@ -329,7 +329,7 @@ vars.put(&quot;CONTEXTUAL_ONBOARDING_SESSION_TOKEN&quot;, fragments[&quot;sessio
           </JSONPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Start new transaction" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Start new transaction">
           <stringProp name="TestPlan.comments">Start a new transaction</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
@@ -482,7 +482,7 @@ vars.put(&apos;WALLET_ID&apos;, response.walletId)</stringProp>
           </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Calculate fees" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Calculate fees">
           <stringProp name="TestPlan.comments">Calculate fees for transaction based using ORDER_ID</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
@@ -504,7 +504,7 @@ vars.put(&apos;WALLET_ID&apos;, response.walletId)</stringProp>
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Build POST calculate fees request" enabled="true">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Build POST calculate fees request">
             <stringProp name="scriptLanguage">groovy</stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="filename"></stringProp>
@@ -518,7 +518,7 @@ def payload = [
  * so there would be no data associated to this ORDER ID in cache. adding it would make this calculate
  * fee api fail because of the missing bin information
  */
-        //orderId : vars.get(&apos;ORDER_ID&apos;),
+        orderId : &apos;E00000000000000000&apos;,
         language : &apos;it&apos;,
         paymentAmount : 1000,
         primaryCreditorInstitution : &apos;77777777777&apos;,
@@ -562,8 +562,9 @@ vars.put(&quot;PSP_FEES&quot;, psp.taxPayerFee.toString())
           </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create new auth request" enabled="true">
-          <stringProp name="TestPlan.comments">Create a new authorization request invoking transactions-service</stringProp>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create new auth request" enabled="false">
+          <stringProp name="TestPlan.comments">Create a new authorization request invoking transactions-service
+Disabled for test with real E2E services, will receive KO from NPG</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
           <stringProp name="HTTPSampler.protocol">https</stringProp>
@@ -584,7 +585,7 @@ vars.put(&quot;PSP_FEES&quot;, psp.taxPayerFee.toString())
           </elementProp>
         </HTTPSamplerProxy>
         <hashTree>
-          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Build POST transaction request" enabled="true">
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="Build POST transaction request">
             <stringProp name="scriptLanguage">groovy</stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="filename"></stringProp>
@@ -600,7 +601,7 @@ def payload = [
         isAllCCP: true,
         details:[
 		detailType: &quot;cards&quot;,
-		orderId: vars.get(&quot;ORDER_ID&quot;),
+		orderId: &quot;E00000000000000000&quot;,
 		paymentMethodId: vars.get(&quot;PAYMENT_METHOD_ID&quot;)
         	
         ]
