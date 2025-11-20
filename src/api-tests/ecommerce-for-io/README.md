@@ -17,31 +17,32 @@ This directory contains Postman collections for testing eCommerce for IO payment
 - Complete flow from session to authorization
 
 ### 3. `ecommerce-for-io-payguest-cards.postman_collection.json`
-**Flow:** Guest payment with cards - SETUP FLOW ONLY
+**Flow:** Guest payment with cards
 - Tests the new card save choice functionality ("No, non salvare")
-- Validates setup phase: session → payment method session → transaction → cleanup
-- **LIMITATION:** Does not test fees/auth (requires browser)
+- Complete E2E flow: session → NPG card entry → fees → authorization → outcomes
+- Validates payment without wallet onboarding
+- Uses hardcoded test card data for NPG submission
 
 ### 4. `ecommerce-for-io-contextual-onboarding.postman_collection.json`
-**Flow:** Contextual onboarding with cards - SETUP FLOW ONLY
+**Flow:** Contextual wallet onboarding with cards
 - Tests the new card save choice functionality ("Sì, salva la carta")
-- Validates setup phase: session → payment info → payment methods → redirect URL → webview transaction → wallet creation → wallet NPG session → status validation → cleanup
-- Includes validation checks for transaction and wallet status
-- **LIMITATION:** Does not test card submission/fees/auth/wallet validation (requires browser)
+- Complete E2E flow: session → wallet creation → NPG card entry → wallet validation → fees → authorization → outcomes
+- Validates wallet creation and payment with contextual onboarding
+- Uses hardcoded test card data for NPG submission
 
 ---
 
-## Guest Card Payment - Setup Flow
+## Guest Card Payment
 
 ### What This Flow Tests
 
-This collection validates the **setup phase** of the new guest card payment flow with card save choice. When users navigate to the payment page in a browser, they see a choice:
+This collection validates the **complete end-to-end** guest card payment flow with card save choice. When users navigate to the payment page in a browser, they see a choice:
 - **"Sì, salva la carta"** → Contextual onboarding (separate collection)
 - **"No, non salvare"** → Guest payment (THIS COLLECTION)
 
-When the user chooses "No", the browser automatically calls `POST /ecommerce/webview/v1/payment-methods/{id}/sessions` to create a session and generate an `orderId`. This collection simulates that browser behavior for API testing.
+When the user chooses "No", the flow proceeds through NPG card data entry, payment authorization, and outcome validation - all without creating a persistent wallet.
 
-### API Flow (Setup Phase Only)
+### API Flow
 
 1. **Start Session** → `POST /session-wallet/mock/v1/session`
    - Creates session with `userId`
@@ -63,30 +64,53 @@ When the user chooses "No", the browser automatically calls `POST /ecommerce/web
    - Simulates browser behavior when user chooses "No, non salvare"
    - Uses `WEBVIEW_SESSION_TOKEN` from redirect URL
    - Returns `orderId` and NPG iframe form data
-   - Sets `ORDER_ID` and `CORRELATION_ID`
+   - Extracts NPG session data: `NPG_CORRELATION_ID`, `NPG_SESSION_ID`
+   - Sets `ORDER_ID`
 
-6. **Start Transaction** → `POST /ecommerce/io/v2/transactions`
+6. **Get NPG Field Settings** → `GET https://stg-ta.nexigroup.com/fe/build/field_settings/CARD_NUMBER`
+   - Initializes NPG cookies for card data entry
+   - Uses extracted `NPG_CORRELATION_ID` and `NPG_SESSION_ID` headers
+
+7. **Fill NPG Card Data** → `POST https://stg-ta.nexigroup.com/fe/build/text/`
+   - Submits test card data to NPG iframe
+   - Hardcoded values: `4242424242424242`, `12/30`, `123`, `Test Test`
+   - Uses NPG session headers
+
+8. **Start Transaction** → `POST /ecommerce/io/v2/transactions`
    - Creates transaction with `RPTID` and `AMOUNT`
    - Returns `transactionId` with status `ACTIVATED`
+   - Saves `authToken` as `OUTCOME_TOKEN` for outcomes API
    - Sets `TRANSACTION_ID`
 
-7. **Delete Transaction** → `DELETE /ecommerce/io/v2/transactions/{id}`
-   - Cleans up the ACTIVATED transaction
-   - Returns `202 Accepted`
+9. **Get Fees** → `POST /ecommerce/io/v2/payment-methods/{id}/fees`
+   - Retrieves payment fees and available PSPs
+   - Uses hardcoded PSP: `BNLIITRR` and fee: `95`
+   - Request body includes `orderId`, `paymentAmount`, `transferList`
+
+10. **Start Authorization** → `POST /ecommerce/io/v2/transactions/{id}/auth-requests`
+    - Initiates payment authorization
+    - Uses hardcoded PSP `BNLIITRR` and fee `95`
+    - Details type: `cards` with `orderId` and `paymentMethodId`
+    - Returns `authorizationUrl`
+
+11. **Get Transaction Outcomes** → `GET /ecommerce/webview/v1/transactions/{id}/outcomes`
+    - Validates final transaction outcome
+    - Uses `OUTCOME_TOKEN` (authToken from transaction creation)
+    - Checks outcome code and `isFinalStatus`
 
 ---
 
-## Contextual Onboarding - Setup Flow
+## Contextual Wallet Onboarding Payment
 
 ### What This Flow Tests
 
-This collection validates the **setup phase** of the new contextual onboarding flow with card save choice. When users navigate to the payment page in a browser, they see a choice:
+This collection validates the **complete end-to-end** contextual wallet onboarding payment flow with card save choice. When users navigate to the payment page in a browser, they see a choice:
 - **"Sì, salva la carta"** → Contextual onboarding (THIS COLLECTION)
 - **"No, non salvare"** → Guest payment (separate collection)
 
-When the user chooses "Sì", fills card details and submits through NPG iframes, the browser generates a "magic link" containing both `walletId` and `transactionId`. The API flow would then use these values for fees, authorization, and wallet validation.
+When the user chooses "Sì", the flow creates a wallet, validates card data through NPG, and completes the payment while onboarding the card for future use.
 
-### API Flow (Setup Phase Only)
+### API Flow
 
 1. **Start Session** → `POST /session-wallet/mock/v1/session`
    - Creates session with `userId`
@@ -105,59 +129,55 @@ When the user chooses "Sì", fills card details and submits through NPG iframes,
    - Extracts `WEBVIEW_SESSION_TOKEN` from the URL
 
 5. **Create Webview Transaction** → `POST /ecommerce/webview/v1/transactions`
-   - Simulates browser behavior when user chooses "Sì, salva la carta"
-   - Uses `WEBVIEW_SESSION_TOKEN` from redirect URL
    - Creates transaction with `RPTID` and `AMOUNT`
    - Returns `transactionId` and `authToken`
    - Sets `TRANSACTION_ID` and `ECOMMERCE_AUTH_TOKEN`
 
 6. **Create Wallet** → `POST /ecommerce/webview/v1/transactions/{id}/wallets`
    - Creates wallet associated with the transaction
-   - Uses `x-ecommerce-session-token` header with `ECOMMERCE_AUTH_TOKEN`
-   - Returns `walletId` and redirect URL with wallet JWT token
-   - Sets `WALLET_ID` and `WALLET_JWT_TOKEN`
+   - Uses `x-ecommerce-session-token` header
+   - Returns `walletId` and redirect URL with `WALLET_JWT_TOKEN`
+   - Sets `WALLET_ID`
 
 7. **Create Wallet Session** → `POST /webview-payment-wallet/v1/wallets/{id}/sessions`
    - Creates NPG session for wallet
-   - Uses `WALLET_JWT_TOKEN` for authentication
    - Returns `orderId` and NPG iframe form fields
+   - Extracts NPG session data: `NPG_CORRELATION_ID`, `NPG_SESSION_ID`
    - Sets `ORDER_ID`
 
-8. **Get Transaction Status** → `GET /ecommerce/io/v2/transactions/{id}`
-   - Validates transaction is in `ACTIVATED` state
-   - Uses `SESSION_TOKEN` for authentication
-   - Returns transaction details and current status
+8. **Get NPG Field Settings** → `GET https://stg-ta.nexigroup.com/fe/build/field_settings/CARD_NUMBER`
+   - Initializes NPG cookies for card data entry
+   - Uses extracted `NPG_CORRELATION_ID` and `NPG_SESSION_ID` headers
 
-9. **Get Wallet Status** → `GET /io-payment-wallet/v1/wallets/{id}`
-   - Validates wallet status (expected: `CREATED` or `INITIALIZED`)
-   - Uses `SESSION_TOKEN` for authentication
-   - Returns wallet details and current status
+9. **Fill NPG Card Data** → `POST https://stg-ta.nexigroup.com/fe/build/text/`
+   - Submits test card data to NPG iframe
+   - Hardcoded values: `4242424242424242`, `12/30`, `123`, `Test Test`
+   - Uses NPG session headers
 
-10. **Delete Transaction** → `DELETE /ecommerce/io/v2/transactions/{id}`
-   - Cleans up the ACTIVATED transaction
-   - Uses `SESSION_TOKEN` for authentication
-   - Returns `202 Accepted`
+10. **Validate Wallet Session** → `POST /webview-payment-wallet/v1/wallets/{id}/sessions/{orderId}/validations`
+    - Validates wallet session after NPG card data submission
+    - Returns `orderId` and details with type `CARDS_CTX`
 
-11. **Delete Wallet** → `DELETE /io-payment-wallet/v1/wallets/{id}`
-   - Cleans up the created wallet
-   - Uses `SESSION_TOKEN` for authentication
-   - Returns `204 No Content`
+11. **Get Fees** → `POST /ecommerce/io/v2/payment-methods/{id}/fees`
+    - Retrieves payment fees and available PSPs
+    - Uses hardcoded PSP: `BNLIITRR` and fee: `95`
+    - Request body includes `walletId`, `paymentAmount`, `transferList`
 
-### Key Differences: Contextual Onboarding vs Guest Cards
+12. **Start Authorization** → `POST /ecommerce/io/v2/transactions/{id}/auth-requests`
+    - Initiates payment authorization
+    - Uses hardcoded PSP `BNLIITRR` and fee `95`
+    - Details type: `wallet` with `walletId`
+    - Returns `authorizationUrl`
 
-| Aspect                  | Contextual Onboarding                              | Guest Cards                                           |
-|-------------------------|----------------------------------------------------|-------------------------------------------------------|
-| User choice             | "Sì, salva la carta"                               | "No, non salvare"                                     |
-| Card saved to wallet?   | ✅ Yes                                              | ❌ No                                                  |
-| Wallet creation         | ✅ Tested (`POST /wallets`)                         | ❌ Not applicable                                      |
-| Session endpoint        | `/webview-payment-wallet/v1/wallets/{id}/sessions` | `/ecommerce/webview/v1/payment-methods/{id}/sessions` |
-| Transaction creation    | ✅ Tested (`POST /webview/v1/transactions`)         | ✅ Tested (`POST /io/v2/transactions`)                 |
-| Magic link contains     | `walletId` + `transactionId`                       | `orderId`                                             |
-| Fees request body       | `{"walletId": "..."}`                              | `{"orderId": "..."}`                                  |
-| Auth detail type        | `"wallet"`                                         | `"cards"`                                             |
-| Auth requires           | `walletId`                                         | `orderId` + `paymentMethodId`                         |
-| Post-payment validation | Wallet status = `VALIDATED`                        | N/A                                                   |
-| Cleanup (API tests)     | ✅ Transaction + Wallet deletion tested             | ✅ Transaction deletion tested                         |
+13. **Get Wallet Status** → `GET /io-payment-wallet/v1/wallets/{id}`
+    - Validates wallet status after authorization
+    - Expected status: `VALIDATION_REQUESTED`
+    - Confirms wallet is pending validation
+
+14. **Get Transaction Outcomes** → `GET /ecommerce/webview/v1/transactions/{id}/outcomes`
+    - Validates final transaction outcome
+    - Uses `ECOMMERCE_AUTH_TOKEN`
+    - Checks outcome code and `isFinalStatus`
 
 ---
 
@@ -165,29 +185,45 @@ When the user chooses "Sì", fills card details and submits through NPG iframes,
 
 ### Required Variables (passed via `--env-var` in pipeline)
 
-| Variable              | Description               | Example Value                          |
-|-----------------------|---------------------------|----------------------------------------|
-| `HOSTNAME`            | API base URL              | `https://api.dev.platform.pagopa.it`   |
-| `USER_ID`             | Test user ID              | `05b47118-ac54-4324-90f0-59a784972184` |
-| `WALLET_TOKEN_TEST`   | Session wallet auth token | `$(WALLET_TOKEN_TEST_DEV)` (secret)    |
-| `PAYMENT_METHOD_NAME` | Payment method to use     | `"CARDS"`                              |
+| Variable              | Description               | Example Value                                |
+|-----------------------|---------------------------|----------------------------------------------|
+| `HOSTNAME`            | API base URL              | `https://api.dev.platform.pagopa.it`         |
+| `USER_ID`             | Test user ID              | `05b47118-ac54-4324-90f0-59a784972184` (DEV) |
+| `WALLET_TOKEN_TEST`   | Session wallet auth token | `$(WALLET_TOKEN_TEST_DEV)` (secret)          |
+| `PAYMENT_METHOD_NAME` | Payment method to use     | `"CARDS"`                                    |
 
 ### Dynamically Set Variables (by collection)
 
-| Variable                | Set By                        | Description                                       |
-|-------------------------|-------------------------------|---------------------------------------------------|
-| `SESSION_TOKEN`         | Start session                 | Session authentication token                      |
-| `RPTID_NM3`             | Pre-request script            | Randomly generated RPTID                          |
-| `PAYMENT_TOKEN`         | Get payment info              | Payment context code                              |
-| `AMOUNT`                | Get payment info              | Payment amount (e.g., 12000 cents)                |
-| `PAYMENT_METHOD_ID`     | Get payment methods           | Payment method ID for CARDS                       |
-| `WEBVIEW_SESSION_TOKEN` | Get redirect URL              | Extracted from redirectUrl for the session        |
-| `ORDER_ID`              | Create NPG session            | orderId from session creation                     |
-| `CORRELATION_ID`        | Create payment method session | Correlation ID (guest cards only)                 |
-| `TRANSACTION_ID`        | Create transaction            | Created transaction ID                            |
-| `WALLET_ID`             | Create wallet                 | Created wallet ID (contextual onboarding only)    |
-| `ECOMMERCE_AUTH_TOKEN`  | Create webview transaction    | eCommerce auth token (contextual onboarding only) |
-| `WALLET_JWT_TOKEN`      | Create wallet                 | Wallet JWT token (contextual onboarding only)     |
+| Variable                | Set By                        | Description                                   |
+|-------------------------|-------------------------------|-----------------------------------------------|
+| `SESSION_TOKEN`         | Start session                 | Session authentication token                  |
+| `RPTID_NM3`             | Pre-request script            | Randomly generated RPTID                      |
+| `PAYMENT_TOKEN`         | Get payment info              | Payment context code                          |
+| `AMOUNT`                | Get payment info              | Payment amount (e.g., 12000 cents)            |
+| `PAYMENT_METHOD_ID`     | Get payment methods           | Payment method ID for CARDS                   |
+| `WEBVIEW_SESSION_TOKEN` | Get redirect URL test         | Extracted from redirectUrl for NPG session    |
+| `ORDER_ID`              | Create payment method session | orderId from NPG session creation             |
+| `NPG_CORRELATION_ID`    | Create payment method session | NPG correlation ID (extracted from form src)  |
+| `NPG_SESSION_ID`        | Create payment method session | NPG session ID (extracted from form src)      |
+| `NPG_IFRAME_FIELD_URL`  | Create payment method session | Full NPG iframe field URL                     |
+| `TRANSACTION_ID`        | Start transaction             | Created transaction ID                        |
+| `OUTCOME_TOKEN`         | Start transaction             | authToken for transaction outcomes API (guest)|
+| `WALLET_ID`             | Create wallet                 | Created wallet ID (contextual onboarding only)|
+| `ECOMMERCE_AUTH_TOKEN`  | Create webview transaction    | eCommerce auth token (contextual onboarding)  |
+| `WALLET_JWT_TOKEN`      | Create wallet                 | Wallet JWT token (contextual onboarding only) |
+
+### Hardcoded Values (in collection)
+
+| Variable               | Value                                  | Description                    |
+|------------------------|----------------------------------------|--------------------------------|
+| `NPG_HOST`             | `https://stg-ta.nexigroup.com`         | NPG server URL                 |
+| `NPG_TEST_CARD_PAN`    | `4242424242424242`                     | Test card number               |
+| `NPG_TEST_EXPIRATION`  | `12/30`                                | Test card expiration           |
+| `NPG_TEST_CVV`         | `123`                                  | Test card CVV                  |
+| `NPG_TEST_CARDHOLDER`  | `Test Test`                            | Test cardholder name           |
+| `NPG_IFRAME_FIELD_ID`  | `CARD_NUMBER`                          | NPG field identifier           |
+| `ID_PSP`               | `BNLIITRR`                             | PSP identifier for fees/auth   |
+| `FEE`                  | `95`                                   | Payment fee in cents           |
 
 ---
 
@@ -223,7 +259,7 @@ newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest-cards.postma
 #### Via Newman (CI Pipeline)
 ```bash
 newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-contextual-onboarding.postman_collection.json \
-  --env-var USER_ID="<valid_id>" \
+  --env-var USER_ID="21c6d8b5-1407-49aa-b39c-a635a1b186ce" \
   --env-var PAYMENT_METHOD_NAME="CARDS" \
   --env-var HOSTNAME="https://api.dev.platform.pagopa.it" \
   --env-var WALLET_TOKEN_TEST="<secret-token>" \
@@ -236,8 +272,8 @@ newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-contextual-onboarding
 1. Import `ecommerce-for-io-contextual-onboarding.postman_collection.json`
 2. Set environment variables:
    - `HOSTNAME`: `https://api.dev.platform.pagopa.it`
-   - `USER_ID`: `<valid_id`
+   - `USER_ID`: `21c6d8b5-1407-49aa-b39c-a635a1b186ce`
    - `PAYMENT_METHOD_NAME`: `CARDS`
-   - `WALLET_TOKEN_TEST`: `<secret>`
+   - `WALLET_TOKEN_TEST`: `<your-test-token>`
 3. Run collection
 

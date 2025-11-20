@@ -60,7 +60,7 @@ variables:
 
 stages :
   - stage: 'API_tests_eCommerce_for_IO_guest_Cards_NW'
-    displayName: 'CARDS - eCommerce for IO - Guest Cards - Setup Flow - NW - Run postman collection'
+    displayName: 'CARDS - eCommerce for IO - Guest Cards - NW - Run postman collection'
     condition: and(succeeded(), eq('${{parameters.CARDS_GUEST}}', true))
     dependsOn: []
     pool:
