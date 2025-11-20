@@ -43,7 +43,7 @@
         <stringProp name="TestPlan.comments">Thread pool che simula un insieme di utenti che usa l&apos;app IO</stringProp>
         <stringProp name="ThreadGroup.num_threads">${USERS_NUMBER}</stringProp>
         <intProp name="ThreadGroup.ramp_time">0</intProp>
-        <longProp name="ThreadGroup.duration">600</longProp>
+        <longProp name="ThreadGroup.duration">1800</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
