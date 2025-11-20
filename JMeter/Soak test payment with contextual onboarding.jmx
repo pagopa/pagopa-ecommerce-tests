@@ -26,6 +26,8 @@
           </elementProp>
         </collectionProp>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConstantThroughputTimer guiclass="TestBeanGUI" testclass="ConstantThroughputTimer" testname="Constant Throughput Timer">
@@ -41,7 +43,7 @@
         <stringProp name="TestPlan.comments">Thread pool che simula un insieme di utenti che usa l&apos;app IO</stringProp>
         <stringProp name="ThreadGroup.num_threads">${USERS_NUMBER}</stringProp>
         <intProp name="ThreadGroup.ramp_time">0</intProp>
-        <longProp name="ThreadGroup.duration">1800</longProp>
+        <longProp name="ThreadGroup.duration">600</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
@@ -102,7 +104,7 @@
           <stringProp name="TestPlan.comments">HTTP headers that will be set for each request</stringProp>
         </HeaderManager>
         <hashTree/>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Start session (mocked)">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Start session (mocked)" enabled="true">
           <stringProp name="TestPlan.comments">start a new session retrieving a new pagoPA platform session token</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
@@ -158,7 +160,7 @@ vars.put(&apos;startSessionRequest&apos;, JsonOutput.toJson(payload))</stringPro
           </JSONPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Verify payment notice">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Verify payment notice" enabled="true">
           <stringProp name="TestPlan.comments">verify payment notice by mean of payment requests service invocation</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
@@ -197,7 +199,7 @@ log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
           </ResponseAssertion>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get all payment methods">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get all payment methods" enabled="true">
           <stringProp name="TestPlan.comments">retrieve all payment methods</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
@@ -247,7 +249,7 @@ if(cardPaymentMethod != null){
           </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get method redirection URL">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get method redirection URL" enabled="true">
           <stringProp name="TestPlan.comments">Retrieve redirection URL associated to the payment method</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
@@ -280,7 +282,7 @@ if(cardPaymentMethod != null){
             <intProp name="Assertion.test_type">1</intProp>
           </ResponseAssertion>
           <hashTree/>
-          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Extract contextual onboarding session token" enabled="true">
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Extract contextual onboarding session token">
             <stringProp name="scriptLanguage">groovy</stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="filename"></stringProp>
@@ -321,15 +323,99 @@ vars.put(&quot;CONTEXTUAL_ONBOARDING_SESSION_TOKEN&quot;, fragments[&quot;sessio
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>
-          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="fetch orderId" enabled="true">
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="fetch orderId">
             <stringProp name="JSONPostProcessor.referenceNames">ORDER_ID</stringProp>
             <stringProp name="JSONPostProcessor.jsonPathExprs">$.orderId</stringProp>
             <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
             <stringProp name="JSONPostProcessor.defaultValues">-</stringProp>
           </JSONPostProcessor>
           <hashTree/>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Fetch POST session data">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">import groovy.json.JsonSlurper
+
+def response = new JsonSlurper().parseText(prev.getResponseDataAsString())
+
+def fieldUrlQueryParams = response.paymentMethodData.form[0].src.split(&quot;\\?&quot;)[1].split(&quot;&amp;&quot;).collectEntries{[it.split(&quot;=&quot;)[0], it.split(&quot;=&quot;)[1]]}
+vars.put(&quot;ORDER_ID&quot;, response.orderId)
+vars.put(&quot;NPG_CORRELATION_ID&quot;, fieldUrlQueryParams[&quot;correlationid&quot;])
+vars.put(&quot;NPG_SESSION_ID&quot;, fieldUrlQueryParams[&quot;sessionid&quot;])</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Start new transaction">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Fill NPG card data">
+          <stringProp name="TestPlan.comments">Emulate user filling NPG card data </stringProp>
+          <stringProp name="HTTPSampler.domain">stg-ta.nexigroup.com</stringProp>
+          <stringProp name="HTTPSampler.port">443</stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <stringProp name="HTTPSampler.contentEncoding">UTF-8</stringProp>
+          <stringProp name="HTTPSampler.path">/fe/build/text/</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+    &quot;fieldValues&quot;: [&#xd;
+        {&#xd;
+            &quot;id&quot;: &quot;EXPIRATION_DATE&quot;,&#xd;
+            &quot;value&quot;: &quot;12/30&quot;&#xd;
+        },&#xd;
+        {&#xd;
+            &quot;id&quot;: &quot;CARD_NUMBER&quot;,&#xd;
+            &quot;value&quot;: &quot;4242424242424242&quot;&#xd;
+        },&#xd;
+        {&#xd;
+            &quot;id&quot;: &quot;SECURITY_CODE&quot;,&#xd;
+            &quot;value&quot;: &quot;123&quot;&#xd;
+        },&#xd;
+        {&#xd;
+            &quot;id&quot;: &quot;CARDHOLDER_NAME&quot;,&#xd;
+            &quot;value&quot;: &quot;Foo Bar&quot;&#xd;
+        }&#xd;
+    ]&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion">
+            <collectionProp name="Asserion.test_strings">
+              <stringProp name="49586">200</stringProp>
+            </collectionProp>
+            <stringProp name="Assertion.custom_message"></stringProp>
+            <stringProp name="Assertion.test_field">Assertion.response_code</stringProp>
+            <boolProp name="Assertion.assume_success">false</boolProp>
+            <intProp name="Assertion.test_type">8</intProp>
+          </ResponseAssertion>
+          <hashTree/>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Correlation-Id</stringProp>
+                <stringProp name="Header.value">${NPG_CORRELATION_ID}</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">session</stringProp>
+                <stringProp name="Header.value">${NPG_SESSION_ID}</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">Idempotency-Key</stringProp>
+                <stringProp name="Header.value">${NPG_CORRELATION_ID}</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Start new transaction" enabled="true">
           <stringProp name="TestPlan.comments">Start a new transaction</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
@@ -391,7 +477,7 @@ vars.put(&apos;postTransactionRequest&apos;, JsonOutput.toJson(payload))</string
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>
-          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Save transaction activated data into vars" enabled="true">
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Save transaction activated data into vars">
             <stringProp name="scriptLanguage">groovy</stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="filename"></stringProp>
@@ -406,7 +492,7 @@ vars.put(&apos;ECOMMERCE_AUTH_TOKEN&apos;, response.authToken)</stringProp>
           </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create contextual onboarding wallet">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create contextual onboarding wallet" enabled="true">
           <stringProp name="TestPlan.comments">Create a new wallet and associate it to a newly created transaction</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
@@ -459,7 +545,7 @@ vars.put(&apos;postWalletRequest&apos;, JsonOutput.toJson(payload))</stringProp>
             <stringProp name="TestPlan.comments">Use contextual onboarding session token</stringProp>
           </HeaderManager>
           <hashTree/>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion">
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
             <collectionProp name="Asserion.test_strings">
               <stringProp name="49587">201</stringProp>
             </collectionProp>
@@ -482,7 +568,7 @@ vars.put(&apos;WALLET_ID&apos;, response.walletId)</stringProp>
           </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Calculate fees">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Calculate fees" enabled="true">
           <stringProp name="TestPlan.comments">Calculate fees for transaction based using ORDER_ID</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
@@ -513,14 +599,10 @@ vars.put(&apos;WALLET_ID&apos;, response.walletId)</stringProp>
 
 
 def payload = [
-/*
- * order id field have been commented out since soak test does not simulate POST text NPG SDK call 
- * so there would be no data associated to this ORDER ID in cache. adding it would make this calculate
- * fee api fail because of the missing bin information
- */
-        orderId : &apos;E00000000000000000&apos;,
+
+        orderId : vars.get(&quot;ORDER_ID&quot;),
         language : &apos;it&apos;,
-        paymentAmount : 1000,
+        paymentAmount : Integer.parseInt(vars.get(&quot;AMOUNT&quot;)),
         primaryCreditorInstitution : &apos;77777777777&apos;,
         isAllCCP : true,
     	   transferList : [
@@ -535,7 +617,7 @@ def payload = [
 vars.put(&apos;calculateFeesRequest&apos;, JsonOutput.toJson(payload))</stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion" enabled="true">
+          <ResponseAssertion guiclass="AssertionGui" testclass="ResponseAssertion" testname="Response Assertion">
             <collectionProp name="Asserion.test_strings">
               <stringProp name="49586">200</stringProp>
             </collectionProp>
@@ -545,7 +627,7 @@ vars.put(&apos;calculateFeesRequest&apos;, JsonOutput.toJson(payload))</stringPr
             <intProp name="Assertion.test_type">8</intProp>
           </ResponseAssertion>
           <hashTree/>
-          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Select psp" enabled="true">
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="Select psp">
             <stringProp name="scriptLanguage">groovy</stringProp>
             <stringProp name="parameters"></stringProp>
             <stringProp name="filename"></stringProp>
@@ -562,7 +644,7 @@ vars.put(&quot;PSP_FEES&quot;, psp.taxPayerFee.toString())
           </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create new auth request" enabled="false">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Create new auth request">
           <stringProp name="TestPlan.comments">Create a new authorization request invoking transactions-service
 Disabled for test with real E2E services, will receive KO from NPG</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
@@ -601,7 +683,7 @@ def payload = [
         isAllCCP: true,
         details:[
 		detailType: &quot;cards&quot;,
-		orderId: &quot;E00000000000000000&quot;,
+		orderId: vars.get(&quot;ORDER_ID&quot;),
 		paymentMethodId: vars.get(&quot;PAYMENT_METHOD_ID&quot;)
         	
         ]
