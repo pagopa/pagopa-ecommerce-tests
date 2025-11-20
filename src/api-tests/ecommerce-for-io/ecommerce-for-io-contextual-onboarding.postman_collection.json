@@ -448,7 +448,7 @@
 							"  const fieldId = parsedUrl.query.find((queryParam) => queryParam.key === 'id').value;",
 							"  ",
 							"  console.log(`Correlation ID: [${correlationId}]`);",
-							"  console.log(`Session ID: [${sessionId}]`);",
+                            "  console.log(`Session ID: [${sessionId.substring(0, 6)}***]`);",
 							"  console.log(`Field ID: [${fieldId}]`);",
 							"  ",
 							"  pm.environment.set('NPG_CORRELATION_ID', correlationId);",
@@ -821,7 +821,7 @@
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.expect(responseJson.authorizationUrl).to.be.a('string');",
-							"  console.log(`Authorization URL: ${responseJson.authorizationUrl}`);",
+                            "  console.log(\"Authorization URL retrieved successfully\");",
 							"});"
 						],
 						"type": "text/javascript"
