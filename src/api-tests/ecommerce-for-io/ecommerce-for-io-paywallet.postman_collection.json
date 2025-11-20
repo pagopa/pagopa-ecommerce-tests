@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "a4def1a4-96a4-48a8-a095-fa56e6bbfbeb",
+		"_postman_id": "b9e6a821-75f3-4556-b967-ee27d99aa117",
 		"name": "eCommerce for IO V2 (pay by wallet)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "23305473"
@@ -205,7 +205,7 @@
 			"response": []
 		},
 		{
-			"name": "Wallets by walletToken",
+			"name": "Wallets by token",
 			"event": [
 				{
 					"listen": "test",
@@ -407,12 +407,13 @@
 							"pm.test(\"[ecommerce for IO - Wallet Payment] - Calculate fee\", () => {",
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"ID_PSP\", responseJson.bundles.filter(b => b.idPsp != \"TMIL0101\")[0].idPsp);",
-							"  pm.environment.set(\"FEE\", responseJson.bundles.filter(b => b.idPsp != \"TMIL0101\")[0].taxPayerFee);",
+							"  pm.environment.set(\"ID_PSP\", responseJson.bundles.filter(b => b.idPsp == \"BCITITMM\")[0].idPsp);",
+							"  pm.environment.set(\"FEE\", responseJson.bundles.filter(b => b.idPsp == \"BCITITMM\")[0].taxPayerFee);",
 							"});"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				},
 				{
@@ -422,7 +423,8 @@
 							""
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
@@ -783,7 +785,8 @@
 							"});"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				},
 				{
@@ -795,7 +798,8 @@
 							"});"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
