@@ -19,10 +19,13 @@
             <stringProp name="Argument.value">BNLIITRR</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
+          <elementProp name="USERS_NUMBER" elementType="Argument">
+            <stringProp name="Argument.name">USERS_NUMBER</stringProp>
+            <stringProp name="Argument.value">1</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
         </collectionProp>
       </elementProp>
-      <boolProp name="TestPlan.functional_mode">false</boolProp>
-      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <ConstantThroughputTimer guiclass="TestBeanGUI" testclass="ConstantThroughputTimer" testname="Constant Throughput Timer">
@@ -36,8 +39,8 @@
       <hashTree/>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Users thread pool">
         <stringProp name="TestPlan.comments">Thread pool che simula un insieme di utenti che usa l&apos;app IO</stringProp>
-        <intProp name="ThreadGroup.num_threads">20</intProp>
-        <intProp name="ThreadGroup.ramp_time">600</intProp>
+        <stringProp name="ThreadGroup.num_threads">${USERS_NUMBER}</stringProp>
+        <intProp name="ThreadGroup.ramp_time">0</intProp>
         <longProp name="ThreadGroup.duration">600</longProp>
         <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
         <boolProp name="ThreadGroup.scheduler">true</boolProp>
@@ -194,7 +197,7 @@ log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
           </ResponseAssertion>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get all payment methods" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get all payment methods">
           <stringProp name="TestPlan.comments">retrieve all payment methods</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
@@ -244,7 +247,7 @@ if(cardPaymentMethod != null){
           </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get method redirection URL" enabled="true">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="Get method redirection URL">
           <stringProp name="TestPlan.comments">Retrieve redirection URL associated to the payment method</stringProp>
           <stringProp name="HTTPSampler.domain">${HOSTNAME}</stringProp>
           <stringProp name="HTTPSampler.port">443</stringProp>
