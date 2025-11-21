@@ -8,7 +8,7 @@
 	},
 	"item": [
 		{
-			"name": "Start new eCommerce session transaction",
+			"name": "Start session",
 			"event": [
 				{
 					"listen": "test",
