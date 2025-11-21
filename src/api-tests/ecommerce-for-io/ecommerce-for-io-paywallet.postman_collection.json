@@ -1,9 +1,10 @@
 {
 	"info": {
-		"_postman_id": "b9e6a821-75f3-4556-b967-ee27d99aa117",
+		"_postman_id": "cd06a3f5-ee59-4e58-a1f1-feb3b3d4b710",
 		"name": "eCommerce for IO V2 (pay by wallet)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "23305473"
+		"_exporter_id": "23305473",
+		"_collection_link": "https://solar-shuttle-72092.postman.co/workspace/App-IO-api-tests~356aa2ea-a17a-49ad-a3fe-7eb46669b995/collection/23305473-cd06a3f5-ee59-4e58-a1f1-feb3b3d4b710?action=share&source=collection_link&creator=23305473"
 	},
 	"item": [
 		{
@@ -350,54 +351,6 @@
 			"response": []
 		},
 		{
-			"name": "Get eCommerce transaction by TRANSACTION_ID",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - Wallet Payment] - GET transaction to check status\", () => {",
-							"  pm.response.to.have.status(200);",
-							"  const responseJson = pm.response.json();",
-							"  pm.expect(responseJson.status).to.equals(\"ACTIVATED\");",
-							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.payments[0].paymentToken);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/transactions/{{TRANSACTION_ID}}",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"ecommerce",
-						"io",
-						"v2",
-						"transactions",
-						"{{TRANSACTION_ID}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
 			"name": "Get fees by walletId and amount",
 			"event": [
 				{
@@ -483,18 +436,55 @@
 							"});"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				},
 				{
 					"listen": "prerequest",
 					"script": {
 						"exec": [
+							"async function executeGetTransactionPollingUntilStatus(wantedStatus) {",
+							"    const transactionId = pm.environment.get(\"TRANSACTION_ID\");",
+							"    const authToken = pm.environment.get(\"SESSION_TOKEN\");",
+							"    const getTransaction = {",
+							"        url: `${pm.environment.get(\"HOSTNAME\")}/ecommerce/io/v2/transactions/${transactionId}`,",
+							"        method: 'GET',",
+							"        header: {",
+							"            'Content-Type': 'application/json',",
+							"            'Authorization': `Bearer ${authToken}`",
+							"        }",
+							"    };",
+							"    const maxAttempts = 10;",
+							"    var counter = 0;",
+							"    var transactionStatus = null;",
+							"    while (counter < maxAttempts && transactionStatus != wantedStatus) {",
+							"        await new Promise(r => setTimeout(r, 1000));",
+							"        await new Promise((resolve, reject) => pm.sendRequest(getTransaction, (error, response) => {",
+							"            if (error) {",
+							"                console.log(`Error retrieving transaction by id: ${error.code}`);",
+							"                reject(error)",
+							"            } else {",
+							"                const responseBody = response.json();",
+							"                transactionStatus = responseBody.status;",
+							"                console.log(`Transaction with id: [${transactionId}] status: [${transactionStatus}]`)",
+							"                resolve(transactionStatus);",
+							"            }",
+							"        }));",
+							"        counter++;",
+							"    }",
+							"    if (transactionStatus != wantedStatus) {",
+							"            throw new Error(`Transaction in wrong status after polling. Wanted: [${wantedStatus}], received: [${transactionStatus}]`)",
+							"        }",
+							"}",
 							"",
-							""
+							"pm.test(\"[eCommerce for checkout] Transaction is created in ACTIVATED /transactions/:idTransaction\", function() {",
+							"    executeGetTransactionPollingUntilStatus(\"ACTIVATED\");",
+							"});"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
