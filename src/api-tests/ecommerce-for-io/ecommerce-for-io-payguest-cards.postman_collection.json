@@ -397,7 +397,7 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"setTimeout(function(){}, 1000);"
+							""
 						],
 						"type": "text/javascript",
 						"packages": {},
