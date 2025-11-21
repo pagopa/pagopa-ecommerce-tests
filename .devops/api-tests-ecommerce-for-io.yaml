@@ -36,6 +36,11 @@ parameters:
     type: boolean
     default: true
 
+  - name: 'CARDS_CONTEXTUAL_ONBOARDING'
+    displayName: 'Test cards for contextual wallet onboarding flux'
+    type: boolean
+    default: true
+
 variables:
   - name: 'HOSTNAME'
     ${{ if eq( parameters.ENVIRONMENT, 'UAT') }}:
@@ -47,6 +52,11 @@ variables:
       value: 'bc05c4ab-4657-46a3-b379-4f06890032ea'
     ${{ else }}:
       value: '05b47118-ac54-4324-90f0-59a784972184'
+  - name: 'CONTEXTUAL_ONBOARDING_USER_ID'
+    ${{ if eq( parameters.ENVIRONMENT, 'UAT') }}:
+      value: 'bc05c4ab-4657-46a3-b379-4f06890032ea'  # TODO: Update with correct UAT user ID for contextual onboarding
+    ${{ else }}:
+      value: '21c6d8b5-1407-49aa-b39c-a635a1b186ce'
 
 stages :
   - stage: 'API_tests_eCommerce_for_IO_guest_Cards_NW'
@@ -71,10 +81,32 @@ stages :
               testResultsFiles: '**/*-TEST.xml'
               searchFolder: '$(System.DefaultWorkingDirectory)'
 
+  - stage: 'API_tests_eCommerce_for_IO_contextual_onboarding_NW'
+    displayName: 'CARDS - eCommerce for IO - Contextual Onboarding - Setup Flow - NW - Run postman collection'
+    condition: and(succeeded(), eq('${{parameters.CARDS_CONTEXTUAL_ONBOARDING}}', true))
+    dependsOn: API_tests_eCommerce_for_IO_guest_Cards_NW
+    pool:
+      vmImage: 'ubuntu-latest'
+    jobs:
+      - job: api_tests
+        steps:
+          - script: |
+              yarn global add newman
+            displayName: 'Newman installation'
+          - script: |
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-contextual-onboarding.postman_collection.json --env-var USER_ID=$(contextual_onboarding_user_id) --env-var PAYMENT_METHOD_NAME="CARDS" --env-var HOSTNAME=$(hostname) --env-var WALLET_TOKEN_TEST=$(wallet_token_test) --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-contextual-onboarding-api-TEST.xml
+            displayName: 'Run api test'
+          - task: PublishTestResults@2
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '**/*-TEST.xml'
+              searchFolder: '$(System.DefaultWorkingDirectory)'
+
   - stage: 'API_tests_eCommerce_for_IO_creditCard_NW'
     displayName: 'CARDS - eCommerce for IO - Credit Card - NW - Run postman collection'
     condition: and(succeeded(), eq('${{parameters.CARDS_ONBOARDED}}', true))
-    dependsOn: API_tests_eCommerce_for_IO_guest_Cards_NW
+    dependsOn: API_tests_eCommerce_for_IO_contextual_onboarding_NW
     pool:
       vmImage: 'ubuntu-latest'
     jobs:
