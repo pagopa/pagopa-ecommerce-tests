@@ -1,7 +1,7 @@
 import { check, fail, sleep } from "k6";
 import http from "k6/http";
 import { getConfigOrThrow, getVersionedBaseUrl } from "../utils/config";
-import { PaymentMethod, createActivationRequest, createAuthorizationRequest, createFeeRequestV2, paymentMethodIds, randomPaymentMethod, generateOrderId, pspsIds, generateRptId, createPatchAuthorizationRequest } from "../common/soak-test-common"
+import { PaymentMethod, createActivationRequest, createAuthorizationRequest, createFeeRequestV2, paymentMethodIds, randomPaymentMethod, generateOrderId, pspsIds, generateRptId } from "../common/soak-test-common"
 import { NewTransactionResponse } from "../generated/ecommerce-v1/NewTransactionResponse";
 import { CreateSessionResponse } from "../generated/ecommerce-v1/CreateSessionResponse";
 import { CalculateFeeResponse } from "../generated/ecommerce-v2/CalculateFeeResponse";
@@ -18,9 +18,9 @@ export let options = {
         preAllocatedVUs: config.preAllocatedVUs,
         maxVUs: config.maxVUs,
         stages: [
-          { target: config.rate, duration: "10m" },
-          { target: config.rate, duration: "1h" },
-          { target: 0, duration: "10m" },
+          { target: config.rate, duration: config.rampingDuration },
+          { target: config.rate, duration: config.duration },
+          { target: 0, duration: config.rampingDuration },
         ],
       },
     },
@@ -34,8 +34,7 @@ export let options = {
         "http_req_duration{name:authorization-transaction}": ["p(95)<=250"],
         "http_req_duration{name:create-session}": ["p(95)<=250"],
         "http_req_duration{name:get-session}": ["p(95)<=250"],
-        "http_req_duration{name:verify-payment-notice}": ["p(95)<=250"],
-        "http_req_duration{name:patch-auth-request}": ["p(95)<=250"]
+        "http_req_duration{name:verify-payment-notice}": ["p(95)<=250"]
     },
 };
 
@@ -44,10 +43,8 @@ export function setup() {
 }
 
 export default function () {
-    const urlBasePathV1 = config.URL_BASE_PATH
-    const urlBasePathV2 = config.URL_BASE_PATH
-
-    //console.log({urlBasePathV1, urlBasePathV2})
+    const urlBasePathV1 = getVersionedBaseUrl(config.URL_BASE_PATH, "v1");
+    const urlBasePathV2 = getVersionedBaseUrl(config.URL_BASE_PATH, "v2");    
 
     const headersParams = {
         headers: {
@@ -55,20 +52,16 @@ export default function () {
             'Authorization': "Bearer ",
             'x-correlation-id': 'c1155812-0f9f-467d-ab67-8e9a84534d48',
             'x-transaction-id-from-client': "",
-            "deployment": "blue",
-            "x-client-id": "CHECKOUT",
-            "x-pgs-id": "NPG"
+            ...(config.USE_BLUE_DEPLOYMENT == "True" ? { "deployment": "blue" } : {})
         }
     };
     // GET payment-request (Node verifyPaymentNotice)
-    let url = `${urlBasePathV1}/pagopa-ecommerce-payment-requests-service/payment-requests/${generateRptId()}?recaptchaResponse=test`
+    let url = `${urlBasePathV1}/payment-requests/${generateRptId()}?recaptchaResponse=test`
     let response = http.get(url, {
         ...headersParams,
         tags: { name: "verify-payment-notice" },
         timeout: '10s'
     });
-
-   // console.log("URL: ======", url)
     
     check(
         response,
@@ -80,7 +73,7 @@ export default function () {
     let orderId = generateOrderId();
     const paymentMethod: PaymentMethod = randomPaymentMethod();
     if (paymentMethod == PaymentMethod.CARDS) {
-        let url = `${urlBasePathV1}/pagopa-ecommerce-payment-methods-service/payment-methods/${paymentMethodIds[paymentMethod]}/sessions?recaptchaResponse=test`
+        let url = `${urlBasePathV1}/payment-methods/${paymentMethodIds[paymentMethod]}/sessions?recaptchaResponse=test`
         let response = http.post(url, JSON.stringify({}), {
             ...headersParams,
             tags: { name: "create-session" },
@@ -103,7 +96,7 @@ export default function () {
     const activationBodyRequest = createActivationRequest(orderId);
     
     // Activate transaction
-    url = `${urlBasePathV2}/pagopa-ecommerce-transactions-service/v2/transactions?recaptchaResponse=test`;
+    url = `${urlBasePathV2}/transactions?recaptchaResponse=test`;
     response = http.post(url, JSON.stringify(activationBodyRequest), {
         ...headersParams,
         tags: { name: "activate-transaction" },
@@ -130,7 +123,7 @@ export default function () {
 
     // GET session (aka card data) only for CARDS
     if (paymentMethod == PaymentMethod.CARDS) {
-        url = `${urlBasePathV1}/pagopa-ecommerce-payment-methods-service/payment-methods/${paymentMethodIds[paymentMethod]}/sessions/${orderId}`;
+        url = `${urlBasePathV1}/payment-methods/${paymentMethodIds[paymentMethod]}/sessions/${orderId}`;
         response = http.get(url, {
             ...headersParams,
             tags: { name: 'get-session' },
@@ -147,15 +140,13 @@ export default function () {
     const isAllCCP = body.payments[0].isAllCCP;
 
     // Calculate fees
-    url = `${urlBasePathV2}/pagopa-ecommerce-payment-methods-service/v2/payment-methods/${paymentMethodIds[paymentMethod]}/fees?maxOccurences=1235`;
+    url = `${urlBasePathV2}/payment-methods/${paymentMethodIds[paymentMethod]}/fees?maxOccurences=1235`;
     const calculateFeeRequest = createFeeRequestV2();
     response = http.post(url, JSON.stringify(calculateFeeRequest), {
         ...headersParams,
         tags: { name: "calculate-fees" },
         timeout: '10s'
     });
-
-    //console.log("fees URL", url)
 
     check(response,
         { 'Response status from POST /payment-methods/{paymentMethodId}/fees is 200': (r) => r.status == 200 },
@@ -169,10 +160,7 @@ export default function () {
     const pspBundle = (response.json() as unknown as CalculateFeeResponse).bundles.filter(it => it.idPsp == pspsIds[paymentMethod])[0];
 
     // Request authorization
-    url = `${urlBasePathV1}/pagopa-ecommerce-transactions-service/transactions/${transactionId}/auth-requests`;
-
-    //console.log("request URL", url)
-
+    url = `${urlBasePathV1}/transactions/${transactionId}/auth-requests`;
     const authRequestBodyRequest = createAuthorizationRequest(orderId, isAllCCP, totalAmount as AmountEuroCents, pspBundle, paymentMethod);
     response = http.post(url, JSON.stringify(authRequestBodyRequest), {
         ...headersParams,
@@ -185,37 +173,12 @@ export default function () {
     );
 
     if (response.status != 200 || response.json() == null) {
-        fail(`Error during auth request ${response.status} ${console.log(response.body?.toString())}`);
+        fail(`Error during auth request ${response.status}`);
     }
 
-    // PATCH authorization
-    url = `${urlBasePathV2}/pagopa-ecommerce-transactions-service/v2/transactions/${transactionId}/auth-requests`;
-
-    // console.log("PATCH authorization request URL", url)
-
-    const authRequestPatchBodyRequest = createPatchAuthorizationRequest(paymentMethod, orderId, pspBundle.idPsp!!, transactionId);
-    sleep(3);
-    
-    response = http.patch(url, JSON.stringify(authRequestPatchBodyRequest), {
-        ...headersParams,
-        tags: { name: "patch-auth-request" },
-        timeout: '10s'
-    });
-    check(response,
-        { 'Response status from PATCH /transactions/{transactionId}/auth-requests is 200': (r) => r.status == 200 },
-        { name: "patch-auth-request" }
-    );
-
-    if (response.status != 200 || response.json() == null) {
-        fail(`Error during auth completed ${response.status} ${console.log(response.body?.toString())}`);
-    } 
-
-
     // Simulate checkout-fe polling
-    url = `${urlBasePathV1}/pagopa-ecommerce-transactions-service/transactions/${transactionId}/outcomes`;
-   //console.log("OUTCOMES URL", url)
+    url = `${urlBasePathV1}/transactions/${transactionId}/outcomes`;
     for (let i = 0; i < 5; i++) {
-        sleep(3);
         response = http.get(url, {
             ...headersParams,
             tags: { name: "get-transaction" },
@@ -228,5 +191,6 @@ export default function () {
         if (response.status != 200 || response.json() == null) {
             fail(`Error during get transaction ${response.status}`);
         }
+        sleep(3);
     }
 }
