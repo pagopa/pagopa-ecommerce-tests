@@ -1,0 +1,657 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.6.3">
+  <hashTree>
+    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Soak Test Ecommerce For Checkout">
+      <elementProp name="TestPlan.user_defined_variables" elementType="Arguments" guiclass="ArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+        <collectionProp name="Arguments.arguments">
+          <elementProp name="USE_BLUE_DEPLOYMENT" elementType="Argument">
+            <stringProp name="Argument.name">USE_BLUE_DEPLOYMENT</stringProp>
+            <stringProp name="Argument.value">True</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="URL_BASE_PATH" elementType="Argument">
+            <stringProp name="Argument.name">URL_BASE_PATH</stringProp>
+            <stringProp name="Argument.value">api.uat.platform.pagopa.it</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+          <elementProp name="NOTICE_CODE_PREFIX" elementType="Argument">
+            <stringProp name="Argument.name">NOTICE_CODE_PREFIX</stringProp>
+            <stringProp name="Argument.value">3020</stringProp>
+            <stringProp name="Argument.metadata">=</stringProp>
+          </elementProp>
+        </collectionProp>
+      </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
+    </TestPlan>
+    <hashTree>
+      <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Thread Group">
+        <intProp name="ThreadGroup.num_threads">17</intProp>
+        <intProp name="ThreadGroup.ramp_time">600</intProp>
+        <longProp name="ThreadGroup.duration">3600</longProp>
+        <boolProp name="ThreadGroup.same_user_on_next_iteration">true</boolProp>
+        <boolProp name="ThreadGroup.scheduler">true</boolProp>
+        <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
+        <elementProp name="ThreadGroup.main_controller" elementType="LoopController" guiclass="LoopControlPanel" testclass="LoopController" testname="Loop Controller">
+          <intProp name="LoopController.loops">-1</intProp>
+          <boolProp name="LoopController.continue_forever">false</boolProp>
+        </elementProp>
+      </ThreadGroup>
+      <hashTree>
+        <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor for Header" enabled="true">
+          <stringProp name="cacheKey">true</stringProp>
+          <stringProp name="filename"></stringProp>
+          <stringProp name="parameters"></stringProp>
+          <stringProp name="script">if (vars.get(&apos;AUTH_TOKEN&apos;) == null) vars.put(&apos;AUTH_TOKEN&apos;,&apos;&apos;)
+if (vars.get(&apos;CORRELATION_ID&apos;) == null) vars.put(&apos;CORRELATION_ID&apos;,&apos;c1155812-0f9f-467d-ab67-8e9a84534d48&apos;)
+if (vars.get(&apos;TRANSACTION_ID&apos;) == null) vars.put(&apos;TRANSACTION_ID&apos;,&apos;&apos;)
+if (vars.get(&apos;DEPLOYMENT_HEADER&apos;) == null) vars.put(&apos;DEPLOYMENT_HEADER&apos;, (vars.get(&apos;USE_BLUE_DEPLOYMENT&apos;) == &apos;True&apos;) ? &apos;blue&apos; : &apos;&apos;)
+if (!vars.get(&apos;DEPLOYMENT_HEADER&apos;)) {
+  sampler.getHeaderManager().removeHeaderNamed(&apos;deployment&apos;)
+}
+
+
+vars.put(&apos;BASE_PATH_V1&apos;, &apos;/ecommerce/checkout/v1&apos;)
+vars.put(&apos;BASE_PATH_V2&apos;, &apos;/ecommerce/checkout/v2&apos;)
+
+
+
+
+
+
+
+
+if (vars.get(&apos;ORDER_ID&apos;) == null) {
+	int length = 18
+	String prefix = &apos;M&apos;
+	String alphanums = &apos;0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-._&apos;
+	
+	def rnd = new Random()
+	def sb = new StringBuilder(prefix)
+	
+	while (sb.length() &lt; length) {
+	  int idx = rnd.nextInt(alphanums.length())
+	  sb.append(alphanums.charAt(idx))
+	}
+	
+	vars.put(&apos;ORDER_ID&apos;, sb.toString())
+	log.info(&quot;ORDER_ID 1: &quot; + sb.toString());
+}
+
+
+
+enum PaymentMethod {
+    CARDS,
+    BANCOMATPAY,
+    PAYPAL,
+    MYBANK,
+    REDIRECT_RPIC,
+    REDIRECT_RBPS,
+    REDIRECT_RBPB,
+    REDIRECT_RBPP,
+    REDIRECT_RBPR
+}
+
+
+final Map&lt;PaymentMethod, String&gt; paymentMethodIds = [
+    (PaymentMethod.CARDS)        : &apos;378d0b4f-8b69-46b0-8215-07785fe1aad4&apos;,
+    (PaymentMethod.BANCOMATPAY)  : &apos;870d0704-e8af-4e00-a2d1-1af18e144789&apos;,
+    (PaymentMethod.PAYPAL)       : &apos;8991c3f1-4ac4-418c-a359-5aaa9199bbeb&apos;,
+    (PaymentMethod.MYBANK)       : &apos;2c61e6ed-f874-4b30-97ef-bdf89d488ee4&apos;,
+    (PaymentMethod.REDIRECT_RPIC): &apos;1c636589-8a81-4478-b725-33fb65d8a2d0&apos;,
+    (PaymentMethod.REDIRECT_RBPS): &apos;3a199dbc-f17e-4fd8-9a6f-a677698144a5&apos;,
+    (PaymentMethod.REDIRECT_RBPB): &apos;b6fd7e8e-7373-496d-b64f-111766b5ad9c&apos;,
+    (PaymentMethod.REDIRECT_RBPP): &apos;79e8e075-9840-4eac-9c4e-8da637d68469&apos;,
+    (PaymentMethod.REDIRECT_RBPR): &apos;86fb578f-e3c4-47bc-bce3-85a3171a4b13&apos;,
+]
+
+final Map&lt;PaymentMethod, String&gt; pspsIds = [
+    (PaymentMethod.CARDS):        &quot;BCITITMM&quot;,
+    (PaymentMethod.BANCOMATPAY):  &quot;BCITITMM&quot;,
+    (PaymentMethod.PAYPAL):       &quot;BCITITMM&quot;,
+    (PaymentMethod.MYBANK):       &quot;BCITITMM&quot;,
+    (PaymentMethod.REDIRECT_RPIC):&quot;BCITITMM&quot;,
+    (PaymentMethod.REDIRECT_RBPS):&quot;POSOIT22XXX&quot;,
+    (PaymentMethod.REDIRECT_RBPB):&quot;PPAYITR1XXX&quot;,
+    (PaymentMethod.REDIRECT_RBPP):&quot;PPAYITR1XXX&quot;,
+    (PaymentMethod.REDIRECT_RBPR):&quot;PPAYITR1XXX&quot;,
+]
+
+if (vars.get(&apos;PAYMENT_METHOD&apos;) == null &amp;&amp; vars.get(&apos;PAYMENT_METHOD_ID&apos;) == null) {
+	def values = PaymentMethod.values()
+	int half = (int) (values.length-1)
+	int idx = new Random().nextInt(half)
+	
+	def paymentMethod = (vars.get(&apos;USE_PAYMENT_METHOD&apos;) ?  PaymentMethod.valueOf(vars.get(&apos;USE_PAYMENT_METHOD&apos;).trim().toUpperCase()) : values[idx])
+	vars.put(&apos;PAYMENT_METHOD&apos;, paymentMethod.name())
+	log.info(&quot;PAYMENT_METHOD: &quot; + paymentMethod.name());
+
+
+
+	def paymentMethodId = paymentMethodIds[paymentMethod]
+	vars.put(&apos;PAYMENT_METHOD_ID&apos;, paymentMethodId)
+	log.info(&quot;PAYMENT_METHOD_ID: &quot; + paymentMethodId);
+
+
+	def paymentMethodPSPId = pspsIds[paymentMethod]
+	vars.put(&apos;PAYMENT_METHOD_PSP_ID&apos;, paymentMethodPSPId)
+	
+}
+
+
+</stringProp>
+          <stringProp name="scriptLanguage">groovy</stringProp>
+        </JSR223PreProcessor>
+        <hashTree/>
+        <ConfigTestElement guiclass="HttpDefaultsGui" testclass="ConfigTestElement" testname="HTTP Request Defaults" enabled="true">
+          <stringProp name="HTTPSampler.domain">${URL_BASE_PATH}</stringProp>
+          <stringProp name="HTTPSampler.port">443</stringProp>
+          <stringProp name="HTTPSampler.protocol">https</stringProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments"/>
+          </elementProp>
+          <stringProp name="HTTPSampler.implementation">HttpClient4</stringProp>
+        </ConfigTestElement>
+        <hashTree/>
+        <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+          <collectionProp name="HeaderManager.headers">
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">Content-Type</stringProp>
+              <stringProp name="Header.value">application/json</stringProp>
+            </elementProp>
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">Authorization</stringProp>
+              <stringProp name="Header.value">Bearer ${AUTH_TOKEN}</stringProp>
+            </elementProp>
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">x-correlation-id</stringProp>
+              <stringProp name="Header.value">${CORRELATION_ID}</stringProp>
+            </elementProp>
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">x-transaction-id-from-client</stringProp>
+              <stringProp name="Header.value">${TRANSACTION_ID}</stringProp>
+            </elementProp>
+            <elementProp name="" elementType="Header">
+              <stringProp name="Header.name">deployment</stringProp>
+              <stringProp name="Header.value">${DEPLOYMENT_HEADER}</stringProp>
+            </elementProp>
+          </collectionProp>
+        </HeaderManager>
+        <hashTree/>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Verify Payment Notice" enabled="true">
+          <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/payment-requests/${RPT_ID}</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">GET</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="recaptchaResponse" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">test</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+                <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                <stringProp name="Argument.name">recaptchaResponse</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">def prefix = vars.get(&apos;NOTICE_CODE_PREFIX&apos;) ?: &apos;3020&apos;
+def rpt = &apos;77777777777&apos; + prefix + &apos;01&apos;
+def rnd = new Random()
+for (int i=0;i&lt;12;i++) { rpt += rnd.nextInt(10) as String }
+vars.put(&apos;RPT_ID&apos;, rpt)
+log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
+          </JSR223PreProcessor>
+          <hashTree/>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">tags</stringProp>
+                <stringProp name="Header.value">{ name: &quot;verify-payment-notice&quot; }</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">timeout</stringProp>
+                <stringProp name="Header.value">10s</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If PAYMENT_METHOD == CARDS" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(
+  def pm = vars.get(&apos;PAYMENT_METHOD&apos;);
+  pm == &apos;CARDS&apos;
+)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Create Session (CARDS)" enabled="true">
+            <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/payment-methods/${PAYMENT_METHOD_ID}/sessions</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <stringProp name="HTTPSampler.method">POST</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+              <collectionProp name="Arguments.arguments">
+                <elementProp name="recaptchaResponse" elementType="HTTPArgument">
+                  <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                  <stringProp name="Argument.value">test</stringProp>
+                  <stringProp name="Argument.metadata">=</stringProp>
+                  <boolProp name="HTTPArgument.use_equals">true</boolProp>
+                  <stringProp name="Argument.name">recaptchaResponse</stringProp>
+                </elementProp>
+              </collectionProp>
+            </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">tags</stringProp>
+                  <stringProp name="Header.value">{ name: &quot;create-session&quot; }</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">timeout</stringProp>
+                  <stringProp name="Header.value">10s</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree/>
+            <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor" enabled="true">
+              <stringProp name="JSONPostProcessor.referenceNames">ORDER_ID</stringProp>
+              <stringProp name="JSONPostProcessor.jsonPathExprs">$.orderId</stringProp>
+              <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+              <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+            </JSONPostProcessor>
+            <hashTree/>
+          </hashTree>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Activate Transaction" enabled="true">
+          <stringProp name="HTTPSampler.path">${BASE_PATH_V2}/transactions?recaptchaResponse=test</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">${ACTIVATION_REQUEST_JSON}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">import groovy.json.JsonOutput
+import java.security.SecureRandom
+
+def rnd = new SecureRandom()
+
+def generateRptId = {
+	def prefix = vars.get(&apos;NOTICE_CODE_PREFIX&apos;) ?: &apos;3020&apos;
+    def sb = new StringBuilder(&apos;77777777777&apos;).append(prefix).append(&apos;01&apos;)
+    12.times { sb.append(rnd.nextInt(10)) }
+    sb.toString()
+}
+
+def paymentNotice = {
+    [
+        rptId             : generateRptId(),
+        amount            : 1000,
+        paymentContextCode: &apos;6cd9114e-6427-4932-9a27-96168640d944&apos;
+    ]
+}
+
+def createActivationRequest = { String orderId -&gt;
+    [
+        email         : &apos;mario.rossi@gmail.it&apos;,
+        paymentNotices: (0..&lt;5).collect { paymentNotice() },
+        orderId       : orderId
+    ]
+}
+
+def orderId = vars.get(&apos;ORDER_ID&apos;)
+log.info(&quot;ORDER_ID 2: &quot; + orderId);
+
+def payload = createActivationRequest(orderId)
+
+def json = JsonOutput.prettyPrint(JsonOutput.toJson(payload))
+vars.put(&apos;ACTIVATION_REQUEST_JSON&apos;, json)
+log.info(&quot;ACTIVATION_REQUEST_JSON:\n${json}&quot;)</stringProp>
+          </JSR223PreProcessor>
+          <hashTree/>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">tags</stringProp>
+                <stringProp name="Header.value">{ name: &quot;activate-transaction&quot; }</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">timeout</stringProp>
+                <stringProp name="Header.value">10s</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <JSR223PostProcessor guiclass="TestBeanGUI" testclass="JSR223PostProcessor" testname="JSR223 PostProcessor" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">import groovy.json.JsonSlurper
+
+def body = new JsonSlurper().parseText(prev.getResponseDataAsString())
+
+// update header token + x-transaction-id-from-client
+vars.put(&apos;TRANSACTION_ID&apos;, body.transactionId as String)
+log.info(&quot;TRANSACTION_ID: &quot; + body.transactionId as String);
+vars.put(&apos;AUTH_TOKEN&apos;, body.authToken as String)
+log.info(&quot;AUTH_TOKEN: &quot; + body.authToken as String);
+
+
+def total = (body.payments ?: []).collect{ it.amount as long }.sum() ?: 0
+vars.put(&apos;TOTAL_AMOUNT&apos;, String.valueOf(total))
+log.info(&quot;TOTAL_AMOUNT: &quot; +  String.valueOf(total));
+
+def isAll = (body.payments &amp;&amp; body.payments[0].isAllCCP == true) ? &apos;true&apos; : &apos;false&apos;
+vars.put(&apos;IS_ALL_CCP&apos;, isAll)
+log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
+          </JSR223PostProcessor>
+          <hashTree/>
+        </hashTree>
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If PAYMENT_METHOD == CARDS" enabled="true">
+          <stringProp name="IfController.condition">${__groovy(
+  def pm = vars.get(&apos;PAYMENT_METHOD&apos;);
+  pm == &apos;CARDS&apos;
+)}</stringProp>
+          <boolProp name="IfController.evaluateAll">false</boolProp>
+          <boolProp name="IfController.useExpression">true</boolProp>
+        </IfController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Session (CARDS)" enabled="true">
+            <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/payment-methods/${PAYMENT_METHOD_ID}/sessions/${ORDER_ID}</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+              <collectionProp name="Arguments.arguments"/>
+            </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">tags</stringProp>
+                  <stringProp name="Header.value">{ name: &apos;get-session&apos; }</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">timeout</stringProp>
+                  <stringProp name="Header.value">10s</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree/>
+          </hashTree>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Calculate Fees" enabled="true">
+          <stringProp name="HTTPSampler.path">${BASE_PATH_V2}/payment-methods/${PAYMENT_METHOD_ID}/fees?maxOccurences=1235</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">{&#xd;
+        &quot;bin&quot;: &quot;52550002&quot;,&#xd;
+        &quot;touchpoint&quot;: &quot;CHECKOUT&quot;,&#xd;
+        &quot;paymentNotices&quot;: [&#xd;
+            {&#xd;
+                &quot;paymentAmount&quot;: 12000,&#xd;
+                &quot;primaryCreditorInstitution&quot;: &quot;77777777777&quot;,&#xd;
+                &quot;transferList&quot;: [&#xd;
+                    {&#xd;
+                        &quot;creditorInstitution&quot;: &quot;77777777777&quot;,&#xd;
+                        &quot;digitalStamp&quot;: false,&#xd;
+                        &quot;transferCategory&quot;: &quot;0101101IM&quot;&#xd;
+                      },&#xd;
+                      {&#xd;
+                        &quot;creditorInstitution&quot;: &quot;01199250158&quot;,&#xd;
+                        &quot;digitalStamp&quot;: false,&#xd;
+                        &quot;transferCategory&quot;: &quot;0201102IM&quot;&#xd;
+                      }&#xd;
+                ]&#xd;
+            }&#xd;
+        ],&#xd;
+        &quot;isAllCCP&quot;: false&#xd;
+}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">tags</stringProp>
+                <stringProp name="Header.value">{ name: &quot;calculate-fees&quot; }</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">timeout</stringProp>
+                <stringProp name="Header.value">10s</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+          <JSONPostProcessor guiclass="JSONPostProcessorGui" testclass="JSONPostProcessor" testname="JSON Extractor" enabled="true">
+            <stringProp name="JSONPostProcessor.referenceNames">PSP_BUNDLE</stringProp>
+            <stringProp name="JSONPostProcessor.jsonPathExprs">$.bundles[?(@.idPsp == &apos;${PAYMENT_METHOD_PSP_ID}&apos;)]</stringProp>
+            <stringProp name="JSONPostProcessor.match_numbers">1</stringProp>
+            <stringProp name="JSONPostProcessor.defaultValues">NOT_FOUND</stringProp>
+          </JSONPostProcessor>
+          <hashTree/>
+        </hashTree>
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Request Authorization Transaction" enabled="true">
+          <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/transactions/${TRANSACTION_ID}/auth-requests</stringProp>
+          <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+          <stringProp name="HTTPSampler.method">POST</stringProp>
+          <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+          <boolProp name="HTTPSampler.postBodyRaw">true</boolProp>
+          <elementProp name="HTTPsampler.Arguments" elementType="Arguments">
+            <collectionProp name="Arguments.arguments">
+              <elementProp name="" elementType="HTTPArgument">
+                <boolProp name="HTTPArgument.always_encode">false</boolProp>
+                <stringProp name="Argument.value">${AUTH_REQUEST_JSON}</stringProp>
+                <stringProp name="Argument.metadata">=</stringProp>
+              </elementProp>
+            </collectionProp>
+          </elementProp>
+        </HTTPSamplerProxy>
+        <hashTree>
+          <JSR223PreProcessor guiclass="TestBeanGUI" testclass="JSR223PreProcessor" testname="JSR223 PreProcessor" enabled="true">
+            <stringProp name="scriptLanguage">groovy</stringProp>
+            <stringProp name="parameters"></stringProp>
+            <stringProp name="filename"></stringProp>
+            <stringProp name="cacheKey">true</stringProp>
+            <stringProp name="script">import groovy.json.JsonSlurper
+import groovy.json.JsonOutput
+import org.apache.jmeter.config.Arguments
+
+
+def createAuthorizationRequestCards = { String orderIdArg, boolean isAllCCPArg, int amountArg, Map bundle, String paymentInstrumentId -&gt;
+    [
+        amount             : amountArg,
+        fee                : (bundle.taxPayerFee as Integer),
+        pspId              : (bundle.idPsp as String),
+        language           : &apos;IT&apos;,
+        paymentInstrumentId: paymentInstrumentId,
+        details            : [ detailType: &apos;cards&apos;, orderId: orderIdArg ],
+        isAllCCP           : isAllCCPArg
+    ]
+}
+
+
+def createAuthorizationRequestAPM = { String _orderId, boolean isAllCCPArg, int amountArg, Map bundle, String paymentInstrumentId -&gt;
+   [
+       amount             : amountArg,
+       fee                : (bundle.taxPayerFee as Integer),
+       pspId              : (bundle.idPsp as String),
+       language           : &apos;IT&apos;,
+       paymentInstrumentId: paymentInstrumentId,
+       details            : [ detailType: &apos;apm&apos; ],
+       isAllCCP           : isAllCCPArg
+   ]
+}
+
+
+def createAuthorizationRequestRedirect = { String _orderId, boolean isAllCCPArg, int amountArg, Map bundle, String paymentInstrumentId -&gt;
+   [
+       amount             : amountArg,
+       fee                : (bundle.taxPayerFee as Integer),
+       pspId              : (bundle.idPsp as String),
+       language           : &apos;IT&apos;,
+       paymentInstrumentId: paymentInstrumentId,
+       details            : [ detailType: &apos;redirect&apos; ],
+       isAllCCP           : isAllCCPArg
+   ]
+}
+
+def functionMap = [
+    &quot;CARDS&quot;       : createAuthorizationRequestCards,
+    &quot;BANCOMATPAY&quot; : createAuthorizationRequestAPM,
+    &quot;PAYPAL&quot;      : createAuthorizationRequestAPM,
+    &quot;MYBANK&quot;      : createAuthorizationRequestAPM,
+    &quot;REDIRECT_RPIC&quot;: createAuthorizationRequestRedirect,
+    &quot;REDIRECT_RBPS&quot;: createAuthorizationRequestRedirect,
+    &quot;REDIRECT_RBPB&quot;: createAuthorizationRequestRedirect,
+    &quot;REDIRECT_RBPP&quot;: createAuthorizationRequestRedirect,
+    &quot;REDIRECT_RBPR&quot;: createAuthorizationRequestRedirect,
+]
+
+
+def paymentMethod = vars.get(&apos;PAYMENT_METHOD&apos;)
+def paymentInstrumentId = vars.get(&apos;PAYMENT_METHOD_ID&apos;)
+def builder = functionMap[paymentMethod]
+
+def parseBool = { String s -&gt; s?.equalsIgnoreCase(&apos;true&apos;) }
+
+def authReq = builder(
+	vars.get(&apos;ORDER_ID&apos;),
+	parseBool(vars.get(&apos;IS_ALL_CCP&apos;)),
+	vars.get(&apos;TOTAL_AMOUNT&apos;).toInteger(),
+	new JsonSlurper().parseText(vars.get(&apos;PSP_BUNDLE&apos;)) as Map,
+	paymentInstrumentId
+)
+
+def jsonBody = JsonOutput.toJson(authReq)
+vars.put(&apos;AUTH_REQUEST_JSON&apos;, jsonBody)                     
+log.info(&quot;AUTH_REQUEST_JSON: &quot; + JsonOutput.prettyPrint(jsonBody));
+</stringProp>
+          </JSR223PreProcessor>
+          <hashTree/>
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+            <collectionProp name="HeaderManager.headers">
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">tags</stringProp>
+                <stringProp name="Header.value">{ name: &quot;authorization-transaction&quot; }</stringProp>
+              </elementProp>
+              <elementProp name="" elementType="Header">
+                <stringProp name="Header.name">timeout</stringProp>
+                <stringProp name="Header.value">10s</stringProp>
+              </elementProp>
+            </collectionProp>
+          </HeaderManager>
+          <hashTree/>
+        </hashTree>
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Pool Outcomes (x5)" enabled="true">
+          <stringProp name="LoopController.loops">5</stringProp>
+        </LoopController>
+        <hashTree>
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Transaction" enabled="true">
+            <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/transactions/${TRANSACTION_ID}/outcomes</stringProp>
+            <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
+            <stringProp name="HTTPSampler.method">GET</stringProp>
+            <boolProp name="HTTPSampler.use_keepalive">true</boolProp>
+            <boolProp name="HTTPSampler.postBodyRaw">false</boolProp>
+            <elementProp name="HTTPsampler.Arguments" elementType="Arguments" guiclass="HTTPArgumentsPanel" testclass="Arguments" testname="User Defined Variables">
+              <collectionProp name="Arguments.arguments"/>
+            </elementProp>
+          </HTTPSamplerProxy>
+          <hashTree>
+            <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
+              <collectionProp name="HeaderManager.headers">
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">tags</stringProp>
+                  <stringProp name="Header.value">{ name: &quot;get-transaction&quot; }</stringProp>
+                </elementProp>
+                <elementProp name="" elementType="Header">
+                  <stringProp name="Header.name">timeout</stringProp>
+                  <stringProp name="Header.value">10s</stringProp>
+                </elementProp>
+              </collectionProp>
+            </HeaderManager>
+            <hashTree/>
+          </hashTree>
+          <ConstantTimer guiclass="ConstantTimerGui" testclass="ConstantTimer" testname="Constant Timer [sleep 3s]" enabled="true">
+            <stringProp name="ConstantTimer.delay">3000</stringProp>
+          </ConstantTimer>
+          <hashTree/>
+        </hashTree>
+      </hashTree>
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
+        <boolProp name="ResultCollector.error_logging">false</boolProp>
+        <objProp>
+          <name>saveConfig</name>
+          <value class="SampleSaveConfiguration">
+            <time>true</time>
+            <latency>true</latency>
+            <timestamp>true</timestamp>
+            <success>true</success>
+            <label>true</label>
+            <code>true</code>
+            <message>true</message>
+            <threadName>true</threadName>
+            <dataType>true</dataType>
+            <encoding>false</encoding>
+            <assertions>true</assertions>
+            <subresults>true</subresults>
+            <responseData>false</responseData>
+            <samplerData>false</samplerData>
+            <xml>false</xml>
+            <fieldNames>true</fieldNames>
+            <responseHeaders>false</responseHeaders>
+            <requestHeaders>false</requestHeaders>
+            <responseDataOnError>false</responseDataOnError>
+            <saveAssertionResultsFailureMessage>true</saveAssertionResultsFailureMessage>
+            <assertionsResultsToSave>0</assertionsResultsToSave>
+            <bytes>true</bytes>
+            <sentBytes>true</sentBytes>
+            <url>true</url>
+            <threadCounts>true</threadCounts>
+            <idleTime>true</idleTime>
+            <connectTime>true</connectTime>
+          </value>
+        </objProp>
+        <stringProp name="filename"></stringProp>
+      </ResultCollector>
+      <hashTree/>
+    </hashTree>
+  </hashTree>
+</jmeterTestPlan>

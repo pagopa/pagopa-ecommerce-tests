@@ -59,7 +59,7 @@ see [docs](https://www.mongodb.com/docs/drivers/java/sync/v4.3/fundamentals/conn
 Set environment variables locally on the terminal with:
 
 ```sh
-cp .env.example .env
+cp .env.local .env
 # personalize configuration, if needed and then set those variables as local environment variables
 export $(grep -v '^#' .env | xargs)
 ```
