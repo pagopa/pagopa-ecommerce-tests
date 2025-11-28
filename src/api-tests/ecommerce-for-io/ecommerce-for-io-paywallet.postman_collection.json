@@ -190,7 +190,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods?amount={{AMOUNT}}",
 					"host": [
 						"{{HOSTNAME}}"
 					],
