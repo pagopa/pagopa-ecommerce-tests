@@ -1,10 +1,9 @@
 {
 	"info": {
-		"_postman_id": "26f5631d-f365-4ed5-8aee-f335089f4bef",
+		"_postman_id": "ef5234c8-04b3-4b75-922a-914c6ee6aab4",
 		"name": "eCommerce for IO V2 (pay guest)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "23305473",
-		"_collection_link": "https://solar-shuttle-72092.postman.co/workspace/App-IO-api-tests~356aa2ea-a17a-49ad-a3fe-7eb46669b995/collection/23305473-26f5631d-f365-4ed5-8aee-f335089f4bef?action=share&source=collection_link&creator=23305473"
+		"_exporter_id": "23963988"
 	},
 	"item": [
 		{
@@ -157,7 +156,8 @@
 							"});"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				},
 				{
@@ -167,7 +167,8 @@
 							" "
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
@@ -197,7 +198,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods?amount={{AMOUNT}}",
 					"host": [
 						"{{HOSTNAME}}"
 					],
@@ -206,6 +207,12 @@
 						"io",
 						"v2",
 						"payment-methods"
+					],
+					"query": [
+						{
+							"key": "amount",
+							"value": "{{AMOUNT}}"
+						}
 					]
 				}
 			},
@@ -222,10 +229,12 @@
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
+							"  pm.environment.set(\"AUTH_TOKEN\", responseJson.authToken);",
 							" });"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				},
 				{
@@ -235,7 +244,8 @@
 							""
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
@@ -530,7 +540,8 @@
 							"});"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
@@ -540,7 +551,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
+							"value": "{{AUTH_TOKEN}}",
 							"type": "string"
 						}
 					]
@@ -578,7 +589,8 @@
 							"});"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
@@ -588,7 +600,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
+							"value": "{{AUTH_TOKEN}}",
 							"type": "string"
 						}
 					]
