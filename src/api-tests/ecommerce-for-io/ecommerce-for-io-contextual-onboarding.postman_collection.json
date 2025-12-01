@@ -1,11 +1,10 @@
 {
 	"info": {
-		"_postman_id": "57b9d955-d124-4d2b-97ea-5ed2526b1cc7",
+		"_postman_id": "44d35b75-3d89-40f9-a1e4-9ce458b86b50",
 		"name": "eCommerce for IO V2 (contextual wallet onboarding)",
 		"description": "API test collection for contextual wallet onboarding payment flow",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "23305473",
-		"_collection_link": "https://solar-shuttle-72092.postman.co/workspace/App-IO-api-tests~356aa2ea-a17a-49ad-a3fe-7eb46669b995/collection/23305473-57b9d955-d124-4d2b-97ea-5ed2526b1cc7?action=share&source=collection_link&creator=23305473"
+		"_exporter_id": "23963988"
 	},
 	"item": [
 		{
@@ -146,7 +145,9 @@
 							"  }",
 							"});"
 						],
-						"type": "text/javascript"
+						"type": "text/javascript",
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
@@ -176,7 +177,7 @@
 					}
 				},
 				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods?amount={{AMOUNT}}",
 					"host": [
 						"{{HOSTNAME}}"
 					],
@@ -185,6 +186,12 @@
 						"io",
 						"v2",
 						"payment-methods"
+					],
+					"query": [
+						{
+							"key": "amount",
+							"value": "{{AMOUNT}}"
+						}
 					]
 				}
 			},

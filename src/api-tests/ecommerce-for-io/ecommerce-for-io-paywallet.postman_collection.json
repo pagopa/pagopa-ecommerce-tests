@@ -1,10 +1,9 @@
 {
 	"info": {
-		"_postman_id": "cd06a3f5-ee59-4e58-a1f1-feb3b3d4b710",
+		"_postman_id": "6fffdec0-551e-4666-bb9f-358b0eb18a55",
 		"name": "eCommerce for IO V2 (pay by wallet)",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "23305473",
-		"_collection_link": "https://solar-shuttle-72092.postman.co/workspace/App-IO-api-tests~356aa2ea-a17a-49ad-a3fe-7eb46669b995/collection/23305473-cd06a3f5-ee59-4e58-a1f1-feb3b3d4b710?action=share&source=collection_link&creator=23305473"
+		"_exporter_id": "23963988"
 	},
 	"item": [
 		{
@@ -154,7 +153,8 @@
 							"});"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				},
 				{
@@ -165,7 +165,8 @@
 							""
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
@@ -190,7 +191,7 @@
 					}
 				],
 				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods",
+					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods?amount={{AMOUNT}}",
 					"host": [
 						"{{HOSTNAME}}"
 					],
@@ -199,6 +200,12 @@
 						"io",
 						"v2",
 						"payment-methods"
+					],
+					"query": [
+						{
+							"key": "amount",
+							"value": "{{AMOUNT}}"
+						}
 					]
 				},
 				"description": "1. recupero info relativi alla request payment con verificaRPT se non presente in cache dato rptId\n2. cache info su redis dato rptId"
@@ -296,10 +303,12 @@
 							"  pm.response.to.have.status(200);",
 							"  const responseJson = pm.response.json();",
 							"  pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
+							"  pm.environment.set(\"AUTH_TOKEN\", responseJson.authToken)",
 							" });"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				},
 				{
@@ -309,7 +318,8 @@
 							""
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
@@ -607,7 +617,8 @@
 							"});"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
@@ -617,7 +628,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
+							"value": "{{AUTH_TOKEN}}",
 							"type": "string"
 						}
 					]
@@ -655,7 +666,8 @@
 							"});"
 						],
 						"type": "text/javascript",
-						"packages": {}
+						"packages": {},
+						"requests": {}
 					}
 				}
 			],
@@ -665,7 +677,7 @@
 					"bearer": [
 						{
 							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
+							"value": "{{AUTH_TOKEN}}",
 							"type": "string"
 						}
 					]
