@@ -29,8 +29,8 @@
             <stringProp name="Argument.value">0</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
-          <elementProp name="TARGET_THROUGHPUT_PER_MINUTE" elementType="Argument">
-            <stringProp name="Argument.name">TARGET_THROUGHPUT_PER_MINUTE</stringProp>
+          <elementProp name="MAX_ITERATION_PER_MINUTE" elementType="Argument">
+            <stringProp name="Argument.name">MAX_ITERATION_PER_MINUTE</stringProp>
             <stringProp name="Argument.value">60</stringProp>
             <stringProp name="Argument.metadata">=</stringProp>
           </elementProp>
@@ -39,8 +39,8 @@
     </TestPlan>
     <hashTree>
       <ConstantThroughputTimer guiclass="TestBeanGUI" testclass="ConstantThroughputTimer" testname="Constant Throughput Timer">
-        <intProp name="calcMode">1</intProp>
-        <stringProp name="throughput">${TARGET_THROUGHPUT_PER_MINUTE}</stringProp>
+        <intProp name="calcMode">4</intProp>
+        <stringProp name="throughput">${MAX_ITERATION_PER_MINUTE}</stringProp>
       </ConstantThroughputTimer>
       <hashTree/>
       <ThreadGroup guiclass="ThreadGroupGui" testclass="ThreadGroup" testname="Users thread pool">
