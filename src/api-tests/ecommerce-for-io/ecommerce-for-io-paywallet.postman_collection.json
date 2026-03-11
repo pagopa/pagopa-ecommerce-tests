@@ -96,7 +96,8 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set(\"RPTID_NM3\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
+							"const lodash = require('lodash');",
+							"pm.environment.set(\"RPTID_NM3\", \"77777777777\"+lodash.random(302001000000000000, 302001999999999999));",
 							""
 						],
 						"type": "text/javascript",
@@ -708,7 +709,8 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set(\"RPTID_NM3_DELETE\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
+							"const lodash = require('lodash');",
+							"pm.environment.set(\"RPTID_NM3_DELETE\", \"77777777777\"+lodash.random(302001000000000000, 302001999999999999));",
 							"",
 							"const startSessionMockBody = {",
 							"        \"userId\": `${pm.environment.get(\"PAYMENT_USER_ID\")}`,",
@@ -781,7 +783,7 @@
 							"    throw error;",
 							"  } else {",
 							"    const responseJson = response.json();",
-							"    console.log(responseJson);",
+							"    console.log(`Delete transaction created: ${responseJson.transactionId}`);",
 							"    pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
 							"  }",
 							"});"
