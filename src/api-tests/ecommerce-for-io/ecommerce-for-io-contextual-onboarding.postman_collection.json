@@ -1071,7 +1071,7 @@
 							"  const orderId = pm.environment.get('ORDER_ID');",
 							"  if (walletId && orderId) {",
 							"    console.log('');",
-							"    console.log('Contextual wallet onboarding flow completed successfully!');",
+							"    console.log('Contextual onboarding flow completed successfully!');",
 							"    console.log('');",
 							"  }",
 							"});"
