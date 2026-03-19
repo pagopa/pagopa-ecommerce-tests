@@ -89,8 +89,9 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
+							"const lodash = require('lodash');",
 							"// Generate random RPT ID (77777777777 + 18 random digits)",
-							"pm.environment.set(\"RPTID_NM3\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));"
+							"pm.environment.set(\"RPTID_NM3\", \"77777777777\"+lodash.random(302001000000000000, 302001999999999999));"
 						],
 						"type": "text/javascript"
 					}
@@ -447,6 +448,18 @@
 			"name": "Get NPG field (populate NPG cookies)",
 			"event": [
 				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const correlationId = pm.environment.get('NPG_CORRELATION_ID');",
+							"if (!correlationId || correlationId === '{{NPG_CORRELATION_ID}}') {",
+							"  throw new Error('Skipping: NPG_CORRELATION_ID not set (payment method session creation failed)');",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
+				{
 					"listen": "test",
 					"script": {
 						"exec": [
@@ -546,6 +559,18 @@
 		{
 			"name": "Fill NPG text data (populate iframe card data fields)",
 			"event": [
+				{
+					"listen": "prerequest",
+					"script": {
+						"exec": [
+							"const correlationId = pm.environment.get('NPG_CORRELATION_ID');",
+							"if (!correlationId || correlationId === '{{NPG_CORRELATION_ID}}') {",
+							"  throw new Error('Skipping: NPG_CORRELATION_ID not set (payment method session creation failed)');",
+							"}"
+						],
+						"type": "text/javascript"
+					}
+				},
 				{
 					"listen": "test",
 					"script": {
@@ -764,22 +789,14 @@
 							"  pm.expect(responseJson.outcome).to.be.oneOf([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 17, 18, 25, 99, 116, 117, 121]);",
 							"  pm.expect(responseJson.isFinalStatus).to.be.a('boolean');",
 							"  ",
-							"  console.log('');",
-							"  console.log('Guest card payment flow completed successfully!');",
-							"  console.log('');",
-							"  console.log('Flow validated:');",
-							"  console.log('  1. Session creation');",
-							"  console.log('  2. Payment info retrieval');",
-							"  console.log('  3. Payment method selection (CARDS)');",
-							"  console.log('  4. Redirect URL generation');",
-							"  console.log('  5. Payment method session creation (orderId)');",
-							"  console.log('  6. NPG field initialization');",
-							"  console.log('  7. NPG card data population');",
-							"  console.log('  8. Transaction activation');",
-							"  console.log('  9. Fees calculation');",
-							"  console.log('  10. Authorization request');",
-							"  console.log('  11. Transaction outcomes validation');",
-							"  console.log('');",
+							"  // only print flow summary if all required variables were set (no upstream failures)",
+							"  const orderId = pm.environment.get('ORDER_ID');",
+							"  const transactionId = pm.environment.get('TRANSACTION_ID');",
+							"  if (orderId && transactionId) {",
+							"    console.log('');",
+							"    console.log('Guest card flow completed successfully!');",
+							"    console.log('');",
+							"  }",
 							"});"
 						],
 						"type": "text/javascript"

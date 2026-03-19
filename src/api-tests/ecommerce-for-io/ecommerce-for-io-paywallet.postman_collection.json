@@ -96,7 +96,8 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set(\"RPTID_NM3\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
+							"const lodash = require('lodash');",
+							"pm.environment.set(\"RPTID_NM3\", \"77777777777\"+lodash.random(302001000000000000, 302001999999999999));",
 							""
 						],
 						"type": "text/javascript",
@@ -559,7 +560,30 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"setTimeout(function(){}, 1000);"
+							"async function waitForLastPaymentMethodUsed() {",
+							"  const maxAttempts = 5;",
+							"  let counter = 0;",
+							"  let lastType = null;",
+							"  const request = {",
+							"    url: `${pm.environment.get('HOSTNAME')}/ecommerce/io/v2/user/lastPaymentMethodUsed`,",
+							"    method: 'GET',",
+							"    header: {",
+							"      'Authorization': `Bearer ${pm.environment.get('SESSION_TOKEN')}`",
+							"    }",
+							"  };",
+							"  while (counter < maxAttempts) {",
+							"    await new Promise(r => setTimeout(r, 1000));",
+							"    const response = await new Promise((resolve, reject) => pm.sendRequest(request, (error, response) => {",
+							"      if (error) reject(error);",
+							"      else resolve(response);",
+							"    }));",
+							"    lastType = response.json().type;",
+							"    console.log(`Polling lastPaymentMethodUsed attempt ${counter + 1}: type=${lastType}`);",
+							"    if (lastType === 'wallet') break;",
+							"    counter++;",
+							"  }",
+							"}",
+							"waitForLastPaymentMethodUsed();"
 						],
 						"type": "text/javascript",
 						"packages": {}
@@ -708,7 +732,8 @@
 					"listen": "prerequest",
 					"script": {
 						"exec": [
-							"pm.environment.set(\"RPTID_NM3_DELETE\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
+							"const lodash = require('lodash');",
+							"pm.environment.set(\"RPTID_NM3_DELETE\", \"77777777777\"+lodash.random(302001000000000000, 302001999999999999));",
 							"",
 							"const startSessionMockBody = {",
 							"        \"userId\": `${pm.environment.get(\"PAYMENT_USER_ID\")}`,",
@@ -781,7 +806,7 @@
 							"    throw error;",
 							"  } else {",
 							"    const responseJson = response.json();",
-							"    console.log(responseJson);",
+							"    console.log(`Delete transaction created: ${responseJson.transactionId}`);",
 							"    pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
 							"  }",
 							"});"
