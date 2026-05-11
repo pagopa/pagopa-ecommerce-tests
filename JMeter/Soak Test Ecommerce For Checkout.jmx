@@ -21,10 +21,12 @@
           </elementProp>
         </collectionProp>
       </elementProp>
+      <boolProp name="TestPlan.functional_mode">false</boolProp>
+      <boolProp name="TestPlan.serialize_threadgroups">false</boolProp>
     </TestPlan>
     <hashTree>
       <OpenModelThreadGroup guiclass="OpenModelThreadGroupGui" testclass="OpenModelThreadGroup" testname="Open Model Thread Group">
-        <stringProp name="OpenModelThreadGroup.schedule">rate(0/sec) random_arrivals(15 min) rate(30/sec) random_arrivals(60 min) rate(30/sec)</stringProp>
+        <stringProp name="OpenModelThreadGroup.schedule">rate(0/sec) random_arrivals(15 min) rate(5/sec) random_arrivals(60 min) rate(5/sec)</stringProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="OpenModelThreadGroupController"/>
       </OpenModelThreadGroup>
@@ -201,7 +203,7 @@ vars.put(&apos;RPT_ID&apos;, rpt)
 log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
           </JSR223PreProcessor>
           <hashTree/>
-          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager">
+          <HeaderManager guiclass="HeaderPanel" testclass="HeaderManager" testname="HTTP Header Manager" enabled="true">
             <collectionProp name="HeaderManager.headers">
               <elementProp name="" elementType="Header">
                 <stringProp name="Header.name">tags</stringProp>
@@ -215,7 +217,7 @@ log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If PAYMENT_METHOD == CARDS">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If PAYMENT_METHOD == CARDS" enabled="true">
           <stringProp name="IfController.condition">${__groovy(
   def pm = vars.get(&apos;PAYMENT_METHOD&apos;);
   pm == &apos;CARDS&apos;
@@ -265,7 +267,7 @@ log.info(&quot;RPT_ID: &quot; + rpt);</stringProp>
             <hashTree/>
           </hashTree>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Activate Transaction">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Activate Transaction" enabled="true">
           <stringProp name="HTTPSampler.path">${BASE_PATH_V2}/transactions?recaptchaResponse=test</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -364,7 +366,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
           </JSR223PostProcessor>
           <hashTree/>
         </hashTree>
-        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If PAYMENT_METHOD == CARDS">
+        <IfController guiclass="IfControllerPanel" testclass="IfController" testname="If PAYMENT_METHOD == CARDS" enabled="true">
           <stringProp name="IfController.condition">${__groovy(
   def pm = vars.get(&apos;PAYMENT_METHOD&apos;);
   pm == &apos;CARDS&apos;
@@ -373,7 +375,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
           <boolProp name="IfController.useExpression">true</boolProp>
         </IfController>
         <hashTree>
-          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Session (CARDS)">
+          <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[GET] Session (CARDS)" enabled="true">
             <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/payment-methods/${PAYMENT_METHOD_ID}/sessions/${ORDER_ID}</stringProp>
             <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
             <stringProp name="HTTPSampler.method">GET</stringProp>
@@ -399,7 +401,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
             <hashTree/>
           </hashTree>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Calculate Fees">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Calculate Fees" enabled="true">
           <stringProp name="HTTPSampler.path">${BASE_PATH_V2}/payment-methods/${PAYMENT_METHOD_ID}/fees?maxOccurences=1235</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -459,7 +461,7 @@ log.info(&quot;IS_ALL_CCP: &quot; + isAll);</stringProp>
           </JSONPostProcessor>
           <hashTree/>
         </hashTree>
-        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Request Authorization Transaction">
+        <HTTPSamplerProxy guiclass="HttpTestSampleGui" testclass="HTTPSamplerProxy" testname="[POST] Request Authorization Transaction" enabled="true">
           <stringProp name="HTTPSampler.path">${BASE_PATH_V1}/transactions/${TRANSACTION_ID}/auth-requests</stringProp>
           <boolProp name="HTTPSampler.follow_redirects">true</boolProp>
           <stringProp name="HTTPSampler.method">POST</stringProp>
@@ -571,7 +573,7 @@ log.info(&quot;AUTH_REQUEST_JSON: &quot; + JsonOutput.prettyPrint(jsonBody));
           </HeaderManager>
           <hashTree/>
         </hashTree>
-        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Pool Outcomes (x5)">
+        <LoopController guiclass="LoopControlPanel" testclass="LoopController" testname="Pool Outcomes (x5)" enabled="true">
           <stringProp name="LoopController.loops">5</stringProp>
         </LoopController>
         <hashTree>
@@ -606,7 +608,7 @@ log.info(&quot;AUTH_REQUEST_JSON: &quot; + JsonOutput.prettyPrint(jsonBody));
           <hashTree/>
         </hashTree>
       </hashTree>
-      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree">
+      <ResultCollector guiclass="ViewResultsFullVisualizer" testclass="ResultCollector" testname="View Results Tree" enabled="true">
         <boolProp name="ResultCollector.error_logging">false</boolProp>
         <objProp>
           <name>saveConfig</name>
