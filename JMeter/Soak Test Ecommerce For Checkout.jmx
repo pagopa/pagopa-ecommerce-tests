@@ -26,7 +26,7 @@
     </TestPlan>
     <hashTree>
       <OpenModelThreadGroup guiclass="OpenModelThreadGroupGui" testclass="OpenModelThreadGroup" testname="Open Model Thread Group">
-        <stringProp name="OpenModelThreadGroup.schedule">rate(0/sec) random_arrivals(15 min) rate(5/sec) random_arrivals(60 min) rate(5/sec)</stringProp>
+        <stringProp name="OpenModelThreadGroup.schedule">rate(0/sec) random_arrivals(5 min) rate(5/sec) random_arrivals(60 min) rate(5/sec)</stringProp>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
         <elementProp name="ThreadGroup.main_controller" elementType="OpenModelThreadGroupController"/>
       </OpenModelThreadGroup>
