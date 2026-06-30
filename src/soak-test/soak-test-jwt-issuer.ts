@@ -1,7 +1,7 @@
 import { check } from "k6";
 import http from "k6/http";
 import { getJwtIssuerTestConfigOrThrow } from "../utils/config";
-import { KJUR, KEYUTIL,b64utoutf8,b64utohex } from "jsrsasign";
+import { KJUR, KEYUTIL,b64utoutf8,b64utohex, RSAKey } from "jsrsasign";
 
 const config = getJwtIssuerTestConfigOrThrow();
 
@@ -70,10 +70,10 @@ export default function () {
   )
 
   // Parse the token response body to extract the JWT token
-  const jwtToken = JSON.parse(tokenResponse.body).token;
+  const jwtToken = JSON.parse(tokenResponse.body as string).token;
 
   // Parse the keys response
-  const keys = JSON.parse(keysResponse.body).keys;
+  const keys = JSON.parse(keysResponse.body as string).keys;
 
   // Find the key with the matching kid
   const jwtParts = jwtToken.split(".");
@@ -84,7 +84,7 @@ export default function () {
   const header = JSON.parse(headerJson);
 
   // Find the key with the matching kid
-  const key = keys.find(k => k.kid === header.kid);
+  const key = keys.find((k: { kid: string }) => k.kid === header.kid);
 
   check(
     { key },
@@ -101,10 +101,10 @@ export default function () {
     const pubKey = KEYUTIL.getKey({
       n: modulusHex,
       e: exponentHex,
-    });
+    }) as RSAKey;
 
     // Verify the JWT signature
-    const isValid = KJUR.jws.JWS.verifyJWT(jwtToken, pubKey, { alg: ["RS256"] });
+    const isValid = KJUR.jws.JWS.verifyJWT(jwtToken, pubKey, { alg: ["RS256"] }); 
 
     check(
       { isValid },
