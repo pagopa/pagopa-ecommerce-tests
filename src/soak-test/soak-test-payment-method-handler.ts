@@ -5,7 +5,7 @@ import http from "k6/http";
 const config = {
     preAllocatedVUs: 50,
     maxVUs: 200,
-    rate: 200,
+    rate: 50,
     rampingDuration: '1m',
     duration: '3m',
     URL_BASE_PATH: 'https://weuuat.ecommerce.internal.uat.platform.pagopa.it/beta/pagopa-ecommerce-payment-methods-handler',
@@ -196,7 +196,6 @@ export default function () {
     // =========================================================================
     // Step 5: GET /payment-methods/{id}/sessions/{orderId}/transactionId
     // =========================================================================
-    /*
     const securityToken = "SECURITY_TOKEN";
     const getTransactionIdUrl = `${sessionsBasePath}/payment-methods/${paymentMethodId}/sessions/${orderId}/transactionId`;
     const getTransactionIdResponse = http.get(getTransactionIdUrl, {
@@ -215,5 +214,4 @@ export default function () {
         { "Response status from GET /sessions/{orderId}/transactionId was 200": (r) => r.status == 200 },
         { name: "get-transaction-id-for-session" }
     );
-    */
 }
