@@ -144,7 +144,6 @@ export default function () {
 
     if (createSessionResponse.status != 200 || createSessionResponse.json() == null) {
         fail(`Error during createSession: status=${createSessionResponse.status}`);
-        return;
     }
 
     const sessionJson = createSessionResponse.json() as JSONObject;
@@ -214,4 +213,8 @@ export default function () {
         { "Response status from GET /sessions/{orderId}/transactionId was 200": (r) => r.status == 200 },
         { name: "get-transaction-id-for-session" }
     );
+
+    if (getTransactionIdResponse.status != 200 || getTransactionIdResponse.json() == null) {
+        fail(`Error getting transaction ID: status=${getTransactionIdResponse.status}`);
+    }
 }
