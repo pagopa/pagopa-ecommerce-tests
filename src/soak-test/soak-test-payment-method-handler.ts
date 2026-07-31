@@ -4,10 +4,10 @@ import http from "k6/http";
 // TO BE CONFIGURED
 const config = {
     preAllocatedVUs: 50,
-    maxVUs: 200,
+    maxVUs: 10000,
     rate: 50,
-    rampingDuration: '1m',
-    duration: '3m',
+    rampingDuration: '10m',
+    duration: '1h',
     URL_BASE_PATH: 'https://weuuat.ecommerce.internal.uat.platform.pagopa.it/beta/pagopa-ecommerce-payment-methods-handler',
     // Base path for session APIs (with /beta prefix in UAT)
     SESSIONS_BASE_PATH: 'https://weuuat.ecommerce.internal.uat.platform.pagopa.it/beta/pagopa-ecommerce-payment-methods-handler',
