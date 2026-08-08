@@ -28,7 +28,7 @@
     "generate:ts-from-yaml:ecommerce-v2": "shx rm -rf src/generated/ecommerce-v2 && shx mkdir -p src/generated/ecommerce && gen-api-models --api-spec https://raw.githubusercontent.com/pagopa/pagopa-infra/main/src/domains/ecommerce-app/api/ecommerce-checkout/v2/_openapi.json.tpl --no-strict --out-dir src/generated/ecommerce-v2"
   },
   "devDependencies": {
-    "@babel/core": "7.13.16",
+    "@babel/core": "7.29.6",
     "@babel/plugin-proposal-class-properties": "7.13.0",
     "@babel/plugin-proposal-object-rest-spread": "7.13.8",
     "@babel/preset-env": "7.13.15",
