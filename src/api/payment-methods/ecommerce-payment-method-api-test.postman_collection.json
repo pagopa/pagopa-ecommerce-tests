@@ -1,0 +1,413 @@
+{
+	"info": {
+		"_postman_id": "ddbdf12a-2c65-4ca7-becc-abab88a37e64",
+		"name": "eCommerce Payment Method API tests",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Get payment methods",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[pagopa-ecommerce-payment-method-service] Get all existing payment methods response (status code is 200)\", () => {",
+							"  const responseJson = pm.response.json();",
+							"  pm.environment.set(\"PAYMENT_METHOD_ID\", responseJson.paymentMethods[0].id);",
+							"  const expectedPaymentMehtodKeys = new Set([\"asset\",\"description\",\"id\",\"name\",\"paymentTypeCode\",\"ranges\",\"status\"]);",
+							"  pm.expect(responseJson.paymentMethods[0]).to.satisfy(method => Object.keys(method).every(property => expectedPaymentMehtodKeys.has(property)));",
+							"  pm.expect(pm.response.code).to.eql(200);  ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "ocp-apim-subscription-key",
+						"value": "{{API-KEY-TESTING}}",
+						"type": "text"
+					},
+					{
+						"key": "deployment",
+						"value": "{{DEPLOYMENT_PAYMENT_METHODS}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/payment-methods-service/v1/payment-methods",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"payment-methods-service",
+						"v1",
+						"payment-methods"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get payment method by id",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[pagopa-ecommerce-payment-method-service] Get existing payment method response (status code is 200)\", () => {",
+							"  const responseJson = pm.response.json();",
+							"  const expectedPaymentMehtodKeys = new Set([\"asset\",\"description\",\"id\",\"name\",\"paymentTypeCode\",\"ranges\",\"status\"]);",
+							"  pm.expect(responseJson).to.satisfy(method => Object.keys(method).every(property => expectedPaymentMehtodKeys.has(property)));",
+							"  pm.expect(pm.response.code).to.eql(200);  ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "ocp-apim-subscription-key",
+						"value": "{{API-KEY-TESTING}}",
+						"type": "text"
+					},
+					{
+						"key": "deployment",
+						"value": "{{DEPLOYMENT_PAYMENT_METHODS}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/payment-methods-service/v1/payment-methods/{{PAYMENT_METHOD_ID}}",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"payment-methods-service",
+						"v1",
+						"payment-methods",
+						"{{PAYMENT_METHOD_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get payment method by id not found",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[pagopa-ecommerce-payment-method-service] Get not existing payment method (status code is 404)\", () => {",
+							"  const responseJson = pm.response.json();",
+							"  const expectedProblemJsonKeys = new Set([\"detail\",\"status\",\"title\"]);",
+							"  pm.expect(responseJson).to.satisfy(element => Object.keys(element).every(property => expectedProblemJsonKeys.has(property)));",
+							"  pm.expect(pm.response.code).to.eql(404);  ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "ocp-apim-subscription-key",
+						"value": "{{API-KEY-TESTING}}",
+						"type": "text"
+					},
+					{
+						"key": "deployment",
+						"value": "{{DEPLOYMENT_PAYMENT_METHODS}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/payment-methods-service/v1/payment-methods/8de099bf-b453-49af-bc47-1c0f530f8e24",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"payment-methods-service",
+						"v1",
+						"payment-methods",
+						"8de099bf-b453-49af-bc47-1c0f530f8e24"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get fee for credit card payment Method",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[eCommerce for checkout] Psp and fees retrieved with POST fees\", function(){",
+							"   ",
+							"    pm.response.to.have.status(200);",
+							"",
+							"    const response = pm.response.json();",
+							"    const expectedWithoutBundles = {",
+							"        \"paymentMethodName\": \"CARDS\",",
+							"        \"paymentMethodStatus\": \"ENABLED\",",
+							"        \"belowThreshold\": false",
+							"    };",
+							"    const paymentMethodDescription = pm.environment.get(\"PAYMENT_METHOD_DESCRIPTION\");",
+							"    const paymentMethodName = pm.environment.get(\"PAYMENT_METHOD_NAME\");",
+							"    pm.expect(response.paymentMethodName).eql(paymentMethodName);",
+							"    pm.expect(response.paymentMethodDescription).eql(paymentMethodDescription);",
+							"    pm.expect(response.paymentMethodStatus).eql(expectedWithoutBundles.paymentMethodStatus);",
+							"    pm.expect(response.belowThreshold).eql(expectedWithoutBundles.belowThreshold);",
+							"    pm.expect(response.bundles).to.be.not.empty;",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "POST",
+				"header": [
+					{
+						"key": "deployment",
+						"value": "{{DEPLOYMENT_PAYMENT_METHODS}}",
+						"type": "text"
+					},
+					{
+						"key": "x-transaction-id-from-client",
+						"value": "123",
+						"type": "text"
+					},
+					{
+						"key": "ocp-apim-subscription-key",
+						"value": "{{API-KEY-TESTING}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"bin\": \"511111\",\n    \"touchpoint\": \"CHECKOUT\",\n    \"paymentAmount\": 100,\n    \"isAllCCP\": false,\n    \"primaryCreditorInstitution\": \"77777777777\",\n    \"transferList\": [\n        {\n            \"creditorInstitution\": \"77777777777\",\n            \"digitalStamp\": false\n        }\n    ]\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/payment-methods-service/v1/payment-methods/{{PAYMENT_METHOD_ID}}/fees",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"payment-methods-service",
+						"v1",
+						"payment-methods",
+						"{{PAYMENT_METHOD_ID}}",
+						"fees"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Create payment method session",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[pagopa-ecommerce-payment-method-service] Create new payment method CARDS NPG session (status code is 200)\", () => {",
+							"",
+							"  pm.expect(pm.response.code).to.eql(200);  ",
+							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.sessionId).to.be.a('string');",
+							"  pm.expect(responseJson.sessionId).to.have.length.greaterThan(0);",
+							"  pm.environment.set(\"SESSION_ID\", responseJson.sessionId);",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "ocp-apim-subscription-key",
+						"value": "{{API-KEY-TESTING}}",
+						"type": "text"
+					},
+					{
+						"key": "deployment",
+						"value": "{{DEPLOYMENT_PAYMENT_METHODS}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/payment-methods-service/v1/payment-methods/{{PAYMENT_METHOD_ID}}/sessions",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"payment-methods-service",
+						"v1",
+						"payment-methods",
+						"{{PAYMENT_METHOD_ID}}",
+						"sessions"
+					],
+					"query": [
+						{
+							"key": "",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get card data",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[pagopa-ecommerce-payment-method-service] Retrieve card data by session id (status code is 200)\", () => {",
+							"  const responseJson = pm.response.json();",
+							"  pm.expect(responseJson.bin).to.be.a('string');",
+							"  pm.expect(responseJson.bin).to.have.length.greaterThan(0);",
+							"  pm.expect(pm.response.code).to.eql(200);  ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "ocp-apim-subscription-key",
+						"value": "{{API-KEY-TESTING}}",
+						"type": "text"
+					},
+					{
+						"key": "deployment",
+						"value": "{{DEPLOYMENT_PAYMENT_METHODS}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/payment-methods-service/v1/payment-methods/{{PAYMENT_METHOD_ID}}/sessions/{{SESSION_ID}}",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"payment-methods-service",
+						"v1",
+						"payment-methods",
+						"{{PAYMENT_METHOD_ID}}",
+						"sessions",
+						"{{SESSION_ID}}"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get card data with invalid sessionId",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"[pagopa-ecommerce-payment-method-service] Retrieve card data with invalid session id (status code is 404)\", () => {",
+							"  const responseJson = pm.response.json();",
+							"  const expectedProblemJsonKeys = new Set([\"detail\",\"status\",\"title\"]);",
+							"  pm.expect(responseJson).to.satisfy(element => Object.keys(element).every(property => expectedProblemJsonKeys.has(property)));",
+							"  pm.expect(pm.response.code).to.eql(404);  ",
+							"});"
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "ocp-apim-subscription-key",
+						"value": "{{API-KEY-TESTING}}",
+						"type": "text"
+					},
+					{
+						"key": "deployment",
+						"value": "{{DEPLOYMENT_PAYMENT_METHODS}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "{{HOSTNAME}}/ecommerce/payment-methods-service/v1/payment-methods/{{PAYMENT_METHOD_ID}}/sessions/invalidSessionId",
+					"host": [
+						"{{HOSTNAME}}"
+					],
+					"path": [
+						"ecommerce",
+						"payment-methods-service",
+						"v1",
+						"payment-methods",
+						"{{PAYMENT_METHOD_ID}}",
+						"sessions",
+						"invalidSessionId"
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

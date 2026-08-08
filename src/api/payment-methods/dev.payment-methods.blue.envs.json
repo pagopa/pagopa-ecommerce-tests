@@ -1,0 +1,24 @@
+{
+	"id": "5ebce08f-35af-4e5f-8525-48129fd8cb2f",
+	"name": "DEV-blue env for payment-methods",
+	"values": [
+		{
+			"key": "HOSTNAME",
+			"value": "https://api.dev.platform.pagopa.it",
+			"enabled": true
+		},
+		{
+			"key": "DEPLOYMENT_PAYMENT_METHODS",
+			"value": "blue",
+			"enabled": true
+		},
+		{
+			"key": "API-KEY-TESTING",
+			"value": "_TO_REPLACE_",
+			"enabled": true
+		}
+	],
+	"_postman_variable_scope": "environment",
+	"_postman_exported_at": "2023-09-07T17:11:23.659Z",
+	"_postman_exported_using": "Postman/7.36.6"
+}
