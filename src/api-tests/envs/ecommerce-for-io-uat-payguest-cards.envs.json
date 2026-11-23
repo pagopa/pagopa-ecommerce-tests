@@ -18,12 +18,6 @@
 			"value": "CARDS",
 			"type": "default",
 			"enabled": true
-		},
-		{
-			"key": "ID_PSP",
-			"value": "BCITITMM",
-			"type": "default",
-			"enabled": true
 		}
 	],
 	"_postman_variable_scope": "environment",
