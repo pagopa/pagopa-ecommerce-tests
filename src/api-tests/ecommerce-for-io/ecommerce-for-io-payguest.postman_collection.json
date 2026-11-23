@@ -1,779 +1,675 @@
 {
-	"info": {
-		"_postman_id": "ef5234c8-04b3-4b75-922a-914c6ee6aab4",
-		"name": "eCommerce for IO V2 (pay guest)",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
-		"_exporter_id": "23963988"
-	},
-	"item": [
-		{
-			"name": "Start new shared session",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - Wallet Payment] - Start session\", () => {",
-							"  pm.response.to.have.status(201);",
-							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"SESSION_TOKEN\", responseJson.token);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"protocolProfileBehavior": {
-				"disabledSystemHeaders": {}
-			},
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "POST",
-				"header": [
-					{
-						"key": "Content-Type",
-						"value": "application/json",
-						"type": "text"
-					},
-					{
-						"key": "Accept",
-						"value": "application/json",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"userId\": \"{{PAYMENT_USER_ID}}\",\n    \"expiryInMinutes\": 60\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{HOSTNAME}}/session-wallet/mock/v1/session",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"session-wallet",
-						"mock",
-						"v1",
-						"session"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Payment Info by rptId",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - GET payment info by RPT id\", () => {",
-							"  pm.response.to.have.status(200);",
-							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentContextCode);",
-							"  pm.environment.set(\"RPTID_NM3\", responseJson.rptId);",
-							"  pm.environment.set(\"AMOUNT\", responseJson.amount);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"pm.environment.set(\"RPTID_NM3\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-requests/{{RPTID_NM3}}",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"ecommerce",
-						"io",
-						"v2",
-						"payment-requests",
-						"{{RPTID_NM3}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get all payment methods",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - Get payment method\", function () {",
-							"  pm.response.to.have.status(200);",
-							"  const responseJson = pm.response.json();",
-							"  let searchedPaymentMethodName = pm.environment.get(\"PAYMENT_METHOD_NAME\");",
-							"  let paymentMethod = responseJson.paymentMethods.filter(p => p.name === searchedPaymentMethodName)[0];",
-							"  if(paymentMethod) {",
-							"    pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethod.id);",
-							"    console.log(`Selected payment method: ${paymentMethod.name}`);",
-							"  } else {",
-							"    throw Error(`No payment method found for name ${searchedPaymentMethodName}`);",
-							"  }",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							" "
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods?amount={{AMOUNT}}",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"ecommerce",
-						"io",
-						"v2",
-						"payment-methods"
-					],
-					"query": [
-						{
-							"key": "amount",
-							"value": "{{AMOUNT}}"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Start new eCommerce transaction",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - Activate ecommerce transaction\", () => {",
-							"  pm.response.to.have.status(200);",
-							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
-							"  pm.environment.set(\"AUTH_TOKEN\", responseJson.authToken);",
-							" });"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							""
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"paymentNotices\": [{\n        \"rptId\": \"{{RPTID_NM3}}\",\n        \"amount\": {{AMOUNT}}\n    }]\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/transactions",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"ecommerce",
-						"io",
-						"v2",
-						"transactions"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get fees by amount and paymentMethodId",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - Get fees by walletId and paymentToken\", function () {",
-							"  pm.response.to.have.status(200);",
-							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"ID_PSP\", responseJson.bundles[0].idPsp);",
-							"  pm.environment.set(\"FEE\", responseJson.bundles[0].taxPayerFee);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							" "
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"language\": \"it\",\n    \"paymentAmount\": {{AMOUNT}},\n    \"primaryCreditorInstitution\": \"77777777777\",\n    \"isAllCCP\": true,\n    \"transferList\": [\n        {\n            \"creditorInstitution\": \"77777777777\",\n            \"digitalStamp\": false,\n            \"transferCategory\": \"77777777777\"\n        }\n    ]\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods/{{PAYMENT_METHOD_ID}}/fees",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"ecommerce",
-						"io",
-						"v2",
-						"payment-methods",
-						"{{PAYMENT_METHOD_ID}}",
-						"fees"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Start new auth request by transactionId and apm",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - APM Guest] - Authorization request\", function () {",
-							"  pm.response.to.have.status(200);",
-							"  const responseJson = pm.response.json();",
-							"  pm.environment.set(\"AUTHORIZATION_URL\", responseJson.authorizationUrl);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"async function executeGetTransactionPollingUntilStatus(wantedStatus) {",
-							"    const transactionId = pm.environment.get(\"TRANSACTION_ID\");",
-							"    const authToken = pm.environment.get(\"SESSION_TOKEN\");",
-							"    const getTransaction = {",
-							"        url: `${pm.environment.get(\"HOSTNAME\")}/ecommerce/io/v2/transactions/${transactionId}`,",
-							"        method: 'GET',",
-							"        header: {",
-							"            'Content-Type': 'application/json',",
-							"            'Authorization': `Bearer ${authToken}`",
-							"        }",
-							"    };",
-							"    const maxAttempts = 10;",
-							"    var counter = 0;",
-							"    var transactionStatus = null;",
-							"    while (counter < maxAttempts && transactionStatus != wantedStatus) {",
-							"        await new Promise(r => setTimeout(r, 1000));",
-							"        await new Promise((resolve, reject) => pm.sendRequest(getTransaction, (error, response) => {",
-							"            if (error) {",
-							"                console.log(`Error retrieving transaction by id: ${error.code}`);",
-							"                reject(error)",
-							"            } else {",
-							"                const responseBody = response.json();",
-							"                transactionStatus = responseBody.status;",
-							"                console.log(`Transaction with id: [${transactionId}] status: [${transactionStatus}]`)",
-							"                resolve(transactionStatus);",
-							"            }",
-							"        }));",
-							"        counter++;",
-							"    }",
-							"    if (transactionStatus != wantedStatus) {",
-							"            throw new Error(`Transaction in wrong status after polling. Wanted: [${wantedStatus}], received: [${transactionStatus}]`)",
-							"        }",
-							"}",
-							"",
-							"pm.test(\"[eCommerce for checkout] Transaction is created in ACTIVATED /transactions/:idTransaction\", function() {",
-							"    executeGetTransactionPollingUntilStatus(\"ACTIVATED\");",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"amount\": {{AMOUNT}},\n    \"fee\": {{FEE}},\n    \"pspId\": \"{{ID_PSP}}\",\n    \"language\": \"IT\",\n    \"isAllCCP\": true,\n    \"details\": {\n        \"detailType\": \"apm\",\n        \"paymentMethodId\": \"{{PAYMENT_METHOD_ID}}\"\n    }\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/transactions/{{TRANSACTION_ID}}/auth-requests",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"ecommerce",
-						"io",
-						"v2",
-						"transactions",
-						"{{TRANSACTION_ID}}",
-						"auth-requests"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get last payment method used",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - Wallet Payment] - GET last payment method used\", () => {",
-							"  pm.response.to.have.status(200);",
-							"  const responseJson = pm.response.json();",
-							"  pm.expect(responseJson.type).to.equals(\"guest\");",
-							"  pm.expect(responseJson.paymentMethodId).to.equals(pm.environment.get(\"PAYMENT_METHOD_ID\"));",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"setTimeout(function(){}, 1000);",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [
-					{
-						"key": "",
-						"value": "",
-						"type": "text",
-						"disabled": true
-					}
-				],
-				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/user/lastPaymentMethodUsed",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"ecommerce",
-						"io",
-						"v2",
-						"user",
-						"lastPaymentMethodUsed"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get eCommerce transaction by TRANSACTION_ID webview polling",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - Wallet Payment webview] - GET transaction to check status\", () => {",
-							"  pm.response.to.have.status(200);",
-							"  const responseJson = pm.response.json();",
-							"  pm.expect(responseJson.status).to.equals(\"AUTHORIZATION_REQUESTED\");",
-							"  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.payments[0].paymentToken);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{AUTH_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/webview/v1/transactions/{{TRANSACTION_ID}}",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"ecommerce",
-						"webview",
-						"v1",
-						"transactions",
-						"{{TRANSACTION_ID}}"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get transaction outcome by TRANSACTION_ID webview polling",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - Wallet Payment webview] - GET transaction outcome to check status\", () => {",
-							"  pm.response.to.have.status(200);",
-							"  const responseJson = pm.response.json();",
-							"  pm.expect(responseJson.outcome).to.equals(17);",
-							"  pm.expect(responseJson.isFinalStatus).to.equals(false);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {},
-						"requests": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{AUTH_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/webview/v1/transactions/{{TRANSACTION_ID}}/outcomes",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"ecommerce",
-						"webview",
-						"v1",
-						"transactions",
-						"{{TRANSACTION_ID}}",
-						"outcomes"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Delete Transaction",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"[ecommerce for IO - Wallet Payment] - Delete transaction\", () => {",
-							"  pm.response.to.have.status(202);",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				},
-				{
-					"listen": "prerequest",
-					"script": {
-						"exec": [
-							"pm.environment.set(\"RPTID_NM3_DELETE\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
-							"",
-							"const startSessionMockBody = {",
-							"        \"userId\": `${pm.environment.get(\"PAYMENT_USER_ID\")}`,",
-							"        \"expiryInMinutes\": 60",
-							"};",
-							"",
-							"const startSessionObject = {",
-							"  url: pm.environment.get(\"HOSTNAME\") + \"/session-wallet/mock/v1/session\",",
-							"  method: 'POST',",
-							"  header: {",
-							"    'Content-Type': `application/json`,",
-							"    'Accept': `application/json`",
-							"  },",
-							"  body: {",
-							"    mode: 'raw',",
-							"    raw: JSON.stringify(startSessionMockBody)",
-							"  }",
-							"};",
-							"",
-							"pm.sendRequest(startSessionObject, (error, response) => {",
-							"  if (error) {",
-							"    throw error;",
-							"  } else {",
-							"    const responseJson = response.json();",
-							"    pm.environment.set(\"SESSION_TOKEN\", responseJson.token);",
-							"  }",
-							"});",
-							"",
-							"",
-							"const verifyPayment = {",
-							"  url: pm.environment.get(\"HOSTNAME\") + \"/ecommerce/io/v2/payment-requests/\" + pm.environment.get(\"RPTID_NM3_DELETE\"),",
-							"  method: 'GET',",
-							"  header: {",
-							"    'Authorization': `Bearer ${pm.environment.get(\"SESSION_TOKEN\")}`",
-							"  }",
-							"};",
-							"",
-							"pm.sendRequest(verifyPayment, (error, response) => {",
-							"  if (error) {",
-							"    throw error;",
-							"  } else {",
-							"    const responseJson = response.json();",
-							"    pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentContextCode);",
-							"    pm.environment.set(\"AMOUNT\", responseJson.amount);",
-							"  }",
-							"});",
-							"",
-							"const postTransactionRequestBody = {",
-							"    \"paymentNotices\": [{",
-							"        \"rptId\": `${pm.environment.get(\"RPTID_NM3_DELETE\")}`,",
-							"        \"amount\": `${pm.environment.get(\"AMOUNT\")}`,",
-							"    }]",
-							"};",
-							"",
-							"const postTransaction = {",
-							"  url: pm.environment.get(\"HOSTNAME\") + \"/ecommerce/io/v2/transactions\",",
-							"  method: 'POST',",
-							"  header: {",
-							"    'Content-Type': 'application/json',",
-							"    'Authorization': `Bearer ${pm.environment.get(\"SESSION_TOKEN\")}`",
-							"  },",
-							"  body: {",
-							"    mode: 'raw',",
-							"    raw: JSON.stringify(postTransactionRequestBody)",
-							"  }",
-							"};",
-							"",
-							"pm.sendRequest(postTransaction, (error, response) => {",
-							"  if (error) {",
-							"    throw error;",
-							"  } else {",
-							"    const responseJson = response.json();",
-							"    console.log(responseJson);",
-							"    pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
-							"  }",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"auth": {
-					"type": "bearer",
-					"bearer": [
-						{
-							"key": "token",
-							"value": "{{SESSION_TOKEN}}",
-							"type": "string"
-						}
-					]
-				},
-				"method": "DELETE",
-				"header": [],
-				"url": {
-					"raw": "{{HOSTNAME}}/ecommerce/io/v2/transactions/{{TRANSACTION_ID}}",
-					"host": [
-						"{{HOSTNAME}}"
-					],
-					"path": [
-						"ecommerce",
-						"io",
-						"v2",
-						"transactions",
-						"{{TRANSACTION_ID}}"
-					]
-				}
-			},
-			"response": []
-		}
-	],
-	"event": [
-		{
-			"listen": "prerequest",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		},
-		{
-			"listen": "test",
-			"script": {
-				"type": "text/javascript",
-				"exec": [
-					""
-				]
-			}
-		}
-	]
+  "info": {
+    "_postman_id": "f6d6c12e-8e1f-457a-ae0a-5a8091acc37a",
+    "name": "eCommerce for IO V2 (pay guest)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "23963988",
+    "_collection_link": "https://go.postman.co/collection/23963988-f6d6c12e-8e1f-457a-ae0a-5a8091acc37a?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "Start new shared session",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"[ecommerce for IO - Wallet Payment] - Start session\", () => {",
+              "  pm.response.to.have.status(201);",
+              "  const responseJson = pm.response.json();",
+              "  pm.environment.set(\"SESSION_TOKEN\", responseJson.token);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disabledSystemHeaders": {}
+      },
+      "request": {
+        "auth": {
+          "type": "noauth"
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json",
+            "type": "text"
+          },
+          {
+            "key": "Accept",
+            "value": "application/json",
+            "type": "text"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"userId\": \"{{PAYMENT_USER_ID}}\",\n    \"expiryInMinutes\": 60\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{HOSTNAME}}/session-wallet/mock/v1/session",
+          "host": [
+            "{{HOSTNAME}}"
+          ],
+          "path": [
+            "session-wallet",
+            "mock",
+            "v1",
+            "session"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Payment Info by rptId",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"[ecommerce for IO - APM Guest] - GET payment info by RPT id\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  const responseJson = pm.response.json();",
+              "  pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentContextCode);",
+              "  pm.environment.set(\"RPTID_NM3\", responseJson.rptId);",
+              "  pm.environment.set(\"AMOUNT\", responseJson.amount);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set(\"RPTID_NM3\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{SESSION_TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "",
+            "value": "",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-requests/{{RPTID_NM3}}",
+          "host": [
+            "{{HOSTNAME}}"
+          ],
+          "path": [
+            "ecommerce",
+            "io",
+            "v2",
+            "payment-requests",
+            "{{RPTID_NM3}}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get all payment methods",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"[ecommerce for IO - APM Guest] - Get payment method\", function () {",
+              "  pm.response.to.have.status(200);",
+              "  const responseJson = pm.response.json();",
+              "  let searchedPaymentMethodName = pm.environment.get(\"PAYMENT_METHOD_NAME\");",
+              "  let paymentMethod = responseJson.paymentMethods.filter(p => p.name === searchedPaymentMethodName)[0];",
+              "  if(paymentMethod) {",
+              "    pm.environment.set(\"PAYMENT_METHOD_ID\", paymentMethod.id);",
+              "    console.log(`Selected payment method: ${paymentMethod.name}`);",
+              "  } else {",
+              "    throw Error(`No payment method found for name ${searchedPaymentMethodName}`);",
+              "  }",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              " "
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "protocolProfileBehavior": {
+        "disableBodyPruning": true
+      },
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{SESSION_TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods?amount={{AMOUNT}}",
+          "host": [
+            "{{HOSTNAME}}"
+          ],
+          "path": [
+            "ecommerce",
+            "io",
+            "v2",
+            "payment-methods"
+          ],
+          "query": [
+            {
+              "key": "amount",
+              "value": "{{AMOUNT}}"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Start new eCommerce transaction",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"[ecommerce for IO - APM Guest] - Activate ecommerce transaction\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  const responseJson = pm.response.json();",
+              "  pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
+              "  pm.environment.set(\"AUTH_TOKEN\", responseJson.authToken);",
+              " });"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{SESSION_TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"paymentNotices\": [{\n        \"rptId\": \"{{RPTID_NM3}}\",\n        \"amount\": {{AMOUNT}}\n    }]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{HOSTNAME}}/ecommerce/io/v2/transactions",
+          "host": [
+            "{{HOSTNAME}}"
+          ],
+          "path": [
+            "ecommerce",
+            "io",
+            "v2",
+            "transactions"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get fees by amount and paymentMethodId",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"[ecommerce for IO - APM Guest] - Get fees by walletId and paymentToken\", function () {\n  pm.response.to.have.status(200);\n  const responseJson = pm.response.json();\n  //search for the first available bundle excluding invalid ones such as \"test mil\"\n  const bundle = responseJson.bundles.filter(b => b.idPsp != \"TMIL0101\")[0];\n  pm.environment.set(\"ID_PSP\", bundle.idPsp);\n  pm.environment.set(\"FEE\", bundle.taxPayerFee);\n});"
+            ]
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              " "
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{SESSION_TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"language\": \"it\",\n    \"paymentAmount\": {{AMOUNT}},\n    \"primaryCreditorInstitution\": \"77777777777\",\n    \"isAllCCP\": true,\n    \"transferList\": [\n        {\n            \"creditorInstitution\": \"77777777777\",\n            \"digitalStamp\": false,\n            \"transferCategory\": \"77777777777\"\n        }\n    ]\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{HOSTNAME}}/ecommerce/io/v2/payment-methods/{{PAYMENT_METHOD_ID}}/fees",
+          "host": [
+            "{{HOSTNAME}}"
+          ],
+          "path": [
+            "ecommerce",
+            "io",
+            "v2",
+            "payment-methods",
+            "{{PAYMENT_METHOD_ID}}",
+            "fees"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Start new auth request by transactionId and apm",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "pm.test(\"[ecommerce for IO - APM Guest] - Authorization request\", function () {",
+              "  pm.response.to.have.status(200);",
+              "  const responseJson = pm.response.json();",
+              "  pm.environment.set(\"AUTHORIZATION_URL\", responseJson.authorizationUrl);",
+              "});"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{SESSION_TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"amount\": {{AMOUNT}},\n    \"fee\": {{FEE}},\n    \"pspId\": \"{{ID_PSP}}\",\n    \"language\": \"IT\",\n    \"isAllCCP\": true,\n    \"details\": {\n        \"detailType\": \"apm\",\n        \"paymentMethodId\": \"{{PAYMENT_METHOD_ID}}\"\n    }\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{HOSTNAME}}/ecommerce/io/v2/transactions/{{TRANSACTION_ID}}/auth-requests",
+          "host": [
+            "{{HOSTNAME}}"
+          ],
+          "path": [
+            "ecommerce",
+            "io",
+            "v2",
+            "transactions",
+            "{{TRANSACTION_ID}}",
+            "auth-requests"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get last payment method used",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"[ecommerce for IO - Wallet Payment] - GET last payment method used\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  const responseJson = pm.response.json();",
+              "  pm.expect(responseJson.type).to.equals(\"guest\");",
+              "  pm.expect(responseJson.paymentMethodId).to.equals(pm.environment.get(\"PAYMENT_METHOD_ID\"));",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "setTimeout(function(){}, 1000);",
+              ""
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{SESSION_TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "",
+            "value": "",
+            "type": "text",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "{{HOSTNAME}}/ecommerce/io/v2/user/lastPaymentMethodUsed",
+          "host": [
+            "{{HOSTNAME}}"
+          ],
+          "path": [
+            "ecommerce",
+            "io",
+            "v2",
+            "user",
+            "lastPaymentMethodUsed"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get transaction outcome by TRANSACTION_ID webview polling",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"[ecommerce for IO - Wallet Payment webview] - GET transaction outcome to check status\", () => {",
+              "  pm.response.to.have.status(200);",
+              "  const responseJson = pm.response.json();",
+              "  pm.expect(responseJson.outcome).to.equals(17);",
+              "  pm.expect(responseJson.isFinalStatus).to.equals(false);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{AUTH_TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{HOSTNAME}}/ecommerce/webview/v1/transactions/{{TRANSACTION_ID}}/outcomes",
+          "host": [
+            "{{HOSTNAME}}"
+          ],
+          "path": [
+            "ecommerce",
+            "webview",
+            "v1",
+            "transactions",
+            "{{TRANSACTION_ID}}",
+            "outcomes"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Transaction",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"[ecommerce for IO - Wallet Payment] - Delete transaction\", () => {",
+              "  pm.response.to.have.status(202);",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        },
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.environment.set(\"RPTID_NM3_DELETE\", \"77777777777\"+_.random(302001000000000000, 302001999999999999));",
+              "",
+              "const startSessionMockBody = {",
+              "        \"userId\": `${pm.environment.get(\"PAYMENT_USER_ID\")}`,",
+              "        \"expiryInMinutes\": 60",
+              "};",
+              "",
+              "const startSessionObject = {",
+              "  url: pm.environment.get(\"HOSTNAME\") + \"/session-wallet/mock/v1/session\",",
+              "  method: 'POST',",
+              "  header: {",
+              "    'Content-Type': `application/json`,",
+              "    'Accept': `application/json`",
+              "  },",
+              "  body: {",
+              "    mode: 'raw',",
+              "    raw: JSON.stringify(startSessionMockBody)",
+              "  }",
+              "};",
+              "",
+              "pm.sendRequest(startSessionObject, (error, response) => {",
+              "  if (error) {",
+              "    throw error;",
+              "  } else {",
+              "    const responseJson = response.json();",
+              "    pm.environment.set(\"SESSION_TOKEN\", responseJson.token);",
+              "  }",
+              "});",
+              "",
+              "",
+              "const verifyPayment = {",
+              "  url: pm.environment.get(\"HOSTNAME\") + \"/ecommerce/io/v2/payment-requests/\" + pm.environment.get(\"RPTID_NM3_DELETE\"),",
+              "  method: 'GET',",
+              "  header: {",
+              "    'Authorization': `Bearer ${pm.environment.get(\"SESSION_TOKEN\")}`",
+              "  }",
+              "};",
+              "",
+              "pm.sendRequest(verifyPayment, (error, response) => {",
+              "  if (error) {",
+              "    throw error;",
+              "  } else {",
+              "    const responseJson = response.json();",
+              "    pm.environment.set(\"PAYMENT_TOKEN\", responseJson.paymentContextCode);",
+              "    pm.environment.set(\"AMOUNT\", responseJson.amount);",
+              "  }",
+              "});",
+              "",
+              "const postTransactionRequestBody = {",
+              "    \"paymentNotices\": [{",
+              "        \"rptId\": `${pm.environment.get(\"RPTID_NM3_DELETE\")}`,",
+              "        \"amount\": `${pm.environment.get(\"AMOUNT\")}`,",
+              "    }]",
+              "};",
+              "",
+              "const postTransaction = {",
+              "  url: pm.environment.get(\"HOSTNAME\") + \"/ecommerce/io/v2/transactions\",",
+              "  method: 'POST',",
+              "  header: {",
+              "    'Content-Type': 'application/json',",
+              "    'Authorization': `Bearer ${pm.environment.get(\"SESSION_TOKEN\")}`",
+              "  },",
+              "  body: {",
+              "    mode: 'raw',",
+              "    raw: JSON.stringify(postTransactionRequestBody)",
+              "  }",
+              "};",
+              "",
+              "pm.sendRequest(postTransaction, (error, response) => {",
+              "  if (error) {",
+              "    throw error;",
+              "  } else {",
+              "    const responseJson = response.json();",
+              "    console.log(responseJson);",
+              "    pm.environment.set(\"TRANSACTION_ID\", responseJson.transactionId);",
+              "  }",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{SESSION_TOKEN}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{HOSTNAME}}/ecommerce/io/v2/transactions/{{TRANSACTION_ID}}",
+          "host": [
+            "{{HOSTNAME}}"
+          ],
+          "path": [
+            "ecommerce",
+            "io",
+            "v2",
+            "transactions",
+            "{{TRANSACTION_ID}}"
+          ]
+        }
+      },
+      "response": []
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    },
+    {
+      "listen": "test",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          ""
+        ]
+      }
+    }
+  ]
 }
