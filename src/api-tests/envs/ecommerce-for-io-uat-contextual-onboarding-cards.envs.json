@@ -8,7 +8,7 @@
 			"enabled": true
 		},
 		{
-			"key": "USER_ID",
+			"key": "PAYMENT_USER_ID",
 			"value": "bc05c4ab-4657-46a3-b379-4f06890032ea",
 			"type": "default",
 			"enabled": true
