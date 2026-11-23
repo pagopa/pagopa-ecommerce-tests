@@ -42,7 +42,7 @@
         "header": [],
         "body": {
           "mode": "raw",
-          "raw": "{\n    \"userId\": \"{{USER_ID}}\",\n    \"expiryInMinutes\": 90000\n}",
+          "raw": "{\n    \"userId\": \"{{PAYMENT_USER_ID}}\",\n    \"expiryInMinutes\": 90000\n}",
           "options": {
             "raw": {
               "language": "json"
