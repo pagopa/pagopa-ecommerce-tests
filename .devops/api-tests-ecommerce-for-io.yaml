@@ -56,7 +56,7 @@ stages :
               yarn global add newman
             displayName: 'Newman installation'
           - script: |
-              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest-cards.postman_collection.json -e src/api-tests/ecommerce-for-io/ecommerce-for-io-${{ lower(parameters.ENVIRONMENT) }}-payguest-cards.envs.json --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-guest-cards-api-TEST.xml
+              newman run src/api-tests/ecommerce-for-io/ecommerce-for-io-payguest-cards.postman_collection.json -e src/api-tests/envs/ecommerce-for-io-${{ lower(parameters.ENVIRONMENT) }}-payguest-cards.envs.json --ignore-redirects --reporters cli,junit --reporter-junit-export Results/ecommerce-for-io-${{ parameters.ENVIRONMENT }}-guest-cards-api-TEST.xml
             displayName: 'Run api test'
           - task: PublishTestResults@2
             condition: succeededOrFailed()
